@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>XamlLint.Cli</RootNamespace>
+
+    <!-- dotnet tool packing -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>xaml-lint</ToolCommandName>
+    <PackageId>xaml-lint</PackageId>
+    <IsPackable>true</IsPackable>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Command-line XAML linter. Install via `dotnet tool install -g xaml-lint`.</Description>
+    <PackageTags>xaml;lint;wpf;winui;maui;avalonia;uno;analysis</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XamlLint.Core\XamlLint.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

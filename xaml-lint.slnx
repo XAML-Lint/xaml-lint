@@ -3,5 +3,6 @@
     <Project Path="src/XamlLint.Core/XamlLint.Core.csproj" />
     <Project Path="src/XamlLint.Core.SourceGen/XamlLint.Core.SourceGen.csproj" />
     <Project Path="src/XamlLint.DocTool/XamlLint.DocTool.csproj" />
+    <Project Path="src/XamlLint.Cli/XamlLint.Cli.csproj" />
   </Folder>
 </Solution>
