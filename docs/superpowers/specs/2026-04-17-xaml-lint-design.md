@@ -149,6 +149,8 @@ Discovery is **source-generated at build time**. A generator project (`XamlLint.
 
 Runtime has zero reflection and zero MEF. AOT-friendly.
 
+**Generator API: `IIncrementalGenerator`**, not the legacy `ISourceGenerator`. The pipeline uses `SyntaxProvider.ForAttributeWithMetadataName("XamlLint.Core.XamlRuleAttribute", ...)` so the catalog generator re-runs only when rule-attribute metadata actually changes, not on every keystroke. Greenfield choice — avoids the cache-rolling burden older projects carry.
+
 The generator project sets `<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>` so generated catalog code lands on disk (debugging + meta-test inspection).
 
 A sibling MSBuild task (or a small `XamlLint.DocTool` console app, invoked from CI) handles the outputs that cross into the repo tree (docs + schema + CHANGELOG rewrite) — source generators can't safely write arbitrary repo files, so the write-through happens in a build-time post-step with a `--check` mode for CI drift detection. See §11 for what it does.
@@ -503,6 +505,8 @@ Strictly separated. Stdout is formatted output. Stderr is log messages, stack tr
    ```
 
    Used when the scenario genuinely needs a full XAML document (dialect sniffing, suppression interactions across a file). Same verifier, different entry point.
+
+   **Multi-file input.** The verifier accepts `IEnumerable<(string filename, string content)>` overloads for scenarios that span files — e.g., a XAML view and its `.xaml.cs` partial for `x:Class` checks, or a view + a merged resource dictionary. None of v1's 13 rules need this, but the harness supports it from day one so future cross-file rules don't require a verifier rewrite (a known tax in Uno Platform's test infrastructure).
 
    Target: ~10 fixtures per rule via whichever style fits each scenario.
 
