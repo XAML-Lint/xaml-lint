@@ -54,7 +54,7 @@ internal static class HookCommand
             Include: Array.Empty<string>(), Exclude: Array.Empty<string>(),
             Verbosity: Verbosity.Normal, Force: false);
 
-        var pipeline = new LintPipeline(stdout, stderr, TextReader.Null, workingDirectory);
+        var pipeline = new LintPipeline(stdout, TextReader.Null, workingDirectory);
         return pipeline.Run(opts);
     }
 }

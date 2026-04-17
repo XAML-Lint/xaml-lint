@@ -98,7 +98,6 @@ internal static class LintCommand
 
             var pipeline = new LintPipeline(
                 stdout: System.Console.Out,
-                stderr: System.Console.Error,
                 stdin: System.Console.In,
                 workingDirectory: Environment.CurrentDirectory);
             return Task.FromResult(pipeline.Run(opts));

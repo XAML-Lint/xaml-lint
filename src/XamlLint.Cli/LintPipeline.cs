@@ -11,17 +11,14 @@ namespace XamlLint.Cli;
 public sealed class LintPipeline
 {
     private readonly TextWriter _stdout;
-    private readonly TextWriter _stderr;
     private readonly TextReader _stdin;
     private readonly string _workingDirectory;
 
-    public LintPipeline(TextWriter stdout, TextWriter stderr, TextReader stdin, string workingDirectory)
+    public LintPipeline(TextWriter stdout, TextReader stdin, string workingDirectory)
     {
         _stdout = stdout;
-        _stderr = stderr;
         _stdin = stdin;
         _workingDirectory = workingDirectory;
-        _ = _stderr; // reserved for Task 17
     }
 
     public int Run(LintOptions opts)
