@@ -5,4 +5,7 @@
     <Project Path="src/XamlLint.DocTool/XamlLint.DocTool.csproj" />
     <Project Path="src/XamlLint.Cli/XamlLint.Cli.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/XamlLint.Core.Tests/XamlLint.Core.Tests.csproj" />
+  </Folder>
 </Solution>
