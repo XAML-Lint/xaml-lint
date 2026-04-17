@@ -1,0 +1,19 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Build tooling -->
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
+
+    <!-- Testing -->
+    <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
+    <PackageVersion Include="FakeItEasy" Version="9.0.1" />
+    <PackageVersion Include="FakeItEasy.Analyzer.CSharp" Version="6.1.1" />
+    <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
+  </ItemGroup>
+
+</Project>
