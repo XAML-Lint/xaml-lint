@@ -133,7 +133,8 @@ namespace XamlLint.Core.SourceGen
             spc.AddSource("GeneratedRuleCatalog.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
         }
 
-        private static string Quote(string s) => "\"" + s.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+        private static string Quote(string s) =>
+            Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(s, quote: true);
         private static string QuoteOrNull(string? s) => s is null ? "null" : Quote(s);
 
         private sealed record RuleInfo(
