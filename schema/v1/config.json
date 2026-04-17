@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json",
+  "title": "xaml-lint configuration",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "extends": {
+      "type": "string",
+      "enum": [
+        "xaml-lint:off",
+        "xaml-lint:recommended",
+        "xaml-lint:strict"
+      ]
+    },
+    "defaultDialect": {
+      "enum": [
+        "wpf",
+        "winui3",
+        "uwp",
+        "maui",
+        "avalonia",
+        "uno"
+      ]
+    },
+    "overrides": {
+      "type": "array"
+    },
+    "rules": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "*",
+          "LX001",
+          "LX002",
+          "LX003",
+          "LX004",
+          "LX005",
+          "LX006"
+        ]
+      }
+    }
+  }
+}
