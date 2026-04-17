@@ -43,7 +43,10 @@ public static class PragmaParser
         foreach (var comment in comments)
         {
             var body = comment.Value.Trim();
-            if (!body.StartsWith("xaml-lint", StringComparison.Ordinal)) continue;
+            // Accept "xaml-lint" exactly or followed by whitespace; reject "xaml-linting", "xaml-lint-foo".
+            if (!(body == "xaml-lint" ||
+                  (body.StartsWith("xaml-lint", StringComparison.Ordinal) && body.Length > 9 && char.IsWhiteSpace(body[9]))))
+                continue;
 
             var info = (IXmlLineInfo)comment;
             var line = info.HasLineInfo() ? info.LineNumber : 1;

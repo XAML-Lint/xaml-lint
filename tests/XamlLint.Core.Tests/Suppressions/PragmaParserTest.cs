@@ -133,4 +133,21 @@ public sealed class PragmaParserTest
 
         result.Diagnostics.Should().BeEmpty();
     }
+
+    [Fact]
+    public void Comment_with_xaml_lint_prefix_but_no_boundary_is_not_a_pragma()
+    {
+        const string src = """
+            <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <!-- xaml-linting is a word, not a directive -->
+                <!-- xaml-lint-something -->
+                <A />
+            </Root>
+            """;
+        var doc = Parse(src);
+        var result = PragmaParser.Parse(doc);
+
+        result.Diagnostics.Should().BeEmpty();
+        result.Map.IsEmpty.Should().BeTrue();
+    }
 }
