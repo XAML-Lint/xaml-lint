@@ -2,7 +2,7 @@ namespace XamlLint.Core;
 
 /// <summary>
 /// Compile-time metadata about a rule. Populated by the source generator from the
-/// <see cref="XamlRuleAttribute"/> applied to each <c>IXamlRule</c> implementation.
+/// <see cref="XamlRuleAttribute"/> applied to each <see cref="IXamlRule"/> implementation.
 /// </summary>
 public sealed record RuleMetadata(
     string Id,
