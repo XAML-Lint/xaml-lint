@@ -46,16 +46,20 @@ public sealed class SarifFormatter : IDiagnosticFormatter
         w.WriteString("version", toolVersion);
         w.WriteString("informationUri", InfoUri);
 
+        var metaById = GeneratedRuleCatalog.Rules.ToDictionary(r => r.Metadata.Id, r => r.Metadata);
         var uniqueIds = all.Select(d => d.RuleId).Distinct().OrderBy(s => s, StringComparer.Ordinal).ToList();
         w.WriteStartArray("rules");
         foreach (var id in uniqueIds)
         {
+            var meta = metaById.GetValueOrDefault(id);
             w.WriteStartObject();
             w.WriteString("id", id);
-            w.WriteString("name", id);
+            w.WriteString("name", meta?.Title ?? id);
             w.WriteStartObject("shortDescription");
-            w.WriteString("text", id);
+            w.WriteString("text", meta?.Title ?? id);
             w.WriteEndObject();
+            if (meta?.HelpUri is { Length: > 0 } helpUri)
+                w.WriteString("helpUri", helpUri);
             w.WriteEndObject();
         }
         w.WriteEndArray();
