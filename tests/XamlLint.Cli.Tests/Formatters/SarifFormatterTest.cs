@@ -77,6 +77,43 @@ public sealed class SarifFormatterTest
     }
 
     [Fact]
+    public void Rules_entry_has_title_and_helpUri_from_catalog()
+    {
+        var d = new Diagnostic("LX001", Severity.Error, "m", "f.xaml", 1, 1, 1, 1, HelpUri: null);
+        var sw = new StringWriter();
+        new SarifFormatter().Write(sw, new[] { d }, "0.1.0");
+
+        var rules = JsonDocument.Parse(sw.ToString()).RootElement
+            .GetProperty("runs")[0]
+            .GetProperty("tool")
+            .GetProperty("driver")
+            .GetProperty("rules");
+
+        rules.GetArrayLength().Should().Be(1);
+        rules[0].GetProperty("id").GetString().Should().Be("LX001");
+        rules[0].GetProperty("name").GetString().Should().Be("Malformed XAML");
+        rules[0].GetProperty("shortDescription").GetProperty("text").GetString().Should().Be("Malformed XAML");
+        rules[0].GetProperty("helpUri").GetString().Should().Contain("LX001");
+    }
+
+    [Fact]
+    public void Rules_entry_falls_back_to_id_for_unknown_rule()
+    {
+        var d = new Diagnostic("LX999", Severity.Warning, "m", "f.xaml", 1, 1, 1, 1, null);
+        var sw = new StringWriter();
+        new SarifFormatter().Write(sw, new[] { d }, "0.1.0");
+
+        var rule = JsonDocument.Parse(sw.ToString()).RootElement
+            .GetProperty("runs")[0]
+            .GetProperty("tool")
+            .GetProperty("driver")
+            .GetProperty("rules")[0];
+
+        rule.GetProperty("name").GetString().Should().Be("LX999");
+        rule.TryGetProperty("helpUri", out _).Should().BeFalse();
+    }
+
+    [Fact]
     public void Suppressions_array_emits_when_provided()
     {
         var d = new Diagnostic("LX100", Severity.Warning, "m", "A.xaml", 1, 1, 1, 1, null);
