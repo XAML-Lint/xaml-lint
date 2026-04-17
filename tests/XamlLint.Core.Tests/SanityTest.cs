@@ -9,12 +9,11 @@ public sealed class SanityTest
     }
 
     [Fact]
-    public void Core_assembly_can_be_referenced()
+    public void Runner_reports_multiple_tests()
     {
-        // XamlLint.Core has no types yet; M1 adds them.
-        // This confirms the project reference resolves so M1 tests
-        // don't need to re-prove the wiring.
-        var coreAssembly = typeof(XamlLint.Core.Tests.SanityTest).Assembly;
-        coreAssembly.Should().NotBeNull();
+        // Second test exists so the MTP runner's "N tests passed" output
+        // is unambiguously >1 — a single-test project once silently reported
+        // zero on a misconfigured host. No functional assertion needed.
+        true.Should().BeTrue();
     }
 }
