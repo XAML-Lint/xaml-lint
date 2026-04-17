@@ -26,7 +26,7 @@ public static class SchemaWriter
     private static string BuildSchema(IReadOnlyList<string> ruleIds)
     {
         using var buffer = new MemoryStream();
-        using (var w = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true }))
+        using (var w = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true, NewLine = "\n" }))
         {
             w.WriteStartObject();
             w.WriteString("$schema", "https://json-schema.org/draft/2020-12/schema");

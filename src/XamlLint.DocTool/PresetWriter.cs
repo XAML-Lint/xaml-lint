@@ -34,7 +34,7 @@ public static class PresetWriter
     private static string Build(IReadOnlyList<RuleMetadata> rules, Func<RuleMetadata, string> level)
     {
         using var buffer = new MemoryStream();
-        using (var w = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true }))
+        using (var w = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true, NewLine = "\n" }))
         {
             w.WriteStartObject();
             w.WriteString("$schema", "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json");

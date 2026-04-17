@@ -1,0 +1,8 @@
+# Normalize all text files to LF in the working tree on every platform.
+# Prevents CRLF-vs-LF drift in DocTool --check on Windows CI.
+* text=auto eol=lf
+
+# Keep Windows-native scripts as CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
