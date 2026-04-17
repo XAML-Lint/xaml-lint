@@ -31,4 +31,10 @@
     <InternalsVisibleTo Include="XamlLint.Cli.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schema\v1\presets\*.json">
+      <LogicalName>XamlLint.Cli.Presets.%(Filename).json</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

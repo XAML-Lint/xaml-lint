@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json",
+  "rules": {
+    "LX001": "error",
+    "LX002": "error",
+    "LX003": "error",
+    "LX004": "error",
+    "LX005": "warning",
+    "LX006": "error"
+  }
+}
