@@ -135,6 +135,27 @@ public sealed class PragmaParserTest
     }
 
     [Fact]
+    public void Disable_once_covers_multi_line_element_including_closing_tag()
+    {
+        const string src = """
+            <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <!-- xaml-lint disable once LX100 -->
+                <A>
+                    <B />
+                </A>
+                <C />
+            </Root>
+            """;
+        var doc = Parse(src);
+        var result = PragmaParser.Parse(doc);
+
+        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();  // <A>
+        result.Map.IsSuppressed("LX100", line: 4).Should().BeTrue();  // <B />
+        result.Map.IsSuppressed("LX100", line: 5).Should().BeTrue();  // </A>
+        result.Map.IsSuppressed("LX100", line: 6).Should().BeFalse(); // <C />
+    }
+
+    [Fact]
     public void Tabs_between_tokens_are_accepted()
     {
         const string src = "<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">\n" +

@@ -70,7 +70,7 @@ public static class PragmaParser
                     var nextElement = FindNextElementAfter(elementsInOrder, line, col);
                     if (nextElement is null) break;
                     var nextInfo = (IXmlLineInfo)nextElement;
-                    var elementEnd = ComputeElementEndLine(nextElement);
+                    var elementEnd = ComputeElementEndLine(nextElement, document.Source);
                     foreach (var t in targets)
                         map.AddRange(t, nextInfo.LineNumber, elementEnd);
                     break;
@@ -163,18 +163,51 @@ public static class PragmaParser
         return null;
     }
 
-    private static int ComputeElementEndLine(XElement el)
+    private static int ComputeElementEndLine(XElement el, string source)
     {
-        // Rough approximation: an element's "end" is the last line containing any of its
-        // descendants or text. XDocument doesn't expose end-line natively, so we walk.
-        var startInfo = (IXmlLineInfo)el;
-        var maxLine = startInfo.LineNumber;
-        foreach (var n in el.DescendantNodesAndSelf())
+        // IXmlLineInfo only gives start-tag lines, so a descendant walk misses a closing tag
+        // that sits on its own line. Scan the raw source for </LocalName> to find the true end.
+        var info = (IXmlLineInfo)el;
+        var startLine = info.HasLineInfo() ? info.LineNumber : 1;
+        var closingTag = $"</{el.Name.LocalName}>";
+
+        var searchStart = NthNewlineIndex(source, startLine - 1);
+        var closeIdx = source.IndexOf(closingTag, searchStart, StringComparison.Ordinal);
+        if (closeIdx < 0)
         {
-            if (n is IXmlLineInfo li && li.HasLineInfo() && li.LineNumber > maxLine)
-                maxLine = li.LineNumber;
+            // Self-closing element or couldn't locate — fall back to descendant-max.
+            var max = startLine;
+            foreach (var n in el.DescendantNodesAndSelf())
+            {
+                if (n is IXmlLineInfo li && li.HasLineInfo() && li.LineNumber > max)
+                    max = li.LineNumber;
+            }
+            return max;
         }
-        return maxLine;
+        return LineAtOffset(source, closeIdx);
+    }
+
+    private static int NthNewlineIndex(string s, int n)
+    {
+        if (n <= 0) return 0;
+        var count = 0;
+        var i = 0;
+        while (i < s.Length && count < n)
+        {
+            if (s[i] == '\n') count++;
+            i++;
+        }
+        return i;
+    }
+
+    private static int LineAtOffset(string s, int offset)
+    {
+        var line = 1;
+        for (var i = 0; i < offset && i < s.Length; i++)
+        {
+            if (s[i] == '\n') line++;
+        }
+        return line;
     }
 
     private static int CountLines(string source)
