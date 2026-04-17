@@ -134,10 +134,13 @@ Discovery is **source-generated at build time**. A generator project (`XamlLint.
 - A static `GeneratedRuleCatalog.Rules` list of all rules.
 - A `Metadata` property implementation on each rule class that returns a `RuleMetadata` value populated from the attribute.
 - A stub `docs/rules/LX###.md` file for any rule missing one, using the canonical 4-heading template (see §11). The stub is committed; the generator refuses to overwrite an existing doc.
+- An updated `schema/v1/config.json` whose `rules` property enumerates every catalog rule ID as a JSON Schema `enum` entry, so editors autocomplete known IDs in `xaml-lint.config.json`.
 
 Runtime has zero reflection and zero MEF. AOT-friendly.
 
 The generator project sets `<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>` so generated catalog code lands on disk (debugging + meta-test inspection).
+
+A sibling MSBuild task (or a small `XamlLint.DocTool` console app, invoked from CI) handles the outputs that cross into the repo tree (docs + schema + CHANGELOG rewrite) — source generators can't safely write arbitrary repo files, so the write-through happens in a build-time post-step with a `--check` mode for CI drift detection. See §11 for what it does.
 
 ### 3.3 Dialect gating
 
@@ -235,7 +238,7 @@ For each linted file, resolve dialect in this order (first match wins):
    - MAUI: `http://schemas.microsoft.com/dotnet/2021/maui`
    - Avalonia: `https://github.com/avaloniaui`
    - Uno: WPF/UWP URL + Uno-specific ignorable markers
-5. **Fallback**: `Wpf`. Logged at `--verbose`.
+5. **Fallback**: `Wpf`. Logged at `--verbosity detailed`.
 
 The csproj-walking heuristic is **explicitly rejected** — views often live several folders away from the relevant csproj, TFMs aren't reliable dialect signals (e.g., `net8.0-windows10.0.19041.0` is used for both WPF and WinUI 3), and the walk is fragile. Configuration is the intended signal.
 
@@ -262,7 +265,13 @@ Configs do not merge across levels in v1 — first match end-to-end wins. (Mergi
   "rules": {
     "LX300": "off",
     "LX400": "warning",
-    "LX100": "error"
+    "LX100": "error",
+    "LX301": {
+      "severity": "warning",
+      "options": {
+        "allowedCasings": ["PascalCase"]
+      }
+    }
   }
 }
 ```
@@ -270,19 +279,26 @@ Configs do not merge across levels in v1 — first match end-to-end wins. (Mergi
 **Fields:**
 - `defaultDialect` (required in v1): `wpf` | `winui3` | `uwp` | `maui` | `avalonia` | `uno`.
 - `overrides[]` (optional): each has `files` (glob), `dialect?`, `rules?`. First match per file wins.
-- `rules` (optional): map rule ID → `"error" | "warning" | "info" | "off"`. `"*"` applies to all rules (global severity override).
+- `rules` (optional): map rule ID → entry. Entry is either:
+  - **Shorthand (string)**: `"error" | "warning" | "info" | "off"` — severity only. Rule-specific defaults apply for behavior options.
+  - **Full form (object)**: `{ "severity": "...", "options": { ... } }` — severity plus rule-specific tunables. The generator emits a per-rule `options` schema so editors autocomplete known option keys.
+  - `"*"` as the key applies to all rules (global severity override — shorthand only; no options).
+
+None of v1's rules ship with `options` today (v1 tunables are deferred), but the schema supports the full form so future rules don't require a config-schema bump.
 
 **Severity resolution order** for `(file, rule)`:
 
 1. Rule's declared `Dialects` doesn't include detected dialect → **skipped** (not reported, not counted).
 2. Start with `rule.Metadata.DefaultSeverity`.
-3. Apply `config.rules[ruleId]` if present.
+3. Apply `config.rules[ruleId]` (severity from shorthand or `severity` field of full form) if present.
 4. Apply first matching `config.overrides[].rules[ruleId]` if present.
 5. CLI flags (`--error-on`, `--warning-on`) applied last — flag grammar deferred to post-v1.
 
+Rule options (if any): merge in the same precedence order — per-file-override options win over project options, which win over rule defaults.
+
 ### 5.3 Schema discovery
 
-JSON Schema file shipped at `schema/v1/config.json`, hosted at `https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json`. Config files reference it via `$schema` — VS Code, Rider, and most editors pick up autocomplete/validation automatically. Migration to GitHub Pages (cleaner URL) is planned before v1 tag.
+JSON Schema file is **generated from the rule catalog** (see §3.2) and written to `schema/v1/config.json`, hosted at `https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json`. Config files reference it via `$schema` — VS Code, Rider, and most editors pick up autocomplete/validation automatically. Every catalog rule ID appears as an enum entry in the schema's `rules` property, so users see a completion list of valid IDs when editing config. Migration to GitHub Pages (cleaner URL) is planned before v1 tag.
 
 ### 5.4 Malformed config
 
@@ -356,19 +372,29 @@ Colored (ANSI), honors `NO_COLOR`. Headers per file, aligned columns. Clean file
 
 Precedence when multiple apply: `2 > 1 > 0`.
 
-### 6.7 Flags in v1
+### 6.7 Positional args and flags in v1
 
-- `--format <name>`
-- `--output <path>`
-- `--config <path>`
-- `--no-config`
-- `--dialect <name>`
-- `--only LX100,LX101,...` — allow-list
-- `--quiet` — suppress `info` severity from output (still affect nothing)
-- `--force` — lint a file whose extension isn't `.xaml`
-- `--verbose` — engine logs to stderr
+**Positional args:** one or more paths or globs. A literal `-` reads newline-separated paths from stdin, so `git diff --name-only | xaml-lint lint -` Just Works. At least one positional is required unless reading from stdin.
 
-Deferred to post-v1: `--error-on warning`, `--fix`, `--watch`.
+**Flags:**
+
+- `--format <name>` — `compact-json` | `sarif` | `msbuild` | `pretty`. Default depends on TTY.
+- `-o, --output <path>` — write to a file instead of stdout. `-` means stdout.
+- `--config <path>` — explicit config file; disables discovery.
+- `--no-config` — skip config discovery entirely; use built-in defaults.
+- `--dialect <name>` — force dialect; overrides config.
+- `--only LX100,LX101,...` — allow-list; only these rules run.
+- `--include <glob>` — repeatable; after positional expansion, keep only files matching any `--include` glob. Globs are `gitignore`-style.
+- `--exclude <glob>` — repeatable; drop files matching any `--exclude` glob. `--exclude` wins over `--include` when both match.
+- `-v, --verbosity <level>` — `q`(uiet) | `m`(inimal) | `n`(ormal) | `d`(etailed) | `diag`(nostic). Default `normal`. Matches MSBuild convention.
+  - `quiet`: errors only.
+  - `minimal`: errors + warnings (good CI default).
+  - `normal`: all diagnostics (default for TTY).
+  - `detailed`: all diagnostics + engine progress logs to stderr.
+  - `diagnostic`: `detailed` + full stack traces for `LX006` + per-rule timing.
+- `--force` — lint files whose extension isn't `.xaml`.
+
+**Deferred to post-v1:** `--error-on warning`, `--fix`, `--watch`, `migrate` subcommand (config-schema upgrades).
 
 ## 7. Error handling
 
@@ -387,11 +413,11 @@ Deferred to post-v1: `--error-on warning`, `--fix`, `--watch`.
 
 ### 7.3 Rule crashes
 
-Each rule invocation is `try/catch`-wrapped. Unhandled exception → emit `LX006` with exception type and short context, skip that rule for that file, continue. Full stack trace to stderr (or `--verbose` stdout). Diagnostics output stays clean for consumers. `LX006` is `error`-severity; a crash shouldn't silently pass CI.
+Each rule invocation is `try/catch`-wrapped. Unhandled exception → emit `LX006` with exception type and short context, skip that rule for that file, continue. Full stack trace to stderr at `--verbosity diagnostic`. Diagnostics output stays clean for consumers. `LX006` is `error`-severity; a crash shouldn't silently pass CI.
 
 ### 7.4 Stderr vs stdout
 
-Strictly separated. Stdout is formatted output. Stderr is log messages, stack traces under `--verbose`, progress info. Claude's hook reads stdout; stderr is for humans debugging.
+Strictly separated. Stdout is formatted output. Stderr is log messages, stack traces (`--verbosity diagnostic`), and engine progress info (`--verbosity detailed`+). Claude's hook reads stdout; stderr is for humans debugging.
 
 ## 8. Testing
 
@@ -404,18 +430,38 @@ Strictly separated. Stdout is formatted output. Stderr is log messages, stack tr
 
 ### 8.2 Test layers
 
-1. **Rule unit tests** — directory-per-rule, fixture-driven:
+1. **Rule unit tests** — two complementary styles, both fed through a small `XamlDiagnosticVerifier<TRule>` harness:
+
+   **Inline (preferred for focused tests):** source strings with `{|RuleId:...|}` span markers inspired by `Microsoft.CodeAnalysis.Testing` and used by Roslynator. A tiny `XamlTestCode.Parse` strips markers, records expected `(ruleId, span)` pairs, and returns the clean XAML. The verifier asserts actual diagnostics match the marked set exactly.
+
+   ```csharp
+   [Fact]
+   public async Task Grid_row_without_definition_flags_the_attribute()
+   {
+       await Verifier.AnalyzeAsync<GridRowWithoutRowDefinition>(@"
+           <Grid xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+               <Button {|LX100:Grid.Row=""1""|} />
+           </Grid>");
+   }
    ```
-   tests/XamlLint.Core.Tests/Rules/LX100/
+
+   Span-less markers `{|LX100|}` mean "diagnostic exists for this rule somewhere"; positional markers `{|LX100:...|}` assert exact location.
+
+   **External fixtures (for larger scenarios):** directory-per-rule, fixture-driven:
+
+   ```
+   tests/XamlLint.Core.Tests/Rules/Layout/LX100/
      invalid-missing-row/
        input.xaml
        expected.json
      valid-with-definitions/
        input.xaml
        expected.json      # []
-     ...
    ```
-   Test body loads inputs, runs the single rule, asserts canonical JSON match. ~10 fixtures per rule is typical.
+
+   Used when the scenario genuinely needs a full XAML document (dialect sniffing, suppression interactions across a file). Same verifier, different entry point.
+
+   Target: ~10 fixtures per rule via whichever style fits each scenario.
 
 2. **Engine integration tests** — full `XamlDocument → SuppressionMap → rule dispatch → Diagnostics[]` pipeline. Covers pragma handling, dialect gating, severity resolution, multi-rule interaction.
 
@@ -442,7 +488,9 @@ GitHub Actions matrix: `{windows-latest, ubuntu-latest, macos-latest}` × `{net8
 
 ### 8.4 Dogfooding
 
-Test-fixture XAML files themselves lint in a CI step. Forces fixtures to be deliberately valid or deliberately malformed (annotated). Self-linting the plugin repo's own XAML is a stretch goal post-v1 (requires real XAML in the repo first).
+A CI step runs the built `xaml-lint` tool against the repo's own test-fixture XAML directory with `--format msbuild`. Forces fixtures to be deliberately valid or deliberately malformed (annotated via pragmas). Any unexpected diagnostic in a fixture file fails the build — a simple check that the rule catalog still agrees with the fixtures.
+
+Once v1 ships and the repo accumulates real sample XAML (not just fixtures), self-linting the plugin repo's own sample set in CI is trivially additive.
 
 ## 9. Project layout
 
@@ -520,8 +568,10 @@ xaml-lint/
 │   │       ├── Input/               # LX500–LX599
 │   │       └── Deprecated/          # LX600–LX699
 │   ├── XamlLint.Core.SourceGen/     # netstandard2.0 analyzer/generator project
-│   │   ├── RuleCatalogGenerator.cs  # emits GeneratedRuleCatalog.Rules + Metadata
-│   │   └── RuleDocStubGenerator.cs  # emits docs/rules/LX###.md stubs if missing
+│   │   └── RuleCatalogGenerator.cs  # emits GeneratedRuleCatalog.Rules + Metadata
+│   ├── XamlLint.DocTool/            # build-step console app (net8.0, not packed)
+│   │   ├── Program.cs               # stub/delete docs, write schema, rewrite CHANGELOG; --check
+│   │   └── …
 │   └── XamlLint.Cli/                # dotnet tool (net8.0, PackAsTool=true)
 │       ├── XamlLint.Cli.csproj
 │       ├── Program.cs
@@ -547,7 +597,7 @@ xaml-lint/
     └── XamlLint.Plugin.Tests/        # hook shim smoke test
 ```
 
-Three csproj projects: `XamlLint.Core` (class library), `XamlLint.Core.SourceGen` (analyzers/generators project, `netstandard2.0`), `XamlLint.Cli` (exe, `<PackAsTool>true</PackAsTool>`, `<ToolCommandName>xaml-lint</ToolCommandName>`).
+Four csproj projects: `XamlLint.Core` (class library), `XamlLint.Core.SourceGen` (analyzers/generators project, `netstandard2.0`), `XamlLint.DocTool` (internal exe, not packed into the tool nupkg), `XamlLint.Cli` (exe, `<PackAsTool>true</PackAsTool>`, `<ToolCommandName>xaml-lint</ToolCommandName>`).
 
 **Shared MSBuild**: `Directory.Build.props` pins common settings (nullable, treat-warnings-as-errors, target framework). `Directory.Packages.props` uses central package management so NuGet versions are managed in one place.
 
@@ -600,7 +650,7 @@ Each milestone is an independently dogfood-able plugin.
 - Rule docs migrated to GitHub Pages (cleaner URLs); `HelpUri` scheme updated across rules + meta-test
 - Potential repo move to a GitHub organization (before or immediately after tag)
 - Announcement, plugin marketplace submission
-- `CHANGELOG.md` written, cross-referencing `AnalyzerReleases.Shipped.md`
+- `CHANGELOG.md` follows [Keep a Changelog 1.0.0](https://keepachangelog.com/en/1.0.0/); per-version sections `### Added / Changed / Fixed / Removed`; each entry links to the PR. Bare `LX###` references are rewritten by the doc tool to `[LX###](docs/rules/LX###.md) — title` links. Cross-references `AnalyzerReleases.Shipped.md`
 - Versioning policy: semver; rule additions minor, rule removals major, severity downgrades minor, severity upgrades major
 
 ## 11. Attribution and rule documentation
@@ -645,11 +695,23 @@ Copy-pasteable snippets for every suppression mechanism we support:
 - `xaml-lint.config.json` → `"rules": { "LX100": "off" }` (file/project)
 ```
 
-Every rule's doc file is stubbed on first build by the `RuleDocStubGenerator` if missing. The stub contains all four headings with placeholder text; authors replace the placeholders. Meta-tests assert every rule has a non-stub file (no placeholder text left in shipped docs — simple grep on a sentinel).
+Every rule's doc file is stubbed on first build by the doc tool (see §11.4) if missing. The stub contains all four headings with placeholder text; authors replace the placeholders. Meta-tests assert every rule has a non-stub file (no placeholder text left in shipped docs — simple grep on a sentinel).
 
 ### 11.3 Category overview pages
 
-One file per category at `docs/rules/<category>.md` (e.g., `layout.md`, `naming.md`). Each page has a short intro and a table linking to every rule in that range. Generated by `RuleDocStubGenerator` on first build; authors maintain the intro.
+One file per category at `docs/rules/<category>.md` (e.g., `layout.md`, `naming.md`). Each page has a short intro and a table linking to every rule in that range. Generated by the doc tool on first build; authors maintain the intro.
+
+### 11.4 Doc tool responsibilities
+
+The `XamlLint.DocTool` build-step (or MSBuild task) reads the generated rule catalog and, in the repo tree:
+
+- **Stubs missing `docs/rules/LX###.md`** with the 4-heading template.
+- **Deletes orphaned `docs/rules/LX###.md`** whose IDs are no longer in the catalog — prevents rot. (Refuses to delete if the file isn't a generated-stub shape; requires an `--allow-delete` flag for safety.)
+- **Writes/updates `schema/v1/config.json`** with the current rule-ID enum and any per-rule option schemas (see §5.3).
+- **Rewrites bare `LX###` mentions in `CHANGELOG.md`** into `[LX###](docs/rules/LX###.md) — title` links. Idempotent.
+- **`--check` mode** for CI: runs all of the above dry; fails with a diff if the working tree would change. Catches "forgot to regenerate after adding a rule" at PR time.
+
+The tool is deliberately separate from the source generator because source generators can't safely write arbitrary repo files. The tool runs as a post-build step locally and as a verification gate in CI.
 
 ## 12. Deferred / post-v1
 
