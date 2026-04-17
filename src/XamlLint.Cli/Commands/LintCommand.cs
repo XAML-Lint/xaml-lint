@@ -16,6 +16,12 @@ internal static class LintCommand
         {
             Description = "Output format: compact-json | sarif | msbuild | pretty. Default depends on TTY.",
         };
+        formatOpt.Validators.Add(r =>
+        {
+            var v = r.GetValueOrDefault<string?>();
+            if (v is not null && v is not ("compact-json" or "sarif" or "msbuild" or "pretty"))
+                r.AddError($"Unknown --format '{v}'. Allowed: compact-json, sarif, msbuild, pretty.");
+        });
         var outputOpt = new Option<string?>("--output", "-o")
         {
             Description = "Write to a file instead of stdout. '-' means stdout.",
@@ -48,6 +54,14 @@ internal static class LintCommand
         {
             Description = "q(uiet) | m(inimal) | n(ormal) | d(etailed) | diag(nostic). Default: normal.",
         };
+        verbosityOpt.Validators.Add(r =>
+        {
+            var v = r.GetValueOrDefault<string?>();
+            if (v is null) return;
+            var lower = v.ToLowerInvariant();
+            if (lower is not ("q" or "quiet" or "m" or "minimal" or "n" or "normal" or "d" or "detailed" or "diag" or "diagnostic"))
+                r.AddError($"Unknown --verbosity '{v}'. Allowed: quiet, minimal, normal, detailed, diagnostic (or q/m/n/d/diag).");
+        });
         var forceOpt = new Option<bool>("--force")
         {
             Description = "Lint files whose extension isn't .xaml.",
@@ -93,6 +107,7 @@ internal static class LintCommand
         return cmd;
     }
 
+    // Validators on formatOpt/verbosityOpt guarantee only legal values reach these mappers.
     private static OutputFormat? ParseFormat(string? raw) => raw switch
     {
         null => null,
@@ -100,17 +115,16 @@ internal static class LintCommand
         "sarif" => OutputFormat.Sarif,
         "msbuild" => OutputFormat.MsBuild,
         "pretty" => OutputFormat.Pretty,
-        _ => throw new ArgumentException($"Unknown --format '{raw}'."),
+        _ => null,
     };
 
     private static Verbosity ParseVerbosity(string? raw) => raw?.ToLowerInvariant() switch
     {
-        null or "n" or "normal" => Verbosity.Normal,
         "q" or "quiet" => Verbosity.Quiet,
         "m" or "minimal" => Verbosity.Minimal,
         "d" or "detailed" => Verbosity.Detailed,
         "diag" or "diagnostic" => Verbosity.Diagnostic,
-        _ => throw new ArgumentException($"Unknown --verbosity '{raw}'."),
+        _ => Verbosity.Normal,
     };
 
     private static IReadOnlyList<string>? SplitCsv(string? raw) =>
