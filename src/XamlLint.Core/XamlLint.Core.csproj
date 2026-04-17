@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <Description>Engine library for xaml-lint, a XAML linter.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

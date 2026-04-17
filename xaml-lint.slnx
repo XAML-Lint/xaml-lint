@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/XamlLint.Core/XamlLint.Core.csproj" />
+  </Folder>
+</Solution>
