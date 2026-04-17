@@ -68,9 +68,8 @@ public sealed class LintPipelineTest
             Verbosity: Verbosity.Normal, Force: false);
 
         using var stdout = new StringWriter();
-        using var stderr = new StringWriter();
         using var stdin = new StringReader("");
-        var pipeline = new LintPipeline(stdout, stderr, stdin, tmp.Path);
+        var pipeline = new LintPipeline(stdout, stdin, tmp.Path);
         var exit = pipeline.Run(opts);
         return (exit, stdout.ToString());
     }
