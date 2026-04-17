@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\XamlLint.Core\XamlLint.Core.csproj" />
+    <ProjectReference Include="..\..\src\XamlLint.DocTool\XamlLint.DocTool.csproj" />
   </ItemGroup>
 
 </Project>
