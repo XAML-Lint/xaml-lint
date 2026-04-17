@@ -114,7 +114,8 @@ public static class PragmaParser
         isOnce = false;
         targets = Array.Empty<string>();
 
-        var parts = body.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        // Split on any whitespace (spaces, tabs, newlines) per spec §3.4 "whitespace is flexible".
+        var parts = body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2 || parts[0] != "xaml-lint") return false;
 
         var idx = 1;

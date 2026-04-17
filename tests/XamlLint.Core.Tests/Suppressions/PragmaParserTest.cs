@@ -135,6 +135,20 @@ public sealed class PragmaParserTest
     }
 
     [Fact]
+    public void Tabs_between_tokens_are_accepted()
+    {
+        const string src = "<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">\n" +
+                           "\t<!--\txaml-lint\tdisable\tLX100\t-->\n" +
+                           "\t<A />\n" +
+                           "</Root>";
+        var doc = Parse(src);
+        var result = PragmaParser.Parse(doc);
+
+        result.Diagnostics.Should().BeEmpty();
+        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();
+    }
+
+    [Fact]
     public void Comment_with_xaml_lint_prefix_but_no_boundary_is_not_a_pragma()
     {
         const string src = """
