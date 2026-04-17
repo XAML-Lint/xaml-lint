@@ -120,7 +120,10 @@ Each rule class carries a `[XamlRule]` attribute that fully declares its metadat
     Title = "Grid.Row used without matching RowDefinition",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX100.md")]
+    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX100.md",
+    // Deprecation metadata (set only when retiring a rule)
+    Deprecated = false,
+    ReplacedBy = null)]
 public sealed class GridRowWithoutRowDefinition : IXamlRule
 {
     // Metadata property is generated from the attribute by the source generator;
@@ -129,12 +132,20 @@ public sealed class GridRowWithoutRowDefinition : IXamlRule
 }
 ```
 
+**Deprecation lifecycle:** retiring a rule is never a delete. The rule stays in the catalog with `Deprecated = true` and (usually) `ReplacedBy = "LX###"` pointing at a successor. Effects:
+
+- Doc generator renders the rule's title with strikethrough, adds a banner linking to the replacement.
+- Diagnostics emitted by a deprecated rule append `(deprecated — use LX200 instead)` to the message.
+- Meta-tests require every deprecated rule to have `ReplacedBy` set (or a `Justification` string explaining why nothing replaces it).
+- `--only` and config severity overrides still work on deprecated IDs; users get a stable deprecation window, not a sudden rename.
+
 Discovery is **source-generated at build time**. A generator project (`XamlLint.Core.SourceGen`, targeting `netstandard2.0` per Roslyn source-generator constraints) scans for `[XamlRule]`-annotated classes in the rules assembly and emits:
 
 - A static `GeneratedRuleCatalog.Rules` list of all rules.
 - A `Metadata` property implementation on each rule class that returns a `RuleMetadata` value populated from the attribute.
 - A stub `docs/rules/LX###.md` file for any rule missing one, using the canonical 4-heading template (see §11). The stub is committed; the generator refuses to overwrite an existing doc.
 - An updated `schema/v1/config.json` whose `rules` property enumerates every catalog rule ID as a JSON Schema `enum` entry, so editors autocomplete known IDs in `xaml-lint.config.json`.
+- Generated preset profiles (see §5.4) — `xaml-lint-recommended.json`, `xaml-lint-strict.json`, `xaml-lint-off.json` — populated from each rule's `DefaultSeverity`.
 
 Runtime has zero reflection and zero MEF. AOT-friendly.
 
@@ -257,6 +268,7 @@ Configs do not merge across levels in v1 — first match end-to-end wins. (Mergi
 ```json
 {
   "$schema": "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json",
+  "extends": "xaml-lint:recommended",
   "defaultDialect": "wpf",
   "overrides": [
     { "files": "src/winui/**/*.xaml", "dialect": "winui3" },
@@ -277,6 +289,7 @@ Configs do not merge across levels in v1 — first match end-to-end wins. (Mergi
 ```
 
 **Fields:**
+- `extends` (optional): a preset name (`"xaml-lint:recommended"`, `"xaml-lint:strict"`, `"xaml-lint:off"`) or a file path. Preset severities apply first; the user's `rules` block overrides. See §5.4.
 - `defaultDialect` (required in v1): `wpf` | `winui3` | `uwp` | `maui` | `avalonia` | `uno`.
 - `overrides[]` (optional): each has `files` (glob), `dialect?`, `rules?`. First match per file wins.
 - `rules` (optional): map rule ID → entry. Entry is either:
@@ -290,17 +303,35 @@ None of v1's rules ship with `options` today (v1 tunables are deferred), but the
 
 1. Rule's declared `Dialects` doesn't include detected dialect → **skipped** (not reported, not counted).
 2. Start with `rule.Metadata.DefaultSeverity`.
-3. Apply `config.rules[ruleId]` (severity from shorthand or `severity` field of full form) if present.
-4. Apply first matching `config.overrides[].rules[ruleId]` if present.
-5. CLI flags (`--error-on`, `--warning-on`) applied last — flag grammar deferred to post-v1.
+3. Apply `extends` preset's `rules[ruleId]` if present.
+4. Apply `config.rules[ruleId]` (severity from shorthand or `severity` field of full form) if present.
+5. Apply first matching `config.overrides[].rules[ruleId]` if present.
+6. CLI flags (`--error-on`, `--warning-on`) applied last — flag grammar deferred to post-v1.
 
-Rule options (if any): merge in the same precedence order — per-file-override options win over project options, which win over rule defaults.
+Rule options (if any): merge in the same precedence order — per-file-override options win over project options, which win over preset options, which win over rule defaults.
 
 ### 5.3 Schema discovery
 
 JSON Schema file is **generated from the rule catalog** (see §3.2) and written to `schema/v1/config.json`, hosted at `https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json`. Config files reference it via `$schema` — VS Code, Rider, and most editors pick up autocomplete/validation automatically. Every catalog rule ID appears as an enum entry in the schema's `rules` property, so users see a completion list of valid IDs when editing config. Migration to GitHub Pages (cleaner URL) is planned before v1 tag.
 
-### 5.4 Malformed config
+### 5.4 Preset profiles
+
+Three presets ship with the tool, generated from the catalog by `DocTool`:
+
+- **`xaml-lint:off`** — every rule set to `"off"`. Starting point for users who want to opt-in explicitly.
+- **`xaml-lint:recommended`** — each rule's `DefaultSeverity` from its `[XamlRule]` attribute. Balanced defaults; curated for real-world WPF apps.
+- **`xaml-lint:strict`** — every rule active, severities bumped one step (`info` → `warning`, `warning` → `error`). For teams that want maximum signal.
+
+Presets live under `schema/v1/presets/` in the repo (`xaml-lint-off.json`, `xaml-lint-recommended.json`, `xaml-lint-strict.json`) and are bundled into the `dotnet tool` package as embedded resources. Resolution:
+
+- `"extends": "xaml-lint:recommended"` → load bundled preset.
+- `"extends": "./shared-config.json"` → load relative file.
+- `"extends": "https://..."` → not supported in v1 (no network I/O for config).
+- Cyclic `extends` chains → `LX003` error.
+
+Users typically start with `{ "extends": "xaml-lint:recommended" }` and layer project-specific overrides. Meta-tests assert generated presets stay in sync with `DefaultSeverity` values.
+
+### 5.5 Malformed config
 
 - Unreadable, malformed JSON, unknown `defaultDialect`, malformed glob: emit `LX003`, exit `2`, lint nothing. Error message includes config file path and failing key.
 - Unknown rule ID in `rules` map: emit warning, continue linting (forward-compat).
@@ -447,6 +478,18 @@ Strictly separated. Stdout is formatted output. Stderr is log messages, stack tr
 
    Span-less markers `{|LX100|}` mean "diagnostic exists for this rule somewhere"; positional markers `{|LX100:...|}` assert exact location.
 
+   **Shorthand `[|...|]` for single-rule files.** When the verifier is parameterized on one rule (`XamlDiagnosticVerifier<GridRowWithoutRowDefinition>`), `[|span|]` means "expect this rule's diagnostic at this span" — less noise than repeating the rule ID on every assertion:
+
+   ```csharp
+   await Verifier.AnalyzeAsync<GridRowWithoutRowDefinition>(@"
+       <Grid xmlns=""..."">
+           <Button [|Grid.Row=""1""|] />
+           <Button [|Grid.Row=""2""|] />
+       </Grid>");
+   ```
+
+   Both marker styles can mix in one source string; parser picks whichever appears.
+
    **External fixtures (for larger scenarios):** directory-per-rule, fixture-driven:
 
    ```
@@ -524,15 +567,16 @@ xaml-lint/
 │   ├── superpowers/
 │   │   └── specs/
 │   │       └── 2026-04-17-xaml-lint-design.md
-│   └── rules/
-│       ├── tool.md                  # category overview (LX0xx)
-│       ├── layout.md                # category overview (LX1xx)
-│       ├── bindings.md              # category overview (LX2xx)
-│       ├── naming.md                # category overview (LX3xx)
-│       ├── resources.md             # category overview (LX4xx)
-│       ├── input.md                 # category overview (LX5xx)
-│       ├── deprecated.md            # category overview (LX6xx)
-│       └── LX001.md … LX600.md      # per-rule docs (non-contiguous IDs)
+│   ├── rules/
+│   │   ├── tool.md                  # category overview (LX0xx)
+│   │   ├── layout.md                # category overview (LX1xx)
+│   │   ├── bindings.md              # category overview (LX2xx)
+│   │   ├── naming.md                # category overview (LX3xx)
+│   │   ├── resources.md             # category overview (LX4xx)
+│   │   ├── input.md                 # category overview (LX5xx)
+│   │   ├── deprecated.md            # category overview (LX6xx)
+│   │   └── LX001.md … LX600.md      # per-rule docs (non-contiguous IDs)
+│   └── comparison-with-rapid-xaml-toolkit.md  # RXT → LX migration guide
 ├── schema/
 │   └── v1/
 │       └── config.json
@@ -678,7 +722,29 @@ A one-sentence description of what triggers the rule.
 ## Rule description
 
 Longer-form explanation. Why the pattern is a problem, what the correct form
-looks like, and one or two code snippets showing both.
+looks like. Use inline comments adjacent to the offending token to guide the
+reader (and any LLM consuming the doc), not a separate "Bad / Good" section:
+
+```xaml
+<Grid>
+    <!-- non-compliant: Grid.Row="1" but only 1 RowDefinition exists -->
+    <Button Grid.Row="1" />
+    <Grid.RowDefinitions>
+        <RowDefinition />
+    </Grid.RowDefinitions>
+</Grid>
+```
+
+```xaml
+<Grid>
+    <!-- compliant: two RowDefinitions, Grid.Row="1" maps cleanly -->
+    <Button Grid.Row="1" />
+    <Grid.RowDefinitions>
+        <RowDefinition />
+        <RowDefinition />
+    </Grid.RowDefinitions>
+</Grid>
+```
 
 ## How to fix violations
 
@@ -708,10 +774,21 @@ The `XamlLint.DocTool` build-step (or MSBuild task) reads the generated rule cat
 - **Stubs missing `docs/rules/LX###.md`** with the 4-heading template.
 - **Deletes orphaned `docs/rules/LX###.md`** whose IDs are no longer in the catalog — prevents rot. (Refuses to delete if the file isn't a generated-stub shape; requires an `--allow-delete` flag for safety.)
 - **Writes/updates `schema/v1/config.json`** with the current rule-ID enum and any per-rule option schemas (see §5.3).
+- **Writes preset files** at `schema/v1/presets/xaml-lint-{off,recommended,strict}.json` (see §5.4) from each rule's `DefaultSeverity`.
 - **Rewrites bare `LX###` mentions in `CHANGELOG.md`** into `[LX###](docs/rules/LX###.md) — title` links. Idempotent.
+- **Appends a deprecation row to `docs/comparison-with-rapid-xaml-toolkit.md`** if a rule's `Deprecated` flag flips or a new `ReplacedBy` appears.
 - **`--check` mode** for CI: runs all of the above dry; fails with a diff if the working tree would change. Catches "forgot to regenerate after adding a rule" at PR time.
 
 The tool is deliberately separate from the source generator because source generators can't safely write arbitrary repo files. The tool runs as a post-build step locally and as a verification gate in CI.
+
+### 11.5 Comparison with Rapid XAML Toolkit
+
+A hand-maintained `docs/comparison-with-rapid-xaml-toolkit.md` page maps upstream `RXT###` IDs to our `LX###` IDs, with a short note per rule on semantic differences (e.g., "RXT451 is `x:Uid` casing; we enforce this as `LX301` only for UWP/WinUI3, skipped in WPF where `x:Uid` is not meaningful"). The page serves two audiences:
+
+- Attribution — credits upstream explicitly per-rule beyond the rule-file header comment.
+- Migration — users arriving from Rapid XAML Toolkit can quickly find the equivalent rule and any behavior shifts.
+
+The table's `RXT###` column is seeded from `RuleMetadata.UpstreamId`; prose is authored by hand. `DocTool --check` verifies that every `UpstreamId` in the catalog appears as a row.
 
 ## 12. Deferred / post-v1
 
@@ -723,6 +800,8 @@ The tool is deliberately separate from the source generator because source gener
 - **Self-hosting the plugin on xaml-lint repo** — requires real XAML fixtures to exist first.
 - **Corpus regression tester** — a small console app that runs the CLI over a curated list of open-source XAML repos and diffs SARIF output against a committed baseline. Catches behavioral drift early (StyleCopAnalyzers has an equivalent: `StyleCopTester`). Post-v1 quality tool; don't block v1 on it.
 - **Rule capability matrix page** — auto-generated markdown table reflecting over the catalog (which rules have codefixes, which are enabled-by-default, which are dialect-specific). Cheap once `[NoCodeFix]`-style marker attributes exist.
+- **"Add a new rule" as a Claude skill** — instead of a static `.github/copilot-instructions.md`, ship a skill (in this plugin or in superpowers) that walks through the full flow: declare `[XamlRule]`, add fixture pair, update `AnalyzerReleases.Unshipped.md`, run `DocTool`, verify meta-tests pass. More actionable than a checklist doc; scaled for solo-maintainer.
+- **Dependency automation (Dependabot)** — GitHub-native dependency PRs for NuGet packages and GitHub Actions. Lower ceremony than Renovate; adopt once the package set is stable enough for auto-PRs to be useful signal (probably around v0.2).
 
 ## 13. Open items before v1 tag
 
