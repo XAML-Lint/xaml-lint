@@ -20,4 +20,13 @@ public sealed class GeneratorOutputTest
 
         // Empty until Task 7 adds rule classes; the type and property existing is what we assert here.
     }
+
+    [Fact]
+    public void GeneratedRuleCatalog_contains_six_tool_diagnostics()
+    {
+        var rules = XamlLint.Core.GeneratedRuleCatalog.Rules;
+        rules.Should().HaveCount(6);
+        rules.Select(r => r.Metadata.Id).Should().BeEquivalentTo(
+            new[] { "LX001", "LX002", "LX003", "LX004", "LX005", "LX006" });
+    }
 }
