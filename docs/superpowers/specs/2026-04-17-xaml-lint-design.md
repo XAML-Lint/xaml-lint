@@ -115,12 +115,12 @@ Each rule class carries a `[XamlRule]` attribute that fully declares its metadat
 
 ```csharp
 [XamlRule(
-    Id = "LX010",
+    Id = "LX100",
     UpstreamId = "RXT101",
     Title = "Grid.Row used without matching RowDefinition",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX010.md")]
+    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX100.md")]
 public sealed class GridRowWithoutRowDefinition : IXamlRule
 {
     // Metadata property is generated from the attribute by the source generator;
@@ -133,8 +133,11 @@ Discovery is **source-generated at build time**. A generator project (`XamlLint.
 
 - A static `GeneratedRuleCatalog.Rules` list of all rules.
 - A `Metadata` property implementation on each rule class that returns a `RuleMetadata` value populated from the attribute.
+- A stub `docs/rules/LX###.md` file for any rule missing one, using the canonical 4-heading template (see §11). The stub is committed; the generator refuses to overwrite an existing doc.
 
 Runtime has zero reflection and zero MEF. AOT-friendly.
+
+The generator project sets `<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>` so generated catalog code lands on disk (debugging + meta-test inspection).
 
 ### 3.3 Dialect gating
 
@@ -181,7 +184,21 @@ Whitespace is flexible; keywords are case-sensitive; `once` only attaches to `di
 
 ### 3.5 Rule IDs (v1)
 
-`LX001`–`LX009` reserved for tool/engine diagnostics. Rules start at `LX010`.
+Rule IDs are organized into **category ranges** (modeled on StyleCop's `SA####` scheme). 3-digit IDs, hundreds place indicates category. Keeps related rules clustered and gives ~100 IDs of headroom per category.
+
+| Range | Category |
+|---|---|
+| LX001–LX099 | Tool / engine diagnostics |
+| LX100–LX199 | Layout (Grid, StackPanel, DockPanel, Canvas, …) |
+| LX200–LX299 | Bindings / data |
+| LX300–LX399 | Naming |
+| LX400–LX499 | Resources / localization |
+| LX500–LX599 | Input / controls |
+| LX600–LX699 | Deprecated patterns |
+| LX700–LX899 | Reserved for future categories |
+| LX900–LX999 | Reserved for opinionated / non-default rules (StyleCop's `SX` precedent) |
+
+**v1 catalog** (19 IDs: 6 tool diagnostics + 13 lint rules):
 
 | ID | Upstream | Title | Dialects | Default |
 |---|---|---|---|---|
@@ -191,21 +208,21 @@ Whitespace is flexible; keywords are case-sensitive; `once` only attaches to `di
 | LX004 | — | Cannot read file | All | Error |
 | LX005 | — | Skipping non-XAML file | All | Info |
 | LX006 | — | Internal error in rule | All | Error |
-| LX010 | RXT101 | Grid.Row without RowDefinition | All | Warning |
-| LX011 | RXT102 | Grid.Column without ColumnDefinition | All | Warning |
-| LX012 | RXT103 | Grid.RowSpan exceeds available rows | All | Warning |
-| LX013 | RXT104 | Grid.ColumnSpan exceeds available columns | All | Warning |
-| LX014 | RXT160 | SelectedItem binding should be TwoWay | All | Info |
-| LX015 | RXT200 | Hardcoded string; use resource | All | Info |
-| LX016 | RXT452 | x:Name should start with uppercase | All | Warning |
-| LX017 | RXT150 | TextBox lacks InputScope | Uwp, WinUI3 | Info |
-| LX018 | RXT170 | Prefer x:Bind over Binding | Uwp, WinUI3 | Info |
-| LX019 | RXT330 | Slider Minimum > Maximum | Wpf, Maui | Warning |
-| LX020 | RXT335 | Stepper Minimum > Maximum | Maui | Warning |
-| LX021 | RXT402 | MediaElement deprecated — use MediaPlayerElement | Uwp, WinUI3 | Warning |
-| LX022 | RXT451 | x:Uid should start with uppercase | Uwp, WinUI3 | Warning |
+| LX100 | RXT101 | Grid.Row without RowDefinition | All | Warning |
+| LX101 | RXT102 | Grid.Column without ColumnDefinition | All | Warning |
+| LX102 | RXT103 | Grid.RowSpan exceeds available rows | All | Warning |
+| LX103 | RXT104 | Grid.ColumnSpan exceeds available columns | All | Warning |
+| LX200 | RXT160 | SelectedItem binding should be TwoWay | All | Info |
+| LX201 | RXT170 | Prefer x:Bind over Binding | Uwp, WinUI3 | Info |
+| LX300 | RXT452 | x:Name should start with uppercase | All | Warning |
+| LX301 | RXT451 | x:Uid should start with uppercase | Uwp, WinUI3 | Warning |
+| LX400 | RXT200 | Hardcoded string; use resource | All | Info |
+| LX500 | RXT150 | TextBox lacks InputScope | Uwp, WinUI3 | Info |
+| LX501 | RXT330 | Slider Minimum > Maximum | Wpf, Maui | Warning |
+| LX502 | RXT335 | Stepper Minimum > Maximum | Maui | Warning |
+| LX600 | RXT402 | MediaElement deprecated — use MediaPlayerElement | Uwp, WinUI3 | Warning |
 
-Rule files live at `src/XamlLint.Core/Rules/LX###_DescriptiveName.cs` (ID in filename for fast navigation).
+Rule files live at `src/XamlLint.Core/Rules/<Category>/LX###_DescriptiveName.cs` — subfolder per category, ID in filename for fast navigation. ID stability is enforced by `AnalyzerReleases.Shipped.md` (see §11).
 
 ## 4. Dialect detection cascade
 
@@ -240,12 +257,12 @@ Configs do not merge across levels in v1 — first match end-to-end wins. (Mergi
   "defaultDialect": "wpf",
   "overrides": [
     { "files": "src/winui/**/*.xaml", "dialect": "winui3" },
-    { "files": "**/*.Designer.xaml", "rules": { "LX015": "off" } }
+    { "files": "**/*.Designer.xaml", "rules": { "LX400": "off" } }
   ],
   "rules": {
-    "LX016": "off",
-    "LX015": "warning",
-    "LX010": "error"
+    "LX300": "off",
+    "LX400": "warning",
+    "LX100": "error"
   }
 }
 ```
@@ -294,14 +311,14 @@ Stable envelope:
   "results": [
     {
       "file": "src/Views/MainView.xaml",
-      "ruleId": "LX016",
+      "ruleId": "LX300",
       "severity": "warning",
       "message": "x:Name 'myButton' should start with uppercase.",
       "startLine": 12,
       "startCol": 28,
       "endLine": 12,
       "endCol": 38,
-      "helpUri": "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX016.md"
+      "helpUri": "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX300.md"
     }
   ]
 }
@@ -322,7 +339,7 @@ SARIF 2.1.0. Key mappings:
 One line per diagnostic:
 
 ```
-src/Views/MainView.xaml(12,28): warning LX016: x:Name 'myButton' should start with uppercase. [https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX016.md]
+src/Views/MainView.xaml(12,28): warning LX300: x:Name 'myButton' should start with uppercase. [https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX300.md]
 ```
 
 Format: `FILE(LINE,COL): severity RULEID: message [helpUri]`. Multi-line ranges collapse to start position only. Silent on clean.
@@ -346,7 +363,7 @@ Precedence when multiple apply: `2 > 1 > 0`.
 - `--config <path>`
 - `--no-config`
 - `--dialect <name>`
-- `--only LX010,LX011,...` — allow-list
+- `--only LX100,LX101,...` — allow-list
 - `--quiet` — suppress `info` severity from output (still affect nothing)
 - `--force` — lint a file whose extension isn't `.xaml`
 - `--verbose` — engine logs to stderr
@@ -389,7 +406,7 @@ Strictly separated. Stdout is formatted output. Stderr is log messages, stack tr
 
 1. **Rule unit tests** — directory-per-rule, fixture-driven:
    ```
-   tests/XamlLint.Core.Tests/Rules/LX010/
+   tests/XamlLint.Core.Tests/Rules/LX100/
      invalid-missing-row/
        input.xaml
        expected.json
@@ -406,7 +423,18 @@ Strictly separated. Stdout is formatted output. Stderr is log messages, stack tr
 
 4. **Plugin end-to-end smoke test** — invoke the hook subcommand with canned `tool_input.file_path` JSON on stdin, assert stdout is valid compact-json. Guards against hook rot.
 
-5. **Performance budget** — benchmark test (BenchmarkDotNet) asserting a representative 200-line WPF view lints in under **50ms p95**. CI fails on regression.
+5. **Meta-tests** — reflect over the source-generated `GeneratedRuleCatalog.Rules` list and assert catalog invariants:
+   - No duplicate rule IDs.
+   - Every rule ID matches a row in `AnalyzerReleases.Shipped.md` or `AnalyzerReleases.Unshipped.md` (exactly one).
+   - Every rule has a `docs/rules/LX###.md` file.
+   - Every rule's `HelpUri` matches the expected URL pattern (`https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX###.md` at v1; migrates to GitHub Pages before v1 tag).
+   - `Dialects` is non-zero for every rule.
+   - `UpstreamId`, when present, follows the `RXT\d+` pattern.
+   - Rule class filename matches rule ID (`LX100_GridRowWithoutRowDefinition.cs`).
+
+   Meta-tests catch whole classes of "forgot to update one of five files" bugs cheaply — they run on every CI build.
+
+6. **Performance budget** — benchmark test (BenchmarkDotNet) asserting a representative 200-line WPF view lints in under **50ms p95**. CI fails on regression.
 
 ### 8.3 CI
 
@@ -427,35 +455,53 @@ xaml-lint/
 │       ├── ci.yml
 │       └── release.yml
 ├── .gitignore
+├── AnalyzerReleases.Shipped.md      # append-only rule ID/severity log (v1, v2, ...)
+├── AnalyzerReleases.Unshipped.md    # entries for the next release; graduate on tag
+├── CHANGELOG.md                     # human-readable release notes
 ├── CLAUDE.md
+├── Directory.Build.props            # shared MSBuild properties across projects
+├── Directory.Packages.props         # central package version management
 ├── LICENSE
 ├── README.md
-├── xaml-lint.slnx                  # SLNX format (not legacy SLN)
+├── version.json                     # Nerdbank.GitVersioning config
+├── xaml-lint.slnx                   # SLNX format (not legacy SLN)
 ├── commands/
-│   └── lint.md                     # /xaml-lint:lint <path>
+│   └── lint.md                      # /xaml-lint:lint <path>
 ├── skills/
 │   └── lint-xaml/
 │       └── SKILL.md
 ├── hooks/
-│   └── hooks.json                  # PostToolUse → xaml-lint hook
+│   └── hooks.json                   # PostToolUse → xaml-lint hook
 ├── docs/
 │   ├── superpowers/
 │   │   └── specs/
 │   │       └── 2026-04-17-xaml-lint-design.md
 │   └── rules/
-│       └── LX001.md … LX022.md
+│       ├── tool.md                  # category overview (LX0xx)
+│       ├── layout.md                # category overview (LX1xx)
+│       ├── bindings.md              # category overview (LX2xx)
+│       ├── naming.md                # category overview (LX3xx)
+│       ├── resources.md             # category overview (LX4xx)
+│       ├── input.md                 # category overview (LX5xx)
+│       ├── deprecated.md            # category overview (LX6xx)
+│       └── LX001.md … LX600.md      # per-rule docs (non-contiguous IDs)
 ├── schema/
 │   └── v1/
 │       └── config.json
 ├── src/
-│   ├── XamlLint.Core/              # rule engine
-│   │   ├── XamlLint.Core.csproj
+│   ├── XamlLint.Core/               # rule engine (net8.0 class library)
+│   │   ├── XamlLint.Core.csproj     # EmitCompilerGeneratedFiles=true
 │   │   ├── XamlDocument.cs
 │   │   ├── Diagnostic.cs
 │   │   ├── Dialect.cs
 │   │   ├── IXamlRule.cs
 │   │   ├── RuleMetadata.cs
 │   │   ├── RuleContext.cs
+│   │   ├── Helpers/                 # one helper class per domain concept
+│   │   │   ├── XamlNameHelpers.cs   # x:Name, TargetName, attached-prop qualifiers
+│   │   │   ├── MarkupExtensionHelpers.cs
+│   │   │   ├── NamespaceHelpers.cs
+│   │   │   └── LocationHelpers.cs
 │   │   ├── Suppressions/
 │   │   │   ├── PragmaParser.cs
 │   │   │   └── SuppressionMap.cs
@@ -463,11 +509,20 @@ xaml-lint/
 │   │   │   ├── XamlParser.cs
 │   │   │   └── DialectDetector.cs
 │   │   └── Rules/
-│   │       ├── LX001_MalformedXaml.cs
-│   │       └── LX010_GridRowWithoutRowDefinition.cs …
-│   ├── XamlLint.Core.SourceGen/    # build-time rule catalog generator
-│   │   └── RuleCatalogGenerator.cs
-│   └── XamlLint.Cli/               # dotnet tool
+│   │       ├── Tool/                # LX001–LX099
+│   │       │   ├── LX001_MalformedXaml.cs
+│   │       │   └── LX002_UnrecognizedPragma.cs
+│   │       ├── Layout/              # LX100–LX199
+│   │       │   └── LX100_GridRowWithoutRowDefinition.cs …
+│   │       ├── Bindings/            # LX200–LX299
+│   │       ├── Naming/              # LX300–LX399
+│   │       ├── Resources/           # LX400–LX499
+│   │       ├── Input/               # LX500–LX599
+│   │       └── Deprecated/          # LX600–LX699
+│   ├── XamlLint.Core.SourceGen/     # netstandard2.0 analyzer/generator project
+│   │   ├── RuleCatalogGenerator.cs  # emits GeneratedRuleCatalog.Rules + Metadata
+│   │   └── RuleDocStubGenerator.cs  # emits docs/rules/LX###.md stubs if missing
+│   └── XamlLint.Cli/                # dotnet tool (net8.0, PackAsTool=true)
 │       ├── XamlLint.Cli.csproj
 │       ├── Program.cs
 │       ├── Commands/
@@ -482,57 +537,119 @@ xaml-lint/
 │           ├── MsBuildFormatter.cs
 │           └── PrettyFormatter.cs
 └── tests/
-    ├── XamlLint.Core.Tests/
-    ├── XamlLint.Cli.Tests/
-    └── XamlLint.Plugin.Tests/
+    ├── XamlLint.Core.Tests/          # rule unit tests (Rules/<Category>/LX###/fixture/...)
+    │   ├── Meta/                     # catalog invariant tests (see §8.2)
+    │   └── Rules/
+    │       ├── Tool/
+    │       ├── Layout/
+    │       └── …
+    ├── XamlLint.Cli.Tests/           # CLI integration
+    └── XamlLint.Plugin.Tests/        # hook shim smoke test
 ```
 
 Three csproj projects: `XamlLint.Core` (class library), `XamlLint.Core.SourceGen` (analyzers/generators project, `netstandard2.0`), `XamlLint.Cli` (exe, `<PackAsTool>true</PackAsTool>`, `<ToolCommandName>xaml-lint</ToolCommandName>`).
+
+**Shared MSBuild**: `Directory.Build.props` pins common settings (nullable, treat-warnings-as-errors, target framework). `Directory.Packages.props` uses central package management so NuGet versions are managed in one place.
+
+**Versioning**: `Nerdbank.GitVersioning` (preferred) or `MinVer` drives SemVer from git tags. `version.json` at repo root. No hand-edited version strings in csproj files.
 
 ## 10. Milestones
 
 Each milestone is an independently dogfood-able plugin.
 
+**Release discipline across all milestones:** every new rule or severity change lands first in `AnalyzerReleases.Unshipped.md`. Graduating a release copies those entries to `AnalyzerReleases.Shipped.md` under the new version header. Meta-tests (§8.2) enforce that every catalog ID has exactly one row across the two files. No ID is ever deleted — removals move to a `### Removed Rules` subsection.
+
 ### M0 — Scaffold (pre-release)
 - `.slnx` + three csproj projects building clean
-- CI pipeline green on all three OSes
+- `Directory.Build.props`, `Directory.Packages.props`, `version.json` (Nerdbank.GitVersioning)
+- Empty `AnalyzerReleases.Shipped.md` + `AnalyzerReleases.Unshipped.md`
+- CI pipeline green on all three OSes (win/linux/mac)
 - Not a user-visible release
 
 ### M1 — Plumbing end-to-end (v0.1.0)
 - Tool/engine diagnostics: `LX001`–`LX006` (all six)
 - No lint rules yet — M1 validates the engine, CLI, config, plugin, and test harness end-to-end
-- Engine: `IXamlRule`, `XamlDocument`, source-gen rule catalog, pragma parsing, `SuppressionMap`
+- Engine: `IXamlRule`, `XamlDocument`, source-gen rule catalog, source-gen doc-stub generator, pragma parsing, `SuppressionMap`
+- Meta-tests: catalog invariants green
 - CLI: `lint` + `hook` subcommands, all v1 flags (§6.7)
 - Config: discovery cascade, project + user-global, schema file
 - Plugin veneer: manifest, hook, skill, slash command
-- Docs: README install + quickstart, rule docs for LX001/LX002, config reference
+- Docs: README install + quickstart, rule docs for LX001–LX006, category-overview page for `tool.md`, config reference
+- `AnalyzerReleases.Unshipped.md` → `Shipped.md` graduation on tag
 - Published to NuGet as `dotnet tool`
 
 ### M2 — Easy rules (v0.2.0)
-- `LX014` SelectedItem TwoWay, `LX015` hardcoded strings, `LX016` x:Name casing
-- Rule docs for each
+- `LX200` SelectedItem TwoWay, `LX300` x:Name casing, `LX400` hardcoded strings
+- Rule docs + category-overview pages: `bindings.md`, `naming.md`, `resources.md`
+- `AnalyzerReleases.Unshipped.md` → `Shipped.md` graduation on tag
 
 ### M3 — Grid family (v0.3.0)
-- `LX010`, `LX011`, `LX012`, `LX013`
+- `LX100`, `LX101`, `LX102`, `LX103`
 - Exercises Grid-ancestry traversal, attached-property + element-syntax variants
+- Category-overview page: `layout.md`
+- `AnalyzerReleases.Unshipped.md` → `Shipped.md` graduation on tag
 
 ### M4 — Dialect-gated rules (v0.4.0)
-- `LX017` TextBox InputScope, `LX018` prefer x:Bind, `LX019` Slider min/max, `LX020` Stepper min/max, `LX021` MediaElement deprecated, `LX022` x:Uid casing
+- `LX201` prefer x:Bind, `LX301` x:Uid casing, `LX500` TextBox InputScope, `LX501` Slider min/max, `LX502` Stepper min/max, `LX600` MediaElement deprecated
 - Exercises dialect-gated rule execution across UWP/WinUI 3/MAUI
+- Category-overview pages: `input.md`, `deprecated.md`
+- `AnalyzerReleases.Unshipped.md` → `Shipped.md` graduation on tag
 
 ### v1.0.0 release
 - M4 complete; all rule IDs live (13 lint rules + 6 tool/engine diagnostics)
-- Rule docs migrated to GitHub Pages (cleaner URLs)
+- Rule docs migrated to GitHub Pages (cleaner URLs); `HelpUri` scheme updated across rules + meta-test
 - Potential repo move to a GitHub organization (before or immediately after tag)
 - Announcement, plugin marketplace submission
-- CHANGELOG, versioning policy: semver, rule additions are minor, rule removals are major
+- `CHANGELOG.md` written, cross-referencing `AnalyzerReleases.Shipped.md`
+- Versioning policy: semver; rule additions minor, rule removals major, severity downgrades minor, severity upgrades major
 
-## 11. Attribution policy
+## 11. Attribution and rule documentation
+
+### 11.1 Attribution policy
 
 - `LICENSE` preserves Matt Lacey's copyright line alongside the current author's.
 - `README.md` credits Rapid XAML Toolkit in the Attribution section.
 - Each ported rule file carries a one-line header comment: `// Ported from Rapid XAML Toolkit's RXT101 (c) Matt Lacey Ltd., MIT.`
 - `RuleMetadata.UpstreamId` carries the upstream rule ID programmatically for cross-reference.
+
+### 11.2 Rule doc template
+
+Every per-rule doc file follows the 4-heading template (modeled on StyleCopAnalyzers):
+
+```markdown
+# LX100: Grid.Row without matching RowDefinition
+
+<!-- generated stub; edit freely. Upstream: RXT101. -->
+
+## Cause
+
+A one-sentence description of what triggers the rule.
+
+## Rule description
+
+Longer-form explanation. Why the pattern is a problem, what the correct form
+looks like, and one or two code snippets showing both.
+
+## How to fix violations
+
+Concrete steps the reader takes. For example: "Add a `<RowDefinition>` for each
+distinct `Grid.Row` value used by the grid's children, or remove the `Grid.Row`
+attribute to let the child occupy the default row."
+
+## How to suppress violations
+
+Copy-pasteable snippets for every suppression mechanism we support:
+
+- `<!-- xaml-lint disable once LX100 -->` (inline, one element)
+- `<!-- xaml-lint disable LX100 -->` … `<!-- xaml-lint restore LX100 -->` (block)
+- `xaml-lint.config.json` → `"rules": { "LX100": "off" }` (file/project)
+```
+
+Every rule's doc file is stubbed on first build by the `RuleDocStubGenerator` if missing. The stub contains all four headings with placeholder text; authors replace the placeholders. Meta-tests assert every rule has a non-stub file (no placeholder text left in shipped docs — simple grep on a sentinel).
+
+### 11.3 Category overview pages
+
+One file per category at `docs/rules/<category>.md` (e.g., `layout.md`, `naming.md`). Each page has a short intro and a table linking to every rule in that range. Generated by `RuleDocStubGenerator` on first build; authors maintain the intro.
 
 ## 12. Deferred / post-v1
 
@@ -542,6 +659,8 @@ Each milestone is an independently dogfood-able plugin.
 - **Config merging across levels** — if v1 users hit friction with "first match wins" semantics.
 - **Automatic `dotnet tool install`** on plugin enable — revisit once Anthropic's platform support is understood.
 - **Self-hosting the plugin on xaml-lint repo** — requires real XAML fixtures to exist first.
+- **Corpus regression tester** — a small console app that runs the CLI over a curated list of open-source XAML repos and diffs SARIF output against a committed baseline. Catches behavioral drift early (StyleCopAnalyzers has an equivalent: `StyleCopTester`). Post-v1 quality tool; don't block v1 on it.
+- **Rule capability matrix page** — auto-generated markdown table reflecting over the catalog (which rules have codefixes, which are enabled-by-default, which are dialect-specific). Cheap once `[NoCodeFix]`-style marker attributes exist.
 
 ## 13. Open items before v1 tag
 
