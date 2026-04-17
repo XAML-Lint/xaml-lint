@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/XamlLint.Core/XamlLint.Core.csproj" />
+    <Project Path="src/XamlLint.Core.SourceGen/XamlLint.Core.SourceGen.csproj" />
   </Folder>
 </Solution>
