@@ -253,7 +253,7 @@ For each linted file, resolve dialect in this order (first match wins):
    - Uno: WPF/UWP URL + Uno-specific ignorable markers
 5. **Fallback**: `Wpf`. Logged at `--verbosity detailed`.
 
-The csproj-walking heuristic is **explicitly rejected** — views often live several folders away from the relevant csproj, TFMs aren't reliable dialect signals (e.g., `net8.0-windows10.0.19041.0` is used for both WPF and WinUI 3), and the walk is fragile. Configuration is the intended signal.
+The csproj-walking heuristic is **explicitly rejected** — views often live several folders away from the relevant csproj, TFMs aren't reliable dialect signals (e.g., `net10.0-windows10.0.19041.0` is used for both WPF and WinUI 3), and the walk is fragile. Configuration is the intended signal.
 
 ## 5. Configuration
 
@@ -531,7 +531,7 @@ Strictly separated. Stdout is formatted output. Stderr is log messages, stack tr
 
 ### 8.3 CI
 
-GitHub Actions matrix: `{windows-latest, ubuntu-latest, macos-latest}` × `{net8, net9}`. Release workflow on tag push: `dotnet pack` + `dotnet nuget push`. Dry-run of publish on release-candidate branches.
+GitHub Actions matrix: `{windows-latest, ubuntu-latest, macos-latest}` × `{net10}`. Single TFM keeps the matrix small; add older TFMs only if a user asks. Release workflow on tag push: `dotnet pack` + `dotnet nuget push`. Dry-run of publish on release-candidate branches.
 
 ### 8.4 Dogfooding
 
@@ -585,7 +585,7 @@ xaml-lint/
 │   └── v1/
 │       └── config.json
 ├── src/
-│   ├── XamlLint.Core/               # rule engine (net8.0 class library)
+│   ├── XamlLint.Core/               # rule engine (net10.0 class library)
 │   │   ├── XamlLint.Core.csproj     # EmitCompilerGeneratedFiles=true
 │   │   ├── XamlDocument.cs
 │   │   ├── Diagnostic.cs
@@ -617,10 +617,10 @@ xaml-lint/
 │   │       └── Deprecated/          # LX600–LX699
 │   ├── XamlLint.Core.SourceGen/     # netstandard2.0 analyzer/generator project
 │   │   └── RuleCatalogGenerator.cs  # emits GeneratedRuleCatalog.Rules + Metadata
-│   ├── XamlLint.DocTool/            # build-step console app (net8.0, not packed)
+│   ├── XamlLint.DocTool/            # build-step console app (net10.0, not packed)
 │   │   ├── Program.cs               # stub/delete docs, write schema, rewrite CHANGELOG; --check
 │   │   └── …
-│   └── XamlLint.Cli/                # dotnet tool (net8.0, PackAsTool=true)
+│   └── XamlLint.Cli/                # dotnet tool (net10.0, PackAsTool=true)
 │       ├── XamlLint.Cli.csproj
 │       ├── Program.cs
 │       ├── Commands/
