@@ -68,10 +68,9 @@ internal static class LintCommand
 
         cmd.SetAction((parseResult, _) =>
         {
-            var paths = parseResult.GetValue(pathsArg) ?? Array.Empty<string>();
             var opts = new LintOptions(
-                Paths: paths,
-                ReadFromStdin: paths.Contains("-"),
+                Paths: parseResult.GetValue(pathsArg) ?? Array.Empty<string>(),
+                ReadFromStdin: (parseResult.GetValue(pathsArg) ?? Array.Empty<string>()).Contains("-"),
                 Format: ParseFormat(parseResult.GetValue(formatOpt)),
                 OutputPath: parseResult.GetValue(outputOpt),
                 ConfigPath: parseResult.GetValue(configOpt),
@@ -83,8 +82,12 @@ internal static class LintCommand
                 Verbosity: ParseVerbosity(parseResult.GetValue(verbosityOpt)),
                 Force: parseResult.GetValue(forceOpt));
 
-            System.Console.WriteLine($"[stub] lint invoked with {opts.Paths.Count} path argument(s).");
-            return Task.FromResult(0);
+            var pipeline = new LintPipeline(
+                stdout: System.Console.Out,
+                stderr: System.Console.Error,
+                stdin: System.Console.In,
+                workingDirectory: Environment.CurrentDirectory);
+            return Task.FromResult(pipeline.Run(opts));
         });
 
         return cmd;
