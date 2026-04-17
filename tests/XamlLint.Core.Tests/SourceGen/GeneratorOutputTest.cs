@@ -18,7 +18,7 @@ public sealed class GeneratorOutputTest
         var rules = prop!.GetValue(null) as System.Collections.IEnumerable;
         rules.Should().NotBeNull();
 
-        // Empty until Task 7 adds rule classes; the type and property existing is what we assert here.
+        // Asserts the generated type + property exist; populated-catalog invariants live in CatalogMetaTest.
     }
 
     [Fact]
