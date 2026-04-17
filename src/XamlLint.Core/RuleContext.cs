@@ -20,9 +20,9 @@ public sealed class RuleContext
     public required SuppressionMap Suppressions { get; init; }
 
     /// <summary>
-    /// Raw UTF-8 source bytes of the linted file, for rules that need byte-exact offsets
-    /// beyond what the XDocument API exposes. Exposed as a read-only memory block so rules
-    /// cannot mutate it.
+    /// Raw source characters (UTF-16 code units) of the linted file, for rules that need
+    /// offsets beyond what the XDocument API exposes. Exposed as a read-only memory block
+    /// so rules cannot mutate it.
     /// </summary>
     public required ReadOnlyMemory<char> Source { get; init; }
 }

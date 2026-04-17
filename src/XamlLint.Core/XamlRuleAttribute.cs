@@ -1,7 +1,7 @@
 namespace XamlLint.Core;
 
 /// <summary>
-/// Declares rule metadata on an <c>IXamlRule</c> implementation. The source generator
+/// Declares rule metadata on an <see cref="IXamlRule"/> implementation. The source generator
 /// (<c>XamlLint.Core.SourceGen</c>) reads this attribute at build time to emit the catalog
 /// and each class's <c>Metadata</c> property.
 /// </summary>
