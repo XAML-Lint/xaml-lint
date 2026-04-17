@@ -1,34 +1,27 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - "v*"
 
 jobs:
-  build:
-    name: ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+  publish:
+    name: Pack and push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Nerdbank.GitVersioning needs full history
+          fetch-depth: 0
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-
-      - name: Print SDK version
-        run: dotnet --info
 
       - name: Restore
         run: dotnet restore xaml-lint.slnx
@@ -41,3 +34,11 @@ jobs:
 
       - name: DocTool --check
         run: dotnet run --project src/XamlLint.DocTool --configuration Release --no-build -- --check
+
+      - name: Pack
+        run: dotnet pack src/XamlLint.Cli --configuration Release --no-build --output ./artifacts
+
+      - name: Push to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
