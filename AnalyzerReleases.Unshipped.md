@@ -8,3 +8,4 @@ Rule ID | Category | Severity | Notes
 LX100   | Layout   | Warning  | Grid.Row without matching RowDefinition
 LX101   | Layout   | Warning  | Grid.Column without matching ColumnDefinition
 LX102   | Layout   | Warning  | Grid.RowSpan exceeds available rows
+LX103   | Layout   | Warning  | Grid.ColumnSpan exceeds available columns
