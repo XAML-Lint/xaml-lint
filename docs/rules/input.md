@@ -1,0 +1,10 @@
+# Input / controls (LX500–LX599)
+
+Rules that check input controls for missing hints (keyboard layout, IME behavior) and
+semantically inconsistent attribute pairs (out-of-order `Minimum`/`Maximum`). These rules
+complement the layout and binding checks — an input control with an impossible range
+parses fine but fails silently at runtime.
+
+| ID | Title | Default |
+|---|---|---|
+| [LX500](LX500.md) | TextBox lacks InputScope | info |
