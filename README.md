@@ -4,7 +4,7 @@ A Claude Code plugin that lints XAML files for common issues, so Claude can catc
 
 ## Status
 
-v0.2.0 — first content lint rules shipped: [LX200](docs/rules/LX200.md) (SelectedItem binding should be TwoWay), [LX300](docs/rules/LX300.md) (x:Name casing), and [LX400](docs/rules/LX400.md) (hardcoded string). Full catalog at [docs/rules/](docs/rules/). The six tool/engine diagnostics (LX001–LX006) from v0.1.0 remain in place.
+v0.2.0 — first content lint rules shipped: [LX200](docs/rules/LX200.md) (SelectedItem binding should be TwoWay), [LX300](docs/rules/LX300.md) (x:Name casing), and [LX400](docs/rules/LX400.md) (hardcoded string). Full catalog at [docs/rules/](docs/rules/). The six tool/engine diagnostics (LX001–LX006) from v0.1.0 remain in place. See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ### Planned platform support
 
