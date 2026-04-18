@@ -1,8 +1,9 @@
 # Layout (LX100–LX199)
 
-Rules that inspect layout panels — Grid, StackPanel, and similar containers.
-These rules check that layout-attached properties (such as `Grid.Row`, `Grid.Column`) reference
-valid indexes within the enclosing panel's declared definition set.
+Rules that check layout containers — Grid, StackPanel, DockPanel, Canvas, and similar —
+for attached-property values that disagree with the container's declared shape. Today's
+coverage is Grid-specific (`Grid.Row`, `Grid.Column`, `Grid.RowSpan`, `Grid.ColumnSpan`);
+StackPanel and DockPanel rules will be added as real-world false negatives surface.
 
 | ID | Title | Default |
 |---|---|---|
