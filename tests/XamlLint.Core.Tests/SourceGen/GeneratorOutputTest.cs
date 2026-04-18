@@ -22,11 +22,10 @@ public sealed class GeneratorOutputTest
     }
 
     [Fact]
-    public void GeneratedRuleCatalog_contains_six_tool_diagnostics()
+    public void GeneratedRuleCatalog_contains_the_tool_diagnostics()
     {
         var rules = XamlLint.Core.GeneratedRuleCatalog.Rules;
-        rules.Should().HaveCount(6);
-        rules.Select(r => r.Metadata.Id).Should().BeEquivalentTo(
+        rules.Select(r => r.Metadata.Id).Should().Contain(
             new[] { "LX001", "LX002", "LX003", "LX004", "LX005", "LX006" });
     }
 }

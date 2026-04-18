@@ -5,3 +5,4 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+LX300   | Naming   | Warning  | x:Name should start with uppercase
