@@ -25,6 +25,10 @@
         "uno"
       ]
     },
+    "frameworkVersion": {
+      "type": "string",
+      "description": "Major version of the target framework. Accepted forms include \u002210\u0022, \u002210.0\u0022, and \u0022net10.0\u0022 (case-insensitive). Used by rules that gate behavior on framework support \u2014 most prominently the WPF-on-.NET-10 grid definition shorthand. Omit to assume the newest framework."
+    },
     "overrides": {
       "type": "array"
     },

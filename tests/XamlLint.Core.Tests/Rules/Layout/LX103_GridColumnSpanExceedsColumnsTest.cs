@@ -140,4 +140,20 @@ public sealed class LX103_GridColumnSpanExceedsColumnsTest
             </Grid>
             """);
     }
+
+    [Fact]
+    public void Wpf_legacy_framework_ignores_shorthand_when_evaluating_ColumnSpan()
+    {
+        // On WPF .NET 9, ColumnDefinitions="Auto,*" doesn't take effect — the Grid has 1
+        // implicit column, so Grid.ColumnSpan="2" exceeds it.
+        XamlDiagnosticVerifier<LX103_GridColumnSpanExceedsColumns>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  ColumnDefinitions="Auto,*">
+                <Button [|Grid.ColumnSpan="2"|] />
+            </Grid>
+            """,
+            dialect: Dialect.Wpf,
+            frameworkMajorVersion: 9);
+    }
 }
