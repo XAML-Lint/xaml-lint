@@ -7,3 +7,4 @@ extension's arguments — they do not run type analysis or verify data-context p
 | ID | Title | Default |
 |---|---|---|
 | [LX200](LX200.md) | SelectedItem binding should be TwoWay | info |
+| [LX201](LX201.md) | Prefer x:Bind over Binding | info |
