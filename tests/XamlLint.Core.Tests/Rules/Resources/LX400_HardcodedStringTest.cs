@@ -108,4 +108,18 @@ public sealed class LX400_HardcodedStringTest
                      [|PlaceholderText="Enter name"|] />
             """);
     }
+
+    [Fact]
+    public void Attribute_with_custom_namespace_is_ignored()
+    {
+        // Only unprefixed (empty-namespace) attributes are in scope. A Blend design-time
+        // attribute like d:Text carries a non-empty namespace and is skipped — it's not a
+        // user-facing string on a production control.
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                       d:Text="design-time only" />
+            """);
+    }
 }
