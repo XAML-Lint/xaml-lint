@@ -5,3 +5,4 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+LX100   | Layout   | Warning  | Grid.Row without matching RowDefinition
