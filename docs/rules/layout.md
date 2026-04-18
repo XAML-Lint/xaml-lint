@@ -11,3 +11,4 @@ StackPanel and DockPanel rules will be added as real-world false negatives surfa
 | [LX101](LX101.md) | Grid.Column without matching ColumnDefinition | warning |
 | [LX102](LX102.md) | Grid.RowSpan exceeds available rows | warning |
 | [LX103](LX103.md) | Grid.ColumnSpan exceeds available columns | warning |
+| [LX104](LX104.md) | Grid definition shorthand not supported by target framework | warning |
