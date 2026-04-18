@@ -228,4 +228,48 @@ public sealed class GridAncestryHelpersTest
 
         GridAncestryHelpers.TryReadIntegerAttachedProperty(button, "Grid.Row").Should().BeNull();
     }
+
+    [Fact]
+    public void TryReadIntegerAttachedProperty_negative_integer_is_rejected()
+    {
+        // Negative indexes have no runtime meaning — the helper treats them the same as
+        // unparseable values so the rule consumers do not see an `int` they cannot reason
+        // about (LX100's `rowValue < rowCount` guard would otherwise silently accept -1).
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}">
+                <Button Grid.Row="-1" />
+            </Grid>
+            """);
+        var button = doc.Root!.Descendants().First(e => e.Name.LocalName == "Button");
+
+        GridAncestryHelpers.TryReadIntegerAttachedProperty(button, "Grid.Row").Should().BeNull();
+    }
+
+    [Fact]
+    public void TryReadIntegerAttachedProperty_signed_integer_is_rejected()
+    {
+        // Explicit '+' prefixes are legal C# literals but unusual in XAML; rejecting them
+        // keeps the accepted set tight (plain unsigned digits only).
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}">
+                <Button Grid.Row="+1" />
+            </Grid>
+            """);
+        var button = doc.Root!.Descendants().First(e => e.Name.LocalName == "Button");
+
+        GridAncestryHelpers.TryReadIntegerAttachedProperty(button, "Grid.Row").Should().BeNull();
+    }
+
+    [Fact]
+    public void CountRowDefinitions_returns_one_when_row_definitions_element_is_empty()
+    {
+        // An empty <Grid.RowDefinitions /> is semantically identical to omitting the element
+        // entirely — the Grid falls back to one implicit row.
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}">
+                <Grid.RowDefinitions />
+            </Grid>
+            """);
+        GridAncestryHelpers.CountRowDefinitions(doc.Root!).Should().Be(1);
+    }
 }
