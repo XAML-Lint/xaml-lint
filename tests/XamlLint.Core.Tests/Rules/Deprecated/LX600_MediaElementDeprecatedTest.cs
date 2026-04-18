@@ -55,6 +55,26 @@ public sealed class LX600_MediaElementDeprecatedTest
     }
 
     [Fact]
+    public void MediaElement_inside_DataTemplate_is_flagged()
+    {
+        // `DescendantsAndSelf()` walks into templates; template-internal MediaElement is still
+        // a deprecation violation.
+        XamlDiagnosticVerifier<LX600_MediaElementDeprecated>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <ListView>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <[|MediaElement|] Source="{Binding Source}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
+
+    [Fact]
     public void Multiple_MediaElements_each_emit_a_diagnostic()
     {
         XamlDiagnosticVerifier<LX600_MediaElementDeprecated>.Analyze(

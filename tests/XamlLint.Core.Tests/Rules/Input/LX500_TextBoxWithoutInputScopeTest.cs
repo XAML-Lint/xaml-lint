@@ -68,6 +68,20 @@ public sealed class LX500_TextBoxWithoutInputScopeTest
     }
 
     [Fact]
+    public void TextBox_with_empty_InputScope_is_not_flagged()
+    {
+        // Authored intent: any InputScope attribute presence (including empty value) signals
+        // "I've considered this". The rule only flags absence.
+        XamlDiagnosticVerifier<LX500_TextBoxWithoutInputScope>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <TextBox InputScope="" />
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
+
+    [Fact]
     public void TextBlock_is_not_flagged()
     {
         // TextBlock is not an input control.

@@ -23,7 +23,7 @@ public sealed partial class LX600_MediaElementDeprecated : IXamlRule
             yield return new Diagnostic(
                 RuleId: Metadata.Id,
                 Severity: Metadata.DefaultSeverity,
-                Message: $"MediaElement is deprecated on {context.Dialect}; use MediaPlayerElement instead.",
+                Message: "MediaElement is deprecated; use MediaPlayerElement instead.",
                 File: document.FilePath,
                 StartLine: span.StartLine,
                 StartCol: span.StartCol,

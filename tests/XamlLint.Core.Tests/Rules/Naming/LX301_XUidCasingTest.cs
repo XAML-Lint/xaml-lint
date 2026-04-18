@@ -34,7 +34,7 @@ public sealed class LX301_XUidCasingTest
     [Fact]
     public void Lowercase_x_Uid_on_Wpf_is_not_flagged()
     {
-        // x:Uid has no meaningful runtime behavior on WPF; the rule's Dialects mask filters it.
+        // x:Uid's casing convention is a UWP/WinUI .resw concern; the rule's Dialects mask filters WPF out.
         XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
             """
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -80,6 +80,21 @@ public sealed class LX301_XUidCasingTest
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
                 <Button x:Uid="" />
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
+
+    [Fact]
+    public void Digit_prefix_is_flagged()
+    {
+        // Digits aren't uppercase letters; the rule catches non-letter first-character
+        // violations the same way it catches lowercase letters. Mirrors LX300's digit case.
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button [|x:Uid="1Button"|] />
             </Grid>
             """,
             Dialect.WinUI3);

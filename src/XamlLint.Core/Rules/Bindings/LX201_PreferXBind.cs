@@ -26,7 +26,7 @@ public sealed partial class LX201_PreferXBind : IXamlRule
                 yield return new Diagnostic(
                     RuleId: Metadata.Id,
                     Severity: Metadata.DefaultSeverity,
-                    Message: $"Prefer {{x:Bind}} over {{Binding}} on {context.Dialect}; compiled bindings are faster and validated at build time.",
+                    Message: "Prefer {x:Bind} over {Binding}; compiled bindings are faster and validated at build time.",
                     File: document.FilePath,
                     StartLine: span.StartLine,
                     StartCol: span.StartCol,
