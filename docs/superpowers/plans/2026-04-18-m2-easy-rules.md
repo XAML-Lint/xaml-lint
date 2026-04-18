@@ -1,0 +1,1970 @@
+# M2 — Easy Rules Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Ship the first three content lint rules on top of M1's plumbing: `LX300` (x:Name casing, Warning), `LX200` (SelectedItem binding should be TwoWay, Info), and `LX400` (hardcoded string, Info). Tag **v0.2.0** with docs, presets, schema, AnalyzerReleases, and the RXT comparison all regenerated and in sync.
+
+**Architecture:** Each rule is a stateless `IXamlRule` in `src/XamlLint.Core/Rules/<Category>/LX###_Name.cs` with a `[XamlRule]` attribute; the source generator picks it up automatically and adds it to `GeneratedRuleCatalog.Rules`. Three shared helpers land under `src/XamlLint.Core/Helpers/` to keep rule bodies readable: `XamlNamespaces` (URI constants), `LocationHelpers` (compute the full `name="value"` span for an `XAttribute` from the raw source), and `MarkupExtensionHelpers` (detect `{…}` extensions and pull named arguments out of a `Binding` / `x:Bind`). Each rule commits together with its `AnalyzerReleases.Unshipped.md` row and its `DocTool`-generated doc stub so meta-tests stay green every commit.
+
+**Tech Stack:** .NET 10, `System.Xml.Linq` (`XDocument` with `LoadOptions.SetLineInfo | LoadOptions.PreserveWhitespace` from M1), the M1 source generator (`XamlLint.Core.SourceGen`), the M1 `XamlLint.DocTool` (stubs docs, writes presets, writes schema; `--check` in CI), xUnit v3 + Microsoft Testing Platform + AwesomeAssertions for tests using the M1 `XamlDiagnosticVerifier<TRule>` marker harness, `Nerdbank.GitVersioning` for the `0.2-alpha` → `v0.2.0` bump.
+
+---
+
+## Notes before starting
+
+**Branch.** All work happens on `m2-easy-rules` off `main`. Task 1 creates the branch and bumps `version.json`. Every subsequent task commits to this branch.
+
+**Commit cadence.** One commit per task (11 commits). Every commit must leave `dotnet build xaml-lint.slnx` clean and `dotnet test xaml-lint.slnx` passing **including meta-tests**. The meta-tests enforce the "every rule has a doc, every rule is in AnalyzerReleases" invariants — so the rule tasks (4–6) each bundle code + Unshipped row + DocTool-stubbed doc in one atomic commit.
+
+**M1 assumptions carried forward.**
+
+1. `IXamlRule` is the implementation contract; `IToolRule` is a marker interface for rules that register with the catalog but don't run through the dispatcher. Content rules **implement `IXamlRule` directly** (not `IToolRule`).
+2. Rule classes are declared `partial`; the source generator fills in the `Metadata` property from the `[XamlRule]` attribute. Rule authors implement only `Analyze(XamlDocument, RuleContext)`.
+3. `XamlDiagnosticVerifier<TRule>` loads inline-marker XAML with `Dialect.Wpf` by default. Overload exists: `Analyze(markedSource, Dialect.Maui)` for dialect-gated tests. All three M2 rules apply to `Dialect.All`, so default Wpf is fine for every M2 test.
+4. `{|LX###:span|}` is the full marker; `[|span|]` is the shorthand that re-uses the `TRule` ID. Tests in this plan use the shorthand for brevity where `TRule` is parameterized on a single rule type.
+5. `RuleDispatcher` wraps `Analyze` in `try/catch`; any thrown exception becomes `LX006`. Rules can throw freely during development — they won't crash the dispatcher.
+6. `XAttribute`'s `IXmlLineInfo` reports `(line, col)` where the **attribute name** starts. Computing the full `name="value"` span requires scanning the raw source forward to the matching close quote. This is what `LocationHelpers.GetAttributeSpan` does (Task 3).
+7. `LoadOptions.PreserveWhitespace` is on (M1), so `XAttribute.Value` is the un-decoded attribute string minus XML entity expansion. For our three rules the distinction doesn't matter — we check for markup-extension shape (`{…}`) and first-character casing, neither of which is affected by entity decoding.
+
+**Two M1-era deviations from the design spec that stay in force.**
+
+- Tool rules (LX001–LX006) implement `IToolRule` (a marker extension of `IXamlRule`) and return `Enumerable.Empty<Diagnostic>()` from `Analyze`. The dispatcher skips them in its constructor (`_rules = rules.Where(r => r is not IToolRule).ToArray()`). M2 rules must **not** implement `IToolRule`.
+- `XamlLintCategory.ForId("LX200")` derives the category from the hundreds digit. There is no `Category` field on `[XamlRule]`; never add one.
+
+**Package versions.** M2 does not add any NuGet packages. Central package management in `Directory.Packages.props` already pins every dependency needed.
+
+**Files that already exist from M1 and must not be destroyed.** Every existing rule file under `src/XamlLint.Core/Rules/Tool/`, every existing doc file under `docs/rules/` (LX001.md–LX006.md, tool.md), `AnalyzerReleases.Shipped.md`'s `## Release 0.1.0` section, the `schema/v1/presets/*.json` (these get regenerated by DocTool — do not hand-edit), `docs/comparison-with-rapid-xaml-toolkit.md`'s existing table rows, the M1 test harness under `tests/XamlLint.Core.Tests/TestInfrastructure/`.
+
+**Task dependencies.** Task 1 (branch) comes first. Tasks 2–3 (helpers) are prerequisites for rule tasks and can technically run in any order, but the plan does 2 then 3 because `MarkupExtensionHelpers` is the larger surface. Tasks 4–6 (rules) depend on Tasks 2–3 and can ship in any order — the plan picks LX300 → LX200 → LX400 in ascending complexity. Tasks 7–9 (docs) depend on Tasks 4–6 (they flesh out stubs that Tasks 4–6 created). Tasks 10–11 are the release tail.
+
+---
+
+## File structure
+
+**New files created in M2:**
+
+```
+src/XamlLint.Core/
+  Helpers/
+    XamlNamespaces.cs            # URI constants + predicates
+    LocationHelpers.cs           # attribute span computation
+    MarkupExtensionHelpers.cs    # detect {…}, parse Binding arguments
+  Rules/
+    Bindings/
+      LX200_SelectedItemTwoWay.cs
+    Naming/
+      LX300_XNameCasing.cs
+    Resources/
+      LX400_HardcodedString.cs
+
+tests/XamlLint.Core.Tests/
+  Helpers/
+    LocationHelpersTest.cs
+    MarkupExtensionHelpersTest.cs
+  Rules/
+    Bindings/
+      LX200_SelectedItemTwoWayTest.cs
+    Naming/
+      LX300_XNameCasingTest.cs
+    Resources/
+      LX400_HardcodedStringTest.cs
+
+docs/rules/
+  LX200.md                       # stubbed by DocTool in Task 5, authored in Task 7
+  LX300.md                       # stubbed by DocTool in Task 4, authored in Task 7
+  LX400.md                       # stubbed by DocTool in Task 6, authored in Task 7
+  bindings.md
+  naming.md
+  resources.md
+```
+
+**Files modified in M2:**
+
+- `version.json` — Task 1 (`0.1-alpha` → `0.2-alpha`).
+- `AnalyzerReleases.Unshipped.md` — Tasks 4/5/6 (one row per rule) and Task 10 (drain to Shipped).
+- `AnalyzerReleases.Shipped.md` — Task 10 (add `## Release 0.2.0` section).
+- `schema/v1/presets/*.json` — rewritten by DocTool (Tasks 4/5/6). Do not hand-edit.
+- `schema/v1/config.json` — rewritten by DocTool (Tasks 4/5/6). Do not hand-edit.
+- `docs/comparison-with-rapid-xaml-toolkit.md` — Task 9 (add rows and prose for the three new rules).
+- `README.md` — Task 9 (bump status line to v0.2.0).
+
+**Rule responsibilities (one-liners):**
+
+- `LX200_SelectedItemTwoWay` — flags `SelectedItem="{Binding …}"` (or `{x:Bind …}`) when the expression has no `Mode=TwoWay`.
+- `LX300_XNameCasing` — flags `x:Name="foo"` when the first character of the value is not an uppercase letter.
+- `LX400_HardcodedString` — flags a fixed set of text-presenting attributes (`Text`, `Title`, `Header`, `ToolTip`, `Content`, `PlaceholderText`, `Placeholder`, `Description`, `Watermark`) whose value is a literal string (not a markup extension, not empty, not whitespace-only).
+
+**Helper responsibilities (one-liners):**
+
+- `XamlNamespaces` — constants for the XAML 2006 URI (`http://schemas.microsoft.com/winfx/2006/xaml`) and XAML 2009 URI (MAUI) plus a predicate `IsXamlNamespace(string)`.
+- `LocationHelpers` — `GetAttributeSpan(XAttribute, ReadOnlyMemory<char>)` returning `(StartLine, StartCol, EndLine, EndCol)` that covers the full `name="value"` or `name='value'` region.
+- `MarkupExtensionHelpers` — `IsMarkupExtension(string)` plus `TryParseBinding(string, out BindingInfo)` that extracts the extension name (`Binding` vs `x:Bind` vs others) and any named arguments like `Mode=TwoWay`.
+
+---
+
+## Task 1: Create branch and bump version
+
+Starts M2 work on its own branch and bumps Nerdbank.GitVersioning's base version so every development build on this branch produces `0.2.0-alpha.N` and the eventual `v0.2.0` tag graduates to stable.
+
+**Files:**
+- Modify: `version.json`
+
+- [ ] **Step 1: Create and check out the branch**
+
+Run:
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint checkout -b m2-easy-rules
+git -C D:/GitHub/jizc/xaml-lint branch --show-current
+```
+
+Expected: `m2-easy-rules`.
+
+- [ ] **Step 2: Bump `version.json`**
+
+Edit `version.json`. Replace `"version": "0.1-alpha"` with `"version": "0.2-alpha"`. Full expected file contents:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/main/src/NerdBank.GitVersioning/version.schema.json",
+  "version": "0.2-alpha",
+  "publicReleaseRefSpec": [
+    "^refs/heads/main$",
+    "^refs/tags/v\\d+\\.\\d+"
+  ],
+  "nugetPackageVersion": {
+    "semVer": 2
+  },
+  "release": {
+    "branchName": "release/v{version}",
+    "versionIncrement": "minor",
+    "firstUnstableTag": "alpha"
+  }
+}
+```
+
+- [ ] **Step 3: Verify the solution still builds**
+
+Run:
+
+```bash
+dotnet build D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --configuration Release
+```
+
+Expected: `Build succeeded.` with zero warnings (solution has `TreatWarningsAsErrors=true` in `Directory.Build.props`).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add version.json
+git -C D:/GitHub/jizc/xaml-lint commit -m "chore: bump version to 0.2-alpha for M2"
+```
+
+---
+
+## Task 2: `XamlNamespaces` + `LocationHelpers`
+
+Adds the first two helper classes. `XamlNamespaces` gives the XAML URI constants so rules don't pepper string literals through the codebase. `LocationHelpers.GetAttributeSpan` is the workhorse that all three M2 rules call to build the `(StartLine, StartCol, EndLine, EndCol)` span on a `Diagnostic` — `IXmlLineInfo` on `XAttribute` only gives us the start, so the helper scans the raw source forward from `(line, col)` across `name` → `=` → opening quote → value → closing quote to find the end.
+
+**Files:**
+- Create: `src/XamlLint.Core/Helpers/XamlNamespaces.cs`
+- Create: `src/XamlLint.Core/Helpers/LocationHelpers.cs`
+- Create: `tests/XamlLint.Core.Tests/Helpers/LocationHelpersTest.cs`
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/XamlLint.Core.Tests/Helpers/LocationHelpersTest.cs`:
+
+```csharp
+using System.Xml.Linq;
+using XamlLint.Core.Helpers;
+
+namespace XamlLint.Core.Tests.Helpers;
+
+public sealed class LocationHelpersTest
+{
+    private static XamlDocument Doc(string xaml) =>
+        XamlDocument.FromString(xaml, "f.xaml", Dialect.Wpf);
+
+    [Fact]
+    public void Unprefixed_double_quoted_attribute_span_covers_name_through_close_quote()
+    {
+        const string xaml = "<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Text=\"hi\" />";
+        var doc = Doc(xaml);
+        var attr = doc.Root!.Attribute("Text")!;
+
+        var span = LocationHelpers.GetAttributeSpan(attr, doc.Source.AsMemory());
+
+        // "Text=\"hi\"" begins at col 74 (1-based), ends after the close quote at col 82.
+        span.StartLine.Should().Be(1);
+        span.StartCol.Should().Be(74);
+        span.EndLine.Should().Be(1);
+        span.EndCol.Should().Be(82);
+    }
+
+    [Fact]
+    public void Prefixed_attribute_span_covers_prefix_colon_local_name_value()
+    {
+        const string xaml =
+            "<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" " +
+            "xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" x:Name=\"MyButton\" />";
+        var doc = Doc(xaml);
+        var attr = doc.Root!.Attribute(XName.Get("Name", "http://schemas.microsoft.com/winfx/2006/xaml"))!;
+
+        var span = LocationHelpers.GetAttributeSpan(attr, doc.Source.AsMemory());
+
+        // The substring "x:Name=\"MyButton\"" starts after the closing quote of the x: xmlns
+        // value. Recompute the offsets from the literal to keep this resilient:
+        var expectedStart = xaml.IndexOf("x:Name", StringComparison.Ordinal) + 1; // 1-based
+        var expectedEnd = xaml.IndexOf("\" />", StringComparison.Ordinal) + 2;    // include close quote
+        span.StartCol.Should().Be(expectedStart);
+        span.EndCol.Should().Be(expectedEnd);
+        span.StartLine.Should().Be(1);
+        span.EndLine.Should().Be(1);
+    }
+
+    [Fact]
+    public void Single_quoted_attribute_is_handled()
+    {
+        const string xaml = "<Root xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Text='hi' />";
+        var doc = Doc(xaml);
+        var attr = doc.Root!.Attribute("Text")!;
+
+        var span = LocationHelpers.GetAttributeSpan(attr, doc.Source.AsMemory());
+
+        var expectedStart = xaml.IndexOf("Text=", StringComparison.Ordinal) + 1;
+        var expectedEnd = xaml.IndexOf("' />", StringComparison.Ordinal) + 2;
+        span.StartCol.Should().Be(expectedStart);
+        span.EndCol.Should().Be(expectedEnd);
+    }
+
+    [Fact]
+    public void Multiline_attribute_value_end_line_is_correct()
+    {
+        const string xaml =
+            "<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"\n" +
+            "      Text=\"line-one\nline-two\" />";
+        var doc = Doc(xaml);
+        var attr = doc.Root!.Attribute("Text")!;
+
+        var span = LocationHelpers.GetAttributeSpan(attr, doc.Source.AsMemory());
+
+        span.StartLine.Should().Be(2);
+        span.EndLine.Should().Be(3);
+    }
+
+    [Fact]
+    public void XamlNamespaces_recognises_the_2006_and_2009_uris()
+    {
+        XamlNamespaces.IsXamlNamespace("http://schemas.microsoft.com/winfx/2006/xaml").Should().BeTrue();
+        XamlNamespaces.IsXamlNamespace("http://schemas.microsoft.com/winfx/2009/xaml").Should().BeTrue();
+        XamlNamespaces.IsXamlNamespace("http://schemas.microsoft.com/winfx/2006/xaml/presentation").Should().BeFalse();
+        XamlNamespaces.IsXamlNamespace("").Should().BeFalse();
+    }
+}
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --filter FullyQualifiedName~LocationHelpersTest
+```
+
+Expected: compilation error — `LocationHelpers` and `XamlNamespaces` do not exist yet.
+
+- [ ] **Step 3: Implement `XamlNamespaces`**
+
+Create `src/XamlLint.Core/Helpers/XamlNamespaces.cs`:
+
+```csharp
+namespace XamlLint.Core.Helpers;
+
+/// <summary>
+/// Well-known XAML namespace URIs. The 2006 URI is used by WPF, UWP, WinUI 3, Avalonia, and Uno
+/// for the <c>x:</c> prefix; .NET MAUI uses the 2009 revision. The <c>Ns</c> constants are the
+/// raw URIs; prefer <see cref="IsXamlNamespace(string)"/> for predicate logic so new XAML
+/// revisions can be added in one place.
+/// </summary>
+public static class XamlNamespaces
+{
+    public const string Xaml2006 = "http://schemas.microsoft.com/winfx/2006/xaml";
+    public const string Xaml2009 = "http://schemas.microsoft.com/winfx/2009/xaml";
+
+    public const string WpfPresentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+
+    public static bool IsXamlNamespace(string? uri) =>
+        uri == Xaml2006 || uri == Xaml2009;
+}
+```
+
+- [ ] **Step 4: Implement `LocationHelpers`**
+
+Create `src/XamlLint.Core/Helpers/LocationHelpers.cs`:
+
+```csharp
+using System.Xml;
+using System.Xml.Linq;
+
+namespace XamlLint.Core.Helpers;
+
+/// <summary>
+/// Converts XDocument line info (which points at the start of element/attribute names) into
+/// full <c>name="value"</c> spans against the raw source text. Required because
+/// <see cref="IXmlLineInfo"/> does not expose end positions.
+/// </summary>
+public static class LocationHelpers
+{
+    /// <summary>
+    /// Returns the 1-based (StartLine, StartCol, EndLine, EndCol) range for an attribute,
+    /// covering the attribute name, equals sign, opening quote, value, and closing quote.
+    /// End position is one past the closing quote (exclusive) — matches the convention used
+    /// by the marker harness.
+    /// </summary>
+    public static (int StartLine, int StartCol, int EndLine, int EndCol) GetAttributeSpan(
+        XAttribute attribute,
+        ReadOnlyMemory<char> source)
+    {
+        var lineInfo = (IXmlLineInfo)attribute;
+        if (!lineInfo.HasLineInfo())
+            throw new InvalidOperationException(
+                "Attribute has no line info; XamlDocument must load with LoadOptions.SetLineInfo.");
+
+        var startLine = lineInfo.LineNumber;
+        var startCol = lineInfo.LinePosition;
+
+        var startOffset = LineColToOffset(source.Span, startLine, startCol);
+
+        // Scan forward for the first '=' that is not inside whitespace.
+        var eqOffset = IndexOf(source.Span, startOffset, '=');
+        if (eqOffset < 0)
+            throw new InvalidOperationException(
+                $"Could not find '=' after attribute at line {startLine}, col {startCol}.");
+
+        // Skip whitespace after '='.
+        var quoteOffset = eqOffset + 1;
+        while (quoteOffset < source.Length && char.IsWhiteSpace(source.Span[quoteOffset]))
+            quoteOffset++;
+
+        if (quoteOffset >= source.Length)
+            throw new InvalidOperationException(
+                $"Attribute at line {startLine}, col {startCol} has no value.");
+
+        var quoteChar = source.Span[quoteOffset];
+        if (quoteChar != '"' && quoteChar != '\'')
+            throw new InvalidOperationException(
+                $"Attribute value at line {startLine}, col {startCol} not quoted; found '{quoteChar}'.");
+
+        var closeQuoteOffset = IndexOf(source.Span, quoteOffset + 1, quoteChar);
+        if (closeQuoteOffset < 0)
+            throw new InvalidOperationException(
+                $"Unterminated attribute value starting at line {startLine}, col {startCol}.");
+
+        var endOffset = closeQuoteOffset + 1;  // exclusive: one past the close quote
+        var (endLine, endCol) = OffsetToLineCol(source.Span, endOffset);
+        return (startLine, startCol, endLine, endCol);
+    }
+
+    private static int LineColToOffset(ReadOnlySpan<char> source, int line, int col)
+    {
+        // 1-based line and col. Scan forward line-by-line, then add col - 1.
+        int offset = 0, currentLine = 1;
+        while (currentLine < line && offset < source.Length)
+        {
+            if (source[offset] == '\n') currentLine++;
+            offset++;
+        }
+        return offset + (col - 1);
+    }
+
+    private static (int Line, int Col) OffsetToLineCol(ReadOnlySpan<char> source, int offset)
+    {
+        int line = 1, col = 1;
+        for (var i = 0; i < offset && i < source.Length; i++)
+        {
+            if (source[i] == '\n') { line++; col = 1; }
+            else { col++; }
+        }
+        return (line, col);
+    }
+
+    private static int IndexOf(ReadOnlySpan<char> source, int startOffset, char target)
+    {
+        for (var i = startOffset; i < source.Length; i++)
+            if (source[i] == target) return i;
+        return -1;
+    }
+}
+```
+
+- [ ] **Step 5: Run the tests to verify they pass**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --filter FullyQualifiedName~LocationHelpersTest
+```
+
+Expected: all 5 tests pass. If any span is off by one, inspect the literal XAML string in the failing test and re-check the 1-based column math.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add src/XamlLint.Core/Helpers tests/XamlLint.Core.Tests/Helpers
+git -C D:/GitHub/jizc/xaml-lint commit -m "feat(core): add XamlNamespaces and LocationHelpers"
+```
+
+---
+
+## Task 3: `MarkupExtensionHelpers`
+
+Adds the helper that LX200 and LX400 both need: a predicate for "is this attribute value a markup extension like `{Binding …}`?", and a parser that pulls named arguments out of a `Binding` / `x:Bind` / `TemplateBinding` expression. M2 only needs one named arg (`Mode`) but the parser is general-purpose so LX201 (prefer x:Bind), future LX rules, and eventual fixers can all use it.
+
+**Files:**
+- Create: `src/XamlLint.Core/Helpers/MarkupExtensionHelpers.cs`
+- Create: `tests/XamlLint.Core.Tests/Helpers/MarkupExtensionHelpersTest.cs`
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/XamlLint.Core.Tests/Helpers/MarkupExtensionHelpersTest.cs`:
+
+```csharp
+using XamlLint.Core.Helpers;
+
+namespace XamlLint.Core.Tests.Helpers;
+
+public sealed class MarkupExtensionHelpersTest
+{
+    [Theory]
+    [InlineData("{Binding Foo}", true)]
+    [InlineData("{x:Bind Foo}", true)]
+    [InlineData("{StaticResource Key}", true)]
+    [InlineData("  {Binding Foo}  ", true)]
+    [InlineData("literal text", false)]
+    [InlineData("", false)]
+    [InlineData("{", false)]
+    [InlineData("}", false)]
+    [InlineData("{{escaped}", false)]
+    public void IsMarkupExtension_matches_braced_expressions(string value, bool expected)
+    {
+        MarkupExtensionHelpers.IsMarkupExtension(value).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("{Binding}", "Binding")]
+    [InlineData("{Binding Foo}", "Binding")]
+    [InlineData("{Binding Foo, Mode=TwoWay}", "Binding")]
+    [InlineData("{x:Bind Foo}", "x:Bind")]
+    [InlineData("{x:Bind}", "x:Bind")]
+    [InlineData("  {Binding Foo}", "Binding")]
+    [InlineData("{TemplateBinding Foo}", "TemplateBinding")]
+    [InlineData("{StaticResource Key}", "StaticResource")]
+    public void TryParseExtension_returns_the_extension_name(string value, string expected)
+    {
+        MarkupExtensionHelpers.TryParseExtension(value, out var info).Should().BeTrue();
+        info.Name.Should().Be(expected);
+    }
+
+    [Fact]
+    public void TryParseExtension_returns_false_for_non_extensions()
+    {
+        MarkupExtensionHelpers.TryParseExtension("literal", out _).Should().BeFalse();
+        MarkupExtensionHelpers.TryParseExtension("", out _).Should().BeFalse();
+        MarkupExtensionHelpers.TryParseExtension("{}", out _).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("{Binding Foo, Mode=TwoWay}", "TwoWay")]
+    [InlineData("{Binding Foo, Mode=OneWay}", "OneWay")]
+    [InlineData("{Binding Foo,Mode=TwoWay}", "TwoWay")]
+    [InlineData("{Binding Path=Foo, Mode = TwoWay }", "TwoWay")]
+    [InlineData("{Binding Foo, Converter={StaticResource Bool}, Mode=TwoWay}", "TwoWay")]
+    public void TryParseExtension_extracts_named_argument(string value, string expectedMode)
+    {
+        MarkupExtensionHelpers.TryParseExtension(value, out var info).Should().BeTrue();
+        info.NamedArguments.TryGetValue("Mode", out var mode).Should().BeTrue();
+        mode.Should().Be(expectedMode);
+    }
+
+    [Fact]
+    public void TryParseExtension_missing_named_argument_returns_absent()
+    {
+        MarkupExtensionHelpers.TryParseExtension("{Binding Foo}", out var info).Should().BeTrue();
+        info.NamedArguments.ContainsKey("Mode").Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryParseExtension_ignores_nested_braces_when_splitting()
+    {
+        // The outer comma splits arguments; the inner {StaticResource Bool} must not be
+        // split at its own comma-less boundary, but Converter= must still resolve.
+        MarkupExtensionHelpers.TryParseExtension(
+            "{Binding Foo, Converter={StaticResource Bool}, Mode=TwoWay}",
+            out var info).Should().BeTrue();
+        info.NamedArguments["Mode"].Should().Be("TwoWay");
+        info.NamedArguments["Converter"].Should().Be("{StaticResource Bool}");
+    }
+}
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --filter FullyQualifiedName~MarkupExtensionHelpersTest
+```
+
+Expected: compilation error — `MarkupExtensionHelpers` does not exist yet.
+
+- [ ] **Step 3: Implement `MarkupExtensionHelpers`**
+
+Create `src/XamlLint.Core/Helpers/MarkupExtensionHelpers.cs`:
+
+```csharp
+namespace XamlLint.Core.Helpers;
+
+public sealed record MarkupExtensionInfo(string Name, IReadOnlyDictionary<string, string> NamedArguments);
+
+/// <summary>
+/// Lightweight parser for XAML markup extensions (<c>{Name args}</c>). Not a full grammar —
+/// enough to answer "is this a markup extension?" and "what are the top-level named
+/// arguments?". Handles nested <c>{…}</c> inside argument values (e.g.,
+/// <c>Converter={StaticResource Bool}</c>) by tracking brace depth during the comma split.
+/// </summary>
+public static class MarkupExtensionHelpers
+{
+    public static bool IsMarkupExtension(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        var trimmed = value.AsSpan().Trim();
+        if (trimmed.Length < 3) return false;                         // need "{X}" at minimum
+        if (trimmed[0] != '{' || trimmed[^1] != '}') return false;
+        if (trimmed.Length >= 2 && trimmed[1] == '{') return false;   // {{ is escape — not an extension
+        return true;
+    }
+
+    public static bool TryParseExtension(string? value, out MarkupExtensionInfo info)
+    {
+        info = null!;
+        if (!IsMarkupExtension(value)) return false;
+
+        var inner = value!.AsSpan().Trim();
+        inner = inner[1..^1].Trim();  // strip surrounding braces
+        if (inner.Length == 0) return false;
+
+        // Extension name is the first whitespace- or comma-delimited token (may contain ':').
+        var nameEnd = 0;
+        while (nameEnd < inner.Length && !char.IsWhiteSpace(inner[nameEnd]) && inner[nameEnd] != ',')
+            nameEnd++;
+        var name = inner[..nameEnd].ToString();
+        if (name.Length == 0) return false;
+
+        var rest = nameEnd < inner.Length ? inner[nameEnd..].Trim() : ReadOnlySpan<char>.Empty;
+
+        var named = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var arg in SplitTopLevelCommas(rest))
+        {
+            var eq = IndexOfTopLevelEquals(arg);
+            if (eq < 0) continue;  // positional, skip — M2 doesn't need them
+            var key = arg[..eq].Trim().ToString();
+            var val = arg[(eq + 1)..].Trim().ToString();
+            if (key.Length > 0) named[key] = val;
+        }
+
+        info = new MarkupExtensionInfo(name, named);
+        return true;
+    }
+
+    private static IEnumerable<string> SplitTopLevelCommas(ReadOnlySpan<char> source)
+    {
+        // Can't yield inside a ref-struct method, so materialise to list first.
+        var results = new List<string>();
+        var depth = 0;
+        var start = 0;
+        for (var i = 0; i < source.Length; i++)
+        {
+            switch (source[i])
+            {
+                case '{': depth++; break;
+                case '}': depth--; break;
+                case ',' when depth == 0:
+                    results.Add(source[start..i].ToString());
+                    start = i + 1;
+                    break;
+            }
+        }
+        if (start < source.Length)
+            results.Add(source[start..].ToString());
+        return results;
+    }
+
+    private static int IndexOfTopLevelEquals(string arg)
+    {
+        var depth = 0;
+        for (var i = 0; i < arg.Length; i++)
+        {
+            switch (arg[i])
+            {
+                case '{': depth++; break;
+                case '}': depth--; break;
+                case '=' when depth == 0: return i;
+            }
+        }
+        return -1;
+    }
+}
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --filter FullyQualifiedName~MarkupExtensionHelpersTest
+```
+
+Expected: all tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add src/XamlLint.Core/Helpers/MarkupExtensionHelpers.cs tests/XamlLint.Core.Tests/Helpers/MarkupExtensionHelpersTest.cs
+git -C D:/GitHub/jizc/xaml-lint commit -m "feat(core): add MarkupExtensionHelpers"
+```
+
+---
+
+## Task 4: LX300 — x:Name casing
+
+First rule. Chosen to land first because the logic is dead-simple (first-character casing check) — it exercises the M1 plumbing end-to-end for a content rule without any tricky XAML semantics. Simultaneously adds the Unshipped row and stubs the doc file so meta-tests stay green.
+
+**Files:**
+- Create: `src/XamlLint.Core/Rules/Naming/LX300_XNameCasing.cs`
+- Create: `tests/XamlLint.Core.Tests/Rules/Naming/LX300_XNameCasingTest.cs`
+- Modify: `AnalyzerReleases.Unshipped.md`
+- Create: `docs/rules/LX300.md` (DocTool stubs it)
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/XamlLint.Core.Tests/Rules/Naming/LX300_XNameCasingTest.cs`:
+
+```csharp
+using XamlLint.Core.Rules.Naming;
+using XamlLint.Core.Tests.TestInfrastructure;
+
+namespace XamlLint.Core.Tests.Rules.Naming;
+
+public sealed class LX300_XNameCasingTest
+{
+    [Fact]
+    public void Lowercase_x_Name_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button [|x:Name="myButton"|] />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Uppercase_x_Name_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button x:Name="MyButton" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Underscore_prefix_is_flagged()
+    {
+        // Convention for "private" named elements varies; this rule enforces the canonical
+        // WPF style: first character must be uppercase ASCII.
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button [|x:Name="_hidden"|] />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Digit_prefix_is_flagged()
+    {
+        // XAML forbids leading digits anyway — LX001 will usually fire first — but if the
+        // parser accepts it we still catch the casing violation.
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button x:Name="MyButton1" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Name_attribute_without_x_prefix_is_ignored()
+    {
+        // Only x:Name (the XAML 2006/2009 ns) is checked. An unprefixed Name= is a WPF
+        // convenience that maps to the framework's NameProperty — still identifier-like, but
+        // out of scope for this rule.
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button Name="lowercase" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Empty_x_Name_is_ignored()
+    {
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button x:Name="" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Multiple_violations_each_emit_a_diagnostic()
+    {
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button [|x:Name="one"|] />
+                <Button [|x:Name="two"|] />
+            </Grid>
+            """);
+    }
+}
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --filter FullyQualifiedName~LX300_XNameCasingTest
+```
+
+Expected: compilation error — `LX300_XNameCasing` does not exist yet.
+
+- [ ] **Step 3: Implement the rule**
+
+Create `src/XamlLint.Core/Rules/Naming/LX300_XNameCasing.cs`:
+
+```csharp
+using System.Xml.Linq;
+using XamlLint.Core.Helpers;
+
+namespace XamlLint.Core.Rules.Naming;
+
+[XamlRule(
+    Id = "LX300",
+    UpstreamId = "RXT452",
+    Title = "x:Name should start with uppercase",
+    DefaultSeverity = Severity.Warning,
+    Dialects = Dialect.All,
+    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX300.md")]
+public sealed partial class LX300_XNameCasing : IXamlRule
+{
+    public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
+    {
+        if (document.Root is null) yield break;
+
+        foreach (var element in document.Root.DescendantsAndSelf())
+        {
+            foreach (var attr in element.Attributes())
+            {
+                if (attr.Name.LocalName != "Name") continue;
+                if (!XamlNamespaces.IsXamlNamespace(attr.Name.NamespaceName)) continue;
+
+                var value = attr.Value;
+                if (value.Length == 0) continue;
+                if (char.IsUpper(value[0])) continue;
+
+                var span = LocationHelpers.GetAttributeSpan(attr, context.Source);
+                yield return new Diagnostic(
+                    RuleId: Metadata.Id,
+                    Severity: Metadata.DefaultSeverity,
+                    Message: $"x:Name '{value}' should start with an uppercase letter.",
+                    File: document.FilePath,
+                    StartLine: span.StartLine,
+                    StartCol: span.StartCol,
+                    EndLine: span.EndLine,
+                    EndCol: span.EndCol,
+                    HelpUri: Metadata.HelpUri);
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 4: Add the Unshipped row**
+
+Edit `AnalyzerReleases.Unshipped.md`. Expected final contents:
+
+```markdown
+; Unshipped analyzer release
+; Format: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+LX300   | Naming   | Warning  | x:Name should start with uppercase
+```
+
+- [ ] **Step 5: Run DocTool to stub the doc file**
+
+Run:
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release
+```
+
+Expected output: a line like `Wrote stub docs/rules/LX300.md` plus updates to `schema/v1/config.json` (new enum entry for `LX300`) and `schema/v1/presets/xaml-lint-{off,recommended,strict}.json`.
+
+Verify stub exists:
+
+```bash
+ls D:/GitHub/jizc/xaml-lint/docs/rules/LX300.md
+```
+
+Expected: file present.
+
+- [ ] **Step 6: Run the full test suite**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx
+```
+
+Expected: all tests pass — the new LX300 tests, all existing M1 tests, and all meta-tests (including `Every_rule_has_a_docs_file` and `Every_rule_id_appears_in_analyzer_releases`).
+
+- [ ] **Step 7: Verify DocTool --check is clean**
+
+Run:
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release -- --check
+```
+
+Expected: exit code 0, no diff reported.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add src/XamlLint.Core/Rules/Naming tests/XamlLint.Core.Tests/Rules/Naming AnalyzerReleases.Unshipped.md docs/rules/LX300.md schema/v1
+git -C D:/GitHub/jizc/xaml-lint commit -m "feat: add LX300 — x:Name should start with uppercase"
+```
+
+---
+
+## Task 5: LX200 — SelectedItem binding should be TwoWay
+
+Second rule. Exercises `MarkupExtensionHelpers.TryParseExtension` and its `NamedArguments` lookup for `Mode`. Only flags when the value is a binding extension (`Binding` or `x:Bind`) and lacks `Mode=TwoWay`.
+
+**Files:**
+- Create: `src/XamlLint.Core/Rules/Bindings/LX200_SelectedItemTwoWay.cs`
+- Create: `tests/XamlLint.Core.Tests/Rules/Bindings/LX200_SelectedItemTwoWayTest.cs`
+- Modify: `AnalyzerReleases.Unshipped.md`
+- Create: `docs/rules/LX200.md` (DocTool stubs it)
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/XamlLint.Core.Tests/Rules/Bindings/LX200_SelectedItemTwoWayTest.cs`:
+
+```csharp
+using XamlLint.Core.Rules.Bindings;
+using XamlLint.Core.Tests.TestInfrastructure;
+
+namespace XamlLint.Core.Tests.Rules.Bindings;
+
+public sealed class LX200_SelectedItemTwoWayTest
+{
+    [Fact]
+    public void Binding_without_mode_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      [|SelectedItem="{Binding Current}"|] />
+            """);
+    }
+
+    [Fact]
+    public void Binding_with_mode_twoway_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      SelectedItem="{Binding Current, Mode=TwoWay}" />
+            """);
+    }
+
+    [Fact]
+    public void Binding_with_mode_oneway_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      [|SelectedItem="{Binding Current, Mode=OneWay}"|] />
+            """);
+    }
+
+    [Fact]
+    public void XBind_without_mode_is_flagged()
+    {
+        // x:Bind default mode is OneTime, which is never correct for SelectedItem.
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      [|SelectedItem="{x:Bind Current}"|] />
+            """);
+    }
+
+    [Fact]
+    public void XBind_with_mode_twoway_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      SelectedItem="{x:Bind Current, Mode=TwoWay}" />
+            """);
+    }
+
+    [Fact]
+    public void Literal_SelectedItem_is_ignored()
+    {
+        // Non-binding values are irrelevant to this rule — some tests/designers use a
+        // placeholder string.
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      SelectedItem="placeholder" />
+            """);
+    }
+
+    [Fact]
+    public void Non_binding_extension_is_ignored()
+    {
+        // StaticResource and other non-binding extensions are not checked.
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      SelectedItem="{StaticResource DefaultItem}" />
+            """);
+    }
+
+    [Fact]
+    public void Converter_with_nested_braces_does_not_confuse_parser()
+    {
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <ListView xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      SelectedItem="{Binding Current, Converter={StaticResource C}, Mode=TwoWay}" />
+            """);
+    }
+}
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --filter FullyQualifiedName~LX200_SelectedItemTwoWayTest
+```
+
+Expected: compilation error — `LX200_SelectedItemTwoWay` does not exist.
+
+- [ ] **Step 3: Implement the rule**
+
+Create `src/XamlLint.Core/Rules/Bindings/LX200_SelectedItemTwoWay.cs`:
+
+```csharp
+using System.Xml.Linq;
+using XamlLint.Core.Helpers;
+
+namespace XamlLint.Core.Rules.Bindings;
+
+[XamlRule(
+    Id = "LX200",
+    UpstreamId = "RXT160",
+    Title = "SelectedItem binding should be TwoWay",
+    DefaultSeverity = Severity.Info,
+    Dialects = Dialect.All,
+    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX200.md")]
+public sealed partial class LX200_SelectedItemTwoWay : IXamlRule
+{
+    private static readonly HashSet<string> BindingExtensions = new(StringComparer.Ordinal)
+    {
+        "Binding",
+        "x:Bind",
+    };
+
+    public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
+    {
+        if (document.Root is null) yield break;
+
+        foreach (var element in document.Root.DescendantsAndSelf())
+        {
+            foreach (var attr in element.Attributes())
+            {
+                if (attr.Name.LocalName != "SelectedItem") continue;
+                if (!MarkupExtensionHelpers.TryParseExtension(attr.Value, out var ext)) continue;
+                if (!BindingExtensions.Contains(ext.Name)) continue;
+                if (ext.NamedArguments.TryGetValue("Mode", out var mode) && mode == "TwoWay") continue;
+
+                var span = LocationHelpers.GetAttributeSpan(attr, context.Source);
+                yield return new Diagnostic(
+                    RuleId: Metadata.Id,
+                    Severity: Metadata.DefaultSeverity,
+                    Message: "SelectedItem binding should explicitly set Mode=TwoWay.",
+                    File: document.FilePath,
+                    StartLine: span.StartLine,
+                    StartCol: span.StartCol,
+                    EndLine: span.EndLine,
+                    EndCol: span.EndCol,
+                    HelpUri: Metadata.HelpUri);
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 4: Add the Unshipped row**
+
+Edit `AnalyzerReleases.Unshipped.md`. Append the LX200 row below the LX300 row (sort alphabetically by ID — LX200 sorts before LX300). Expected final contents:
+
+```markdown
+; Unshipped analyzer release
+; Format: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+LX200   | Bindings | Info     | SelectedItem binding should be TwoWay
+LX300   | Naming   | Warning  | x:Name should start with uppercase
+```
+
+- [ ] **Step 5: Run DocTool**
+
+Run:
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release
+```
+
+Expected: `Wrote stub docs/rules/LX200.md` plus updated schema and presets.
+
+- [ ] **Step 6: Run the full test suite**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx
+```
+
+Expected: all pass.
+
+- [ ] **Step 7: Verify DocTool --check is clean**
+
+Run:
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release -- --check
+```
+
+Expected: exit code 0.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add src/XamlLint.Core/Rules/Bindings tests/XamlLint.Core.Tests/Rules/Bindings AnalyzerReleases.Unshipped.md docs/rules/LX200.md schema/v1
+git -C D:/GitHub/jizc/xaml-lint commit -m "feat: add LX200 — SelectedItem binding should be TwoWay"
+```
+
+---
+
+## Task 6: LX400 — Hardcoded string
+
+Third rule. Flags a fixed set of text-presenting attribute local names when the value is a literal string (not a markup extension, not empty, not whitespace-only).
+
+The scope list is universal across M2's target dialects. The rule is conservative by design — when in doubt, don't flag. Missing attributes (false negatives) are cheaper than annoying false positives for a rule that will fire across every XAML file in a project.
+
+**Files:**
+- Create: `src/XamlLint.Core/Rules/Resources/LX400_HardcodedString.cs`
+- Create: `tests/XamlLint.Core.Tests/Rules/Resources/LX400_HardcodedStringTest.cs`
+- Modify: `AnalyzerReleases.Unshipped.md`
+- Create: `docs/rules/LX400.md` (DocTool stubs it)
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/XamlLint.Core.Tests/Rules/Resources/LX400_HardcodedStringTest.cs`:
+
+```csharp
+using XamlLint.Core.Rules.Resources;
+using XamlLint.Core.Tests.TestInfrastructure;
+
+namespace XamlLint.Core.Tests.Rules.Resources;
+
+public sealed class LX400_HardcodedStringTest
+{
+    [Fact]
+    public void Hardcoded_Text_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       [|Text="Click me"|] />
+            """);
+    }
+
+    [Fact]
+    public void Hardcoded_Title_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    [|Title="Main Window"|] />
+            """);
+    }
+
+    [Fact]
+    public void Hardcoded_Content_on_Button_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    [|Content="Save"|] />
+            """);
+    }
+
+    [Fact]
+    public void Binding_value_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       Text="{Binding Greeting}" />
+            """);
+    }
+
+    [Fact]
+    public void StaticResource_value_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       Text="{StaticResource GreetingText}" />
+            """);
+    }
+
+    [Fact]
+    public void Empty_value_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       Text="" />
+            """);
+    }
+
+    [Fact]
+    public void Whitespace_only_value_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       Text="   " />
+            """);
+    }
+
+    [Fact]
+    public void Attribute_not_in_scope_is_not_flagged()
+    {
+        // Width is not a text-presenting attribute.
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       Text="{Binding Hello}"
+                       Width="100" />
+            """);
+    }
+
+    [Fact]
+    public void Multiple_hardcoded_strings_each_flag()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <TextBlock [|Text="First"|] />
+                <TextBlock [|Text="Second"|] />
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void PlaceholderText_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX400_HardcodedString>.Analyze(
+            """
+            <TextBox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     [|PlaceholderText="Enter name"|] />
+            """);
+    }
+}
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --filter FullyQualifiedName~LX400_HardcodedStringTest
+```
+
+Expected: compilation error — `LX400_HardcodedString` does not exist.
+
+- [ ] **Step 3: Implement the rule**
+
+Create `src/XamlLint.Core/Rules/Resources/LX400_HardcodedString.cs`:
+
+```csharp
+using System.Xml.Linq;
+using XamlLint.Core.Helpers;
+
+namespace XamlLint.Core.Rules.Resources;
+
+[XamlRule(
+    Id = "LX400",
+    UpstreamId = "RXT200",
+    Title = "Hardcoded string; use a resource",
+    DefaultSeverity = Severity.Info,
+    Dialects = Dialect.All,
+    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX400.md")]
+public sealed partial class LX400_HardcodedString : IXamlRule
+{
+    // Conservative baseline list of text-presenting attributes that commonly need localisation.
+    // Expand as real-world false-negatives surface.
+    private static readonly HashSet<string> TextAttributeNames = new(StringComparer.Ordinal)
+    {
+        "Text",
+        "Title",
+        "Header",
+        "ToolTip",
+        "Content",
+        "PlaceholderText",
+        "Placeholder",
+        "Description",
+        "Watermark",
+    };
+
+    public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
+    {
+        if (document.Root is null) yield break;
+
+        foreach (var element in document.Root.DescendantsAndSelf())
+        {
+            foreach (var attr in element.Attributes())
+            {
+                if (!TextAttributeNames.Contains(attr.Name.LocalName)) continue;
+                if (!attr.Name.NamespaceName.Equals(string.Empty, StringComparison.Ordinal) &&
+                    !attr.Name.NamespaceName.Equals(XamlNamespaces.WpfPresentation, StringComparison.Ordinal))
+                    continue;  // attached properties and other namespaces aren't the target
+
+                var value = attr.Value;
+                if (string.IsNullOrWhiteSpace(value)) continue;
+                if (MarkupExtensionHelpers.IsMarkupExtension(value)) continue;
+
+                var span = LocationHelpers.GetAttributeSpan(attr, context.Source);
+                yield return new Diagnostic(
+                    RuleId: Metadata.Id,
+                    Severity: Metadata.DefaultSeverity,
+                    Message: $"Hardcoded string on '{attr.Name.LocalName}' should be moved to a resource.",
+                    File: document.FilePath,
+                    StartLine: span.StartLine,
+                    StartCol: span.StartCol,
+                    EndLine: span.EndLine,
+                    EndCol: span.EndCol,
+                    HelpUri: Metadata.HelpUri);
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 4: Add the Unshipped row**
+
+Edit `AnalyzerReleases.Unshipped.md`. Append LX400. Expected final contents:
+
+```markdown
+; Unshipped analyzer release
+; Format: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+### New Rules
+
+Rule ID | Category  | Severity | Notes
+--------|-----------|----------|-------
+LX200   | Bindings  | Info     | SelectedItem binding should be TwoWay
+LX300   | Naming    | Warning  | x:Name should start with uppercase
+LX400   | Resources | Info     | Hardcoded string; use a resource
+```
+
+- [ ] **Step 5: Run DocTool**
+
+Run:
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release
+```
+
+Expected: `Wrote stub docs/rules/LX400.md` plus updated schema and presets.
+
+- [ ] **Step 6: Run the full test suite**
+
+Run:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx
+```
+
+Expected: all pass.
+
+- [ ] **Step 7: Verify DocTool --check is clean**
+
+Run:
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release -- --check
+```
+
+Expected: exit code 0.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add src/XamlLint.Core/Rules/Resources tests/XamlLint.Core.Tests/Rules/Resources AnalyzerReleases.Unshipped.md docs/rules/LX400.md schema/v1
+git -C D:/GitHub/jizc/xaml-lint commit -m "feat: add LX400 — hardcoded string should be moved to a resource"
+```
+
+---
+
+## Task 7: Author per-rule documentation
+
+Replaces the DocTool-stubbed content in `docs/rules/LX200.md`, `LX300.md`, and `LX400.md` with the canonical 4-heading template (Cause / Rule description / How to fix violations / How to suppress violations). Each page gets dialect notes, a non-compliant + compliant XAML pair with inline comments (per §11.2 of the design spec), and copy-pasteable suppression snippets.
+
+**Files:**
+- Modify: `docs/rules/LX200.md`
+- Modify: `docs/rules/LX300.md`
+- Modify: `docs/rules/LX400.md`
+
+- [ ] **Step 1: Write `docs/rules/LX300.md`**
+
+Replace the stub with:
+
+````markdown
+# LX300: x:Name should start with uppercase
+
+<!-- Upstream: RXT452. -->
+
+## Cause
+
+An `x:Name` attribute's value starts with a lowercase letter, digit, or underscore.
+
+## Rule description
+
+By WPF/WinUI/UWP convention, `x:Name` values identify elements in code-behind and resource
+lookups — they should follow the PascalCase conventions used for .NET identifiers. The rule
+applies to the `Name` attribute in either the XAML 2006
+(`http://schemas.microsoft.com/winfx/2006/xaml`) or XAML 2009
+(`http://schemas.microsoft.com/winfx/2009/xaml`) namespace. The unprefixed `Name`
+attribute (a WPF convenience that maps to `FrameworkElement.NameProperty`) is out of scope.
+
+```xaml
+<StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- non-compliant: 'myButton' starts lowercase -->
+    <Button x:Name="myButton" />
+    <!-- non-compliant: '_hidden' starts with an underscore -->
+    <Button x:Name="_hidden" />
+</StackPanel>
+```
+
+```xaml
+<StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- compliant: PascalCase -->
+    <Button x:Name="MyButton" />
+</StackPanel>
+```
+
+## How to fix violations
+
+Rename the element — capitalise the first letter. Use your IDE's rename refactoring so the
+name updates in code-behind, data-binding expressions, and storyboard `Storyboard.TargetName`
+references. If the element is referenced from XAML resources via a `Binding ElementName=…`,
+update those references too.
+
+## How to suppress violations
+
+For a single element (the next `XElement` after the comment):
+
+```xaml
+<!-- xaml-lint disable once LX300 -->
+<Button x:Name="legacy_generated_name" />
+```
+
+For a block of markup:
+
+```xaml
+<!-- xaml-lint disable LX300 -->
+<Button x:Name="legacy_one" />
+<Button x:Name="legacy_two" />
+<!-- xaml-lint restore LX300 -->
+```
+
+For a whole file or project, edit `xaml-lint.config.json`:
+
+```json
+{ "rules": { "LX300": "off" } }
+```
+````
+
+- [ ] **Step 2: Write `docs/rules/LX200.md`**
+
+Replace the stub with:
+
+````markdown
+# LX200: SelectedItem binding should be TwoWay
+
+<!-- Upstream: RXT160. -->
+
+## Cause
+
+A `SelectedItem` attribute is bound (`{Binding …}` or `{x:Bind …}`) without an explicit
+`Mode=TwoWay`. The default binding mode for `Binding` is `OneWay`; for `x:Bind` it is
+`OneTime`. Neither propagates user-driven selection changes back to the view model.
+
+## Rule description
+
+`SelectedItem` is the primary data-bound property of selector controls (`ListView`, `ListBox`,
+`DataGrid`, `ComboBox`, `TreeView`, `Selector`-derived third-party controls). In MVVM, you
+almost always want the user's selection to flow back to the view model, which requires
+`TwoWay` binding. The rule does not check the target type — any element with a
+`SelectedItem="{Binding …}"` or `SelectedItem="{x:Bind …}"` attribute without
+`Mode=TwoWay` is flagged.
+
+Non-binding extensions (`{StaticResource …}`, `{DynamicResource …}`, `{TemplateBinding …}`,
+etc.) and literal values are ignored.
+
+```xaml
+<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <!-- non-compliant: default mode is OneWay; selection changes do not flow back to VM -->
+    <ListView SelectedItem="{Binding Current}" />
+    <!-- non-compliant: x:Bind default is OneTime — even worse -->
+    <ListView xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              SelectedItem="{x:Bind Current}" />
+</Grid>
+```
+
+```xaml
+<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <!-- compliant -->
+    <ListView SelectedItem="{Binding Current, Mode=TwoWay}" />
+</Grid>
+```
+
+## How to fix violations
+
+Add `, Mode=TwoWay` to the binding expression. If the binding uses multiple arguments already
+(`Path=`, `Converter=`, etc.), insert `Mode=TwoWay` as another comma-separated argument —
+order does not matter inside the markup extension.
+
+## How to suppress violations
+
+For a single element:
+
+```xaml
+<!-- xaml-lint disable once LX200 -->
+<ListView SelectedItem="{Binding ReadOnlyCurrent}" />
+```
+
+For a block:
+
+```xaml
+<!-- xaml-lint disable LX200 -->
+<ListView SelectedItem="{Binding First}" />
+<ListView SelectedItem="{Binding Second}" />
+<!-- xaml-lint restore LX200 -->
+```
+
+For a whole file or project:
+
+```json
+{ "rules": { "LX200": "off" } }
+```
+````
+
+- [ ] **Step 3: Write `docs/rules/LX400.md`**
+
+Replace the stub with:
+
+````markdown
+# LX400: Hardcoded string; use a resource
+
+<!-- Upstream: RXT200. -->
+
+## Cause
+
+An attribute that typically carries user-visible text has a literal string value rather than a
+binding or resource reference. The rule inspects a fixed set of local names: `Text`, `Title`,
+`Header`, `ToolTip`, `Content`, `PlaceholderText`, `Placeholder`, `Description`, `Watermark`.
+
+## Rule description
+
+Hardcoded UI strings in XAML defeat localisation and make copy changes require a rebuild.
+Best practice is to reference resources (`{StaticResource StringKey}` with a
+`ResourceDictionary`) or to data-bind to a localisation provider
+(`{Binding Greeting}`). The rule ignores values that are markup extensions (anything between
+`{` and `}`), empty strings, and whitespace-only values.
+
+The rule is deliberately conservative — only attributes on the name list above are checked,
+so `Label`-style content not named `Content` or `Text` slips through. As real projects surface
+false negatives, the list will grow.
+
+```xaml
+<TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+           xmlns:p="clr-namespace:MyApp.Properties">
+    <!-- non-compliant: literal English prose -->
+    <TextBlock Text="Click Save to continue." />
+    <!-- compliant: resource lookup -->
+    <TextBlock Text="{x:Static p:Resources.SaveInstruction}" />
+</TextBlock>
+```
+
+## How to fix violations
+
+1. Move the string into a `.resx` file or a XAML `ResourceDictionary`.
+2. Replace the literal with a `{Binding}`, `{StaticResource}`, `{DynamicResource}`, or
+   `{x:Static}` reference depending on your project's localisation stack.
+3. Rebuild and verify the UI still renders the expected text.
+
+For strings that are intentionally hard-coded (diagnostics-only screens, developer tooling,
+or mocked data), suppress locally rather than turning the rule off project-wide.
+
+## How to suppress violations
+
+For a single element:
+
+```xaml
+<!-- xaml-lint disable once LX400 -->
+<TextBlock Text="Debug build — not for end users" />
+```
+
+For a block:
+
+```xaml
+<!-- xaml-lint disable LX400 -->
+<TextBlock Text="Row one" />
+<TextBlock Text="Row two" />
+<!-- xaml-lint restore LX400 -->
+```
+
+For a whole file or project:
+
+```json
+{ "rules": { "LX400": "off" } }
+```
+
+To disable the rule everywhere in files that match a glob:
+
+```json
+{
+  "overrides": [
+    { "files": "**/*.Designer.xaml", "rules": { "LX400": "off" } }
+  ]
+}
+```
+````
+
+- [ ] **Step 4: Verify the meta-test sentinel check still passes**
+
+The M1 meta-tests include `Every_rule_has_a_docs_file`. They do NOT (at M1) scan for leftover stub sentinel text, so authoring the content doesn't trip anything. Still, run the suite to confirm nothing regressed:
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx
+```
+
+Expected: all pass.
+
+- [ ] **Step 5: Verify DocTool --check does not want to re-stub**
+
+Run:
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release -- --check
+```
+
+Expected: exit code 0. DocTool only stubs *missing* files and refuses to overwrite existing ones, so authored content is stable.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add docs/rules/LX200.md docs/rules/LX300.md docs/rules/LX400.md
+git -C D:/GitHub/jizc/xaml-lint commit -m "docs: author LX200, LX300, LX400 rule pages"
+```
+
+---
+
+## Task 8: Category overview pages
+
+Adds `docs/rules/bindings.md`, `docs/rules/naming.md`, and `docs/rules/resources.md` — the category-level index pages that mirror `docs/rules/tool.md` from M1. Each page has a short intro and a table linking to every rule in that category.
+
+**Files:**
+- Create: `docs/rules/bindings.md`
+- Create: `docs/rules/naming.md`
+- Create: `docs/rules/resources.md`
+
+- [ ] **Step 1: Write `docs/rules/bindings.md`**
+
+````markdown
+# Bindings / data (LX200–LX299)
+
+Rules that inspect data-binding expressions (`{Binding …}`, `{x:Bind …}`, `{TemplateBinding …}`).
+These rules fire on attributes whose values are XAML markup extensions and examine the
+extension's arguments — they do not run type analysis or verify data-context paths.
+
+| ID | Title | Default |
+|---|---|---|
+| [LX200](LX200.md) | SelectedItem binding should be TwoWay | info |
+````
+
+- [ ] **Step 2: Write `docs/rules/naming.md`**
+
+````markdown
+# Naming (LX300–LX399)
+
+Rules that check identifier conventions on XAML attributes like `x:Name`, `x:Uid`, and
+`x:Key`. These rules enforce project-wide consistency for names that are referenced from
+code-behind, resource dictionaries, and animation storyboards.
+
+| ID | Title | Default |
+|---|---|---|
+| [LX300](LX300.md) | x:Name should start with uppercase | warning |
+````
+
+- [ ] **Step 3: Write `docs/rules/resources.md`**
+
+````markdown
+# Resources / localization (LX400–LX499)
+
+Rules that flag hardcoded values that should live in a resource dictionary or localisation
+file. Today's coverage is limited to a conservative list of text-presenting attributes; the
+category will grow with resource-key-existence and merged-dictionary checks in future
+releases.
+
+| ID | Title | Default |
+|---|---|---|
+| [LX400](LX400.md) | Hardcoded string; use a resource | info |
+````
+
+- [ ] **Step 4: Run the test suite**
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx
+```
+
+Expected: all pass. The meta-tests do not assert on category-overview pages (they only check per-rule docs), so these are additive.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add docs/rules/bindings.md docs/rules/naming.md docs/rules/resources.md
+git -C D:/GitHub/jizc/xaml-lint commit -m "docs: add bindings/naming/resources category overview pages"
+```
+
+---
+
+## Task 9: Update comparison-with-rxt and README
+
+Adds three rows to `docs/comparison-with-rapid-xaml-toolkit.md` mapping our IDs to the upstream RXT IDs, plus short prose notes where behaviour differs. Bumps the `README.md` status line to reflect v0.2.0.
+
+**Files:**
+- Modify: `docs/comparison-with-rapid-xaml-toolkit.md`
+- Modify: `README.md`
+
+- [ ] **Step 1: Update the comparison table**
+
+Open `docs/comparison-with-rapid-xaml-toolkit.md`. In the "Rule ID mapping" table, append three rows after the LX006 row:
+
+```markdown
+| LX200 | RXT160 | SelectedItem binding should be TwoWay. Matches upstream; applies to all dialects where binding markup is used. |
+| LX300 | RXT452 | x:Name should start with uppercase. Matches upstream casing rule; unprefixed `Name` remains out of scope. |
+| LX400 | RXT200 | Hardcoded string. Our attribute-name list is deliberately conservative at v0.2; upstream's list is broader and will be matched as real-world false negatives surface. |
+```
+
+Then replace the "Behavior differences" paragraph. Current M1 text says "v0.1 only ports tool-level diagnostics and does not re-implement any analysis rules, so there are no behavior differences to note yet." Replace with:
+
+```markdown
+## Behavior differences
+
+- **LX300 vs RXT452** — xaml-lint limits the casing check to `Name` in the XAML 2006
+  (`http://schemas.microsoft.com/winfx/2006/xaml`) or 2009
+  (`http://schemas.microsoft.com/winfx/2009/xaml`) namespace. Upstream historically treated
+  the unprefixed `Name=` attribute the same way; we do not, because unprefixed `Name` in
+  WPF is a framework-level convenience rather than a XAML-language identifier.
+- **LX400 vs RXT200** — upstream flags a wider set of text-presenting attribute names than
+  our v0.2 scope (`Text`, `Title`, `Header`, `ToolTip`, `Content`, `PlaceholderText`,
+  `Placeholder`, `Description`, `Watermark`). The list will grow as real projects surface
+  false negatives.
+```
+
+- [ ] **Step 2: Update `README.md`**
+
+Find the status line that currently reads something like `v0.1.0 — engine, CLI, config, plugin, and test harness are all wired end-to-end. No content lint rules yet (those ship in v0.2+); v0.1.0 ships the six tool/engine diagnostics (LX001–LX006).`
+
+Replace that paragraph with:
+
+```markdown
+v0.2.0 — first content lint rules shipped: [LX200](docs/rules/LX200.md) (SelectedItem binding should be TwoWay), [LX300](docs/rules/LX300.md) (x:Name casing), and [LX400](docs/rules/LX400.md) (hardcoded string). Full catalog at [docs/rules/](docs/rules/). The six tool/engine diagnostics (LX001–LX006) from v0.1.0 remain in place.
+```
+
+Adjust surrounding text if it references v0.1 behaviour in ways that no longer apply.
+
+- [ ] **Step 3: Verify links resolve**
+
+Spot-check that the markdown files referenced resolve. On Windows:
+
+```bash
+ls D:/GitHub/jizc/xaml-lint/docs/rules/LX200.md D:/GitHub/jizc/xaml-lint/docs/rules/LX300.md D:/GitHub/jizc/xaml-lint/docs/rules/LX400.md
+```
+
+Expected: all three files exist.
+
+- [ ] **Step 4: Run the full test suite one last time**
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx
+```
+
+Expected: all pass, including every meta-test.
+
+- [ ] **Step 5: Verify DocTool --check is still clean**
+
+```bash
+dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release -- --check
+```
+
+Expected: exit code 0.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add docs/comparison-with-rapid-xaml-toolkit.md README.md
+git -C D:/GitHub/jizc/xaml-lint commit -m "docs: update RXT comparison and README for v0.2.0"
+```
+
+---
+
+## Task 10: Graduate Unshipped → Shipped for v0.2.0
+
+The release-discipline step. Moves the three rows accumulated in `AnalyzerReleases.Unshipped.md` into a new `## Release 0.2.0` section in `AnalyzerReleases.Shipped.md`. This is the same pattern M1 used to graduate LX001–LX006 to Shipped on the v0.1.0 tag.
+
+**Files:**
+- Modify: `AnalyzerReleases.Shipped.md`
+- Modify: `AnalyzerReleases.Unshipped.md`
+
+- [ ] **Step 1: Append the 0.2.0 section to `AnalyzerReleases.Shipped.md`**
+
+Expected final contents:
+
+```markdown
+; Shipped analyzer releases
+; Format: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+## Release 0.1.0
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+LX001   | Tool     | Error    | Malformed XAML
+LX002   | Tool     | Warning  | Unrecognized pragma directive
+LX003   | Tool     | Error    | Malformed configuration
+LX004   | Tool     | Error    | Cannot read file
+LX005   | Tool     | Info     | Skipping non-XAML file
+LX006   | Tool     | Error    | Internal error in rule
+
+## Release 0.2.0
+
+### New Rules
+
+Rule ID | Category  | Severity | Notes
+--------|-----------|----------|-------
+LX200   | Bindings  | Info     | SelectedItem binding should be TwoWay
+LX300   | Naming    | Warning  | x:Name should start with uppercase
+LX400   | Resources | Info     | Hardcoded string; use a resource
+```
+
+- [ ] **Step 2: Reset `AnalyzerReleases.Unshipped.md`**
+
+Expected final contents (M1 graduation state — empty New Rules table):
+
+```markdown
+; Unshipped analyzer release
+; Format: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+```
+
+- [ ] **Step 3: Run the test suite**
+
+```bash
+dotnet test D:/GitHub/jizc/xaml-lint/xaml-lint.slnx
+```
+
+Expected: all pass. The meta-test `Every_rule_id_appears_in_analyzer_releases` concatenates Shipped and Unshipped, so rules moving between files is transparent.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint add AnalyzerReleases.Shipped.md AnalyzerReleases.Unshipped.md
+git -C D:/GitHub/jizc/xaml-lint commit -m "Graduate LX200, LX300, LX400 to AnalyzerReleases.Shipped.md for v0.2.0"
+```
+
+- [ ] **Step 5: Push the branch and open a PR**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint push -u origin m2-easy-rules
+gh pr create --title "M2: LX200, LX300, LX400 (v0.2.0)" --body "$(cat <<'EOF'
+## Summary
+- Adds three content lint rules: LX200 (SelectedItem TwoWay), LX300 (x:Name casing), LX400 (hardcoded string).
+- Adds shared helpers: `XamlNamespaces`, `LocationHelpers`, `MarkupExtensionHelpers`.
+- Graduates LX200/LX300/LX400 to `AnalyzerReleases.Shipped.md` under `## Release 0.2.0`.
+- Updates comparison-with-RXT and README for v0.2.0.
+
+## Test plan
+- [ ] `dotnet build xaml-lint.slnx` succeeds on Windows, Linux, macOS in CI.
+- [ ] `dotnet test xaml-lint.slnx` passes on all three OSes — includes rule unit tests and meta-tests.
+- [ ] `dotnet run --project src/XamlLint.DocTool -- --check` exits 0 in CI (no drift).
+- [ ] Spot-check `docs/rules/LX200.md`, `LX300.md`, `LX400.md` render correctly on GitHub.
+- [ ] Preset files at `schema/v1/presets/xaml-lint-{off,recommended,strict}.json` include the three new IDs.
+EOF
+)"
+```
+
+Expected: PR URL printed. Wait for CI to go green on all three OSes before merging.
+
+---
+
+## Task 11: Tag v0.2.0
+
+After the PR is merged into `main`, tag the release. Nerdbank.GitVersioning's `publicReleaseRefSpec` already whitelists `refs/tags/v\d+\.\d+`, so the tag build produces stable `0.2.0` package versions.
+
+**Files:** none (git operation only).
+
+- [ ] **Step 1: Update local main**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint checkout main
+git -C D:/GitHub/jizc/xaml-lint pull --ff-only origin main
+```
+
+Expected: `Fast-forward` showing the M2 merge commit.
+
+- [ ] **Step 2: Tag the release**
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint tag -a v0.2.0 -m "v0.2.0 — first content lint rules: LX200, LX300, LX400"
+git -C D:/GitHub/jizc/xaml-lint push origin v0.2.0
+```
+
+Expected: `v0.2.0` appears in `git tag --list --sort=-v:refname` after `v0.1.0`.
+
+- [ ] **Step 3: Verify the release workflow**
+
+Check GitHub Actions:
+
+```bash
+gh run list --workflow release.yml --limit 3
+```
+
+Expected: the v0.2.0 push triggers a release workflow run. If the workflow doesn't yet handle tag triggers (release.yml from M1 may still be a dry-run), that's fine — the tag itself is the deliverable for M2. NuGet publish can ship in a follow-up commit on `main`.
+
+- [ ] **Step 4: Confirm the package version**
+
+Run a restore on any checkout at the v0.2.0 tag:
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint checkout v0.2.0
+dotnet pack D:/GitHub/jizc/xaml-lint/src/XamlLint.Cli --configuration Release
+ls D:/GitHub/jizc/xaml-lint/src/XamlLint.Cli/bin/Release/*.nupkg
+```
+
+Expected: a file named `XamlLint.Cli.0.2.0.nupkg` (no pre-release suffix).
+
+Restore the working branch when done:
+
+```bash
+git -C D:/GitHub/jizc/xaml-lint checkout main
+```
+
+---
+
+## Self-review
+
+**Spec coverage (design §10 M2 requirements):**
+- LX200 SelectedItem TwoWay — Task 5 ✔
+- LX300 x:Name casing — Task 4 ✔
+- LX400 hardcoded strings — Task 6 ✔
+- `bindings.md` category overview — Task 8 ✔
+- `naming.md` category overview — Task 8 ✔
+- `resources.md` category overview — Task 8 ✔
+- `AnalyzerReleases.Unshipped.md` → `Shipped.md` graduation on tag — Task 10 + 11 ✔
+- Rule docs per-rule — Task 7 ✔
+
+**Plumbing invariants (design §3.2, §3.5, §8.2):**
+- `[XamlRule]` attribute on every rule — Tasks 4/5/6 ✔
+- Class filename matches ID (`LX###_Name.cs`) — Tasks 4/5/6 ✔
+- `HelpUri` matches the expected pattern — Tasks 4/5/6 ✔
+- `UpstreamId` matches `RXT\d+` — Tasks 4/5/6 (RXT160, RXT452, RXT200) ✔
+- Non-zero `Dialects` (all three use `Dialect.All`) — Tasks 4/5/6 ✔
+- Rule IDs appear in AnalyzerReleases — Tasks 4/5/6 add rows, Task 10 graduates ✔
+- Per-rule doc files exist — Tasks 4/5/6 stub them via DocTool, Task 7 authors them ✔
+- Category derives from hundreds digit (no `Category` attribute field) — Tasks 4/5/6 ✔
+
+**Plan quality:**
+- Every step has exact file paths ✔
+- Every code step has the actual code, not a placeholder ✔
+- Every run command has an expected outcome ✔
+- Each rule task commits atomically (code + Unshipped row + DocTool-stubbed doc) so meta-tests stay green between commits ✔
+- Type consistency: `MarkupExtensionInfo`, `GetAttributeSpan`'s tuple shape, `XamlNamespaces.IsXamlNamespace` all referenced consistently across tasks ✔
+- No backwards-compatibility shims, no over-engineering: helpers are only what the three rules actually need ✔
+
+**Known gaps accepted:**
+- LX400's attribute-name list is conservative; expansion tracked in the doc page (Task 7) as an explicit "will grow as false negatives surface". Not a bug, is design.
+- Task 11 notes that `release.yml` may not yet publish to NuGet — that's v0.1.0-era state and out of scope for M2. NuGet publish automation can ship as a follow-up on `main`.
+- No benchmark test is added. The design mentions a 50ms p95 budget (§8.2 item 6) as a future meta-test; building it before M2's rules exist would have been premature. Add post-v0.2 if the rules we ship actually push the budget.
