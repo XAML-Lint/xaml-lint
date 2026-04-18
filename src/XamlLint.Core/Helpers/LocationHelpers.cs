@@ -85,11 +85,13 @@ public static class LocationHelpers
 
     /// <summary>
     /// Returns the 1-based span that covers an element's opening-tag name only (for example,
-    /// <c>Grid.Row</c> inside <c>&lt;Grid.Row&gt;</c>). Used by rules whose diagnostic source is
-    /// an <see cref="XElement"/> — element-syntax attached properties. Line info on
-    /// <see cref="XElement"/> points at the first character of the name, immediately after the
-    /// opening <c>&lt;</c>. The returned <c>EndCol</c> is one past the last character of the
-    /// local name (exclusive), consistent with <see cref="GetAttributeSpan"/>.
+    /// <c>Grid.Row</c> inside <c>&lt;Grid.Row&gt;</c>, or <c>x:Key</c> inside
+    /// <c>&lt;x:Key&gt;</c>). Used by rules whose diagnostic source is an <see cref="XElement"/>
+    /// — typically element-syntax attached properties. Line info on <see cref="XElement"/>
+    /// points at the first character of the source name, including any XML prefix; the end
+    /// column advances by the prefix length (plus a colon) when the element is prefixed.
+    /// The returned <c>EndCol</c> is one past the last character of the name (exclusive),
+    /// consistent with <see cref="GetAttributeSpan"/>.
     /// </summary>
     public static (int StartLine, int StartCol, int EndLine, int EndCol) GetElementNameSpan(
         XElement element)
@@ -101,7 +103,15 @@ public static class LocationHelpers
 
         var line = lineInfo.LineNumber;
         var startCol = lineInfo.LinePosition;
-        var nameLen = element.Name.LocalName.Length;
+
+        // LinePosition points at the first character of the source name, including any XML
+        // prefix. LocalName strips the prefix, so for <x:Key> (source length 5) LocalName is
+        // "Key" (length 3). Add prefix length + ':' when present to keep EndCol at the true
+        // end of the name.
+        var prefix = element.GetPrefixOfNamespace(element.Name.Namespace);
+        var nameLen = element.Name.LocalName.Length
+            + (string.IsNullOrEmpty(prefix) ? 0 : prefix.Length + 1);
+
         return (line, startCol, line, startCol + nameLen);
     }
 

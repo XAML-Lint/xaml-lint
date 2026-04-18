@@ -104,4 +104,25 @@ public sealed class LocationHelpersTest
         span.EndLine.Should().Be(2);
         span.EndCol.Should().Be(14);
     }
+
+    [Fact]
+    public void GetElementNameSpan_accounts_for_namespace_prefix()
+    {
+        const string xaml =
+            "<ResourceDictionary xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"\n" +
+            "                    xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\">\n" +
+            "    <x:String x:Key=\"Greeting\">hello</x:String>\n" +
+            "</ResourceDictionary>";
+        var doc = Doc(xaml);
+        var stringElement = doc.Root!.Elements().First(e => e.Name.LocalName == "String");
+
+        var span = LocationHelpers.GetElementNameSpan(stringElement);
+
+        // '<x:String' opens at column 6 (1-based) on line 3. The source name 'x:String' is 8
+        // characters (prefix 'x' + ':' + 'String'). Columns 6..14 inclusive/exclusive.
+        span.StartLine.Should().Be(3);
+        span.StartCol.Should().Be(6);
+        span.EndLine.Should().Be(3);
+        span.EndCol.Should().Be(14);
+    }
 }
