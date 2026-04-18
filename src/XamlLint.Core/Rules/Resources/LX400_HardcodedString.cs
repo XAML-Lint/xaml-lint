@@ -36,9 +36,11 @@ public sealed partial class LX400_HardcodedString : IXamlRule
             foreach (var attr in element.Attributes())
             {
                 if (!TextAttributeNames.Contains(attr.Name.LocalName)) continue;
-                if (!attr.Name.NamespaceName.Equals(string.Empty, StringComparison.Ordinal) &&
-                    !attr.Name.NamespaceName.Equals(XamlNamespaces.WpfPresentation, StringComparison.Ordinal))
-                    continue;  // attached properties and other namespaces aren't the target
+                // Only inspect unprefixed attributes. Anything with a prefix (x:Uid, Grid.Row,
+                // d:DesignHeight, custom dialect attributes, etc.) is out of scope for hardcoded-string
+                // detection — those names aren't in our TextAttributeNames list anyway, and the prefix
+                // guarantees it's not a user-visible text property of a standard control.
+                if (attr.Name.NamespaceName.Length != 0) continue;
 
                 var value = attr.Value;
                 if (string.IsNullOrWhiteSpace(value)) continue;
