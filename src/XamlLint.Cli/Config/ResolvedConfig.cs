@@ -8,7 +8,8 @@ public sealed record ResolvedConfig(
     IReadOnlyDictionary<string, XamlLint.Core.Severity> RuleSeverities,
     XamlLint.Core.Dialect DefaultDialect,
     IReadOnlyList<ResolvedOverride> Overrides,
-    string? SourcePath);
+    string? SourcePath,
+    int? FrameworkMajorVersion = null);
 
 /// <summary>
 /// Per-file override. <see cref="RuleSeverities"/> values may be <c>null</c> to indicate
@@ -17,4 +18,5 @@ public sealed record ResolvedConfig(
 public sealed record ResolvedOverride(
     string FilesGlob,
     XamlLint.Core.Dialect? Dialect,
-    IReadOnlyDictionary<string, XamlLint.Core.Severity?> RuleSeverities);
+    IReadOnlyDictionary<string, XamlLint.Core.Severity?> RuleSeverities,
+    int? FrameworkMajorVersion = null);

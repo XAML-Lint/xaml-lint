@@ -113,7 +113,8 @@ public sealed class LintPipeline
             var pragma = PragmaParser.Parse(doc);
             allDiagnostics.AddRange(pragma.Diagnostics);
 
-            var raw = dispatcher.Dispatch(doc, pragma.Map, effective);
+            var frameworkMajorVersion = ResolveFrameworkMajorVersion(loaded.Config, ef.AbsolutePath, _workingDirectory);
+            var raw = dispatcher.Dispatch(doc, pragma.Map, effective, frameworkMajorVersion);
 
             foreach (var d in raw)
             {
@@ -211,5 +212,17 @@ public sealed class LintPipeline
             if (matcher.Match(rel).HasMatches) return over.Dialect;
         }
         return cfg.DefaultDialect;
+    }
+
+    private static int? ResolveFrameworkMajorVersion(ResolvedConfig cfg, string filePath, string baseDir)
+    {
+        foreach (var over in cfg.Overrides)
+        {
+            if (over.FrameworkMajorVersion is null) continue;
+            var matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher().AddInclude(over.FilesGlob);
+            var rel = Path.GetRelativePath(baseDir, filePath).Replace('\\', '/');
+            if (matcher.Match(rel).HasMatches) return over.FrameworkMajorVersion;
+        }
+        return cfg.FrameworkMajorVersion;
     }
 }

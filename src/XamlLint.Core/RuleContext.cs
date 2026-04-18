@@ -25,4 +25,12 @@ public sealed class RuleContext
     /// so rules cannot mutate it.
     /// </summary>
     public required ReadOnlyMemory<char> Source { get; init; }
+
+    /// <summary>
+    /// Major version of the target framework (e.g. <c>10</c> for .NET 10), or <c>null</c>
+    /// when the user hasn't opted into a specific framework. Rules use this together with
+    /// <see cref="DialectFeatures"/> to gate features whose availability depends on the
+    /// runtime platform — most prominently the WPF-on-.NET-10 grid definition shorthand.
+    /// </summary>
+    public int? FrameworkMajorVersion { get; init; }
 }

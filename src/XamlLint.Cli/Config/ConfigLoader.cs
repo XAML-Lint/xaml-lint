@@ -47,6 +47,17 @@ public sealed class ConfigLoader
         if (dialect is null && diags.Count > 0)
             return new LoadResult(null, diags);
 
+        int? frameworkMajorVersion;
+        try
+        {
+            frameworkMajorVersion = ParseFrameworkMajorVersion(doc.FrameworkVersion);
+        }
+        catch (FormatException ex)
+        {
+            diags.Add(Fail(configPath, ex.Message));
+            return new LoadResult(null, diags);
+        }
+
         var effective = ResolveSeverities(doc, catalogRuleIds, configPath, diags);
         var overrides = ResolveOverrides(doc.Overrides ?? Array.Empty<OverrideEntry>(), catalogRuleIds, configPath, diags);
 
@@ -54,7 +65,7 @@ public sealed class ConfigLoader
             return new LoadResult(null, diags);
 
         return new LoadResult(
-            new ResolvedConfig(effective, dialect ?? Dialect.Wpf, overrides, configPath),
+            new ResolvedConfig(effective, dialect ?? Dialect.Wpf, overrides, configPath, frameworkMajorVersion),
             diags);
     }
 
@@ -103,6 +114,24 @@ public sealed class ConfigLoader
             dir = dir.Parent;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Parses a framework-version string like <c>"10"</c>, <c>"10.0"</c>, or <c>"net10.0"</c>
+    /// into a major-version integer. Returns <c>null</c> when input is null or empty; throws
+    /// <see cref="FormatException"/> when input is non-empty but not parseable (caller turns
+    /// this into an LX003 malformed-config diagnostic).
+    /// </summary>
+    public static int? ParseFrameworkMajorVersion(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var trimmed = value.Trim();
+        // Strip a leading "net" TFM prefix if present so "net10.0" parses the same as "10.0".
+        if (trimmed.StartsWith("net", StringComparison.OrdinalIgnoreCase) && trimmed.Length > 3 && char.IsDigit(trimmed[3]))
+            trimmed = trimmed.Substring(3);
+        if (System.Version.TryParse(trimmed, out var parsed)) return parsed.Major;
+        if (int.TryParse(trimmed, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var major)) return major;
+        throw new FormatException($"Invalid frameworkVersion '{value}'; expected forms include '10', '10.0', or 'net10.0'.");
     }
 
     private static Dialect? ParseDialect(string? raw, string sourcePath, List<Diagnostic> diags)
@@ -243,10 +272,22 @@ public sealed class ConfigLoader
         foreach (var o in raw)
         {
             var dialect = o.Dialect is null ? (Dialect?)null : ParseDialect(o.Dialect, sourcePath, diags);
+
+            int? frameworkMajorVersion;
+            try
+            {
+                frameworkMajorVersion = ParseFrameworkMajorVersion(o.FrameworkVersion);
+            }
+            catch (FormatException ex)
+            {
+                diags.Add(Fail(sourcePath, ex.Message));
+                continue;
+            }
+
             var ruleSeverities = new Dictionary<string, Severity?>();
             if (o.Rules is not null)
                 CollectOverrideRuleBlock(o.Rules, ruleSeverities, catalogIds, sourcePath, diags);
-            result.Add(new ResolvedOverride(o.Files, dialect, ruleSeverities));
+            result.Add(new ResolvedOverride(o.Files, dialect, ruleSeverities, frameworkMajorVersion));
         }
         return result;
     }
