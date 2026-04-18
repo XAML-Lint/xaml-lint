@@ -106,4 +106,39 @@ public sealed class LX102_GridRowSpanExceedsRowsTest
             </Grid>
             """);
     }
+
+    [Fact]
+    public void Nested_Grid_child_uses_inner_Grid_row_count()
+    {
+        // The outer Grid has 3 rows; the inner Grid has 1 implicit row. The inner Button's
+        // Grid.RowSpan="2" exceeds the inner Grid's single row, not the outer's three.
+        XamlDiagnosticVerifier<LX102_GridRowSpanExceedsRows>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Button [|Grid.RowSpan="2"|] />
+                </Grid>
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Element_syntax_Grid_RowSpan_is_flagged()
+    {
+        // Element syntax is uncommon but legal. The bare {|LX102|} marker asserts that a
+        // diagnostic fires for this rule somewhere in the document.
+        XamlDiagnosticVerifier<LX102_GridRowSpanExceedsRows>.Analyze(
+            """
+            {|LX102|}<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Button>
+                    <Grid.RowSpan>2</Grid.RowSpan>
+                </Button>
+            </Grid>
+            """);
+    }
 }

@@ -104,4 +104,39 @@ public sealed class LX101_GridColumnWithoutDefinitionTest
             </Grid>
             """);
     }
+
+    [Fact]
+    public void Nested_Grid_child_uses_inner_Grid_column_count()
+    {
+        // The outer Grid has 3 columns; the inner Grid has 1 implicit column. The inner Button's
+        // Grid.Column="2" is out of range for the inner Grid, not the outer.
+        XamlDiagnosticVerifier<LX101_GridColumnWithoutDefinition>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Button [|Grid.Column="2"|] />
+                </Grid>
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Element_syntax_Grid_Column_is_flagged()
+    {
+        // Element syntax is uncommon but legal. The bare {|LX101|} marker asserts that a
+        // diagnostic fires for this rule somewhere in the document.
+        XamlDiagnosticVerifier<LX101_GridColumnWithoutDefinition>.Analyze(
+            """
+            {|LX101|}<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Button>
+                    <Grid.Column>1</Grid.Column>
+                </Button>
+            </Grid>
+            """);
+    }
 }

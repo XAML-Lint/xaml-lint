@@ -104,4 +104,40 @@ public sealed class LX103_GridColumnSpanExceedsColumnsTest
             </Grid>
             """);
     }
+
+    [Fact]
+    public void Nested_Grid_child_uses_inner_Grid_column_count()
+    {
+        // The outer Grid has 3 columns; the inner Grid has 1 implicit column. The inner
+        // Button's Grid.ColumnSpan="2" exceeds the inner Grid's single column, not the
+        // outer's three.
+        XamlDiagnosticVerifier<LX103_GridColumnSpanExceedsColumns>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Button [|Grid.ColumnSpan="2"|] />
+                </Grid>
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Element_syntax_Grid_ColumnSpan_is_flagged()
+    {
+        // Element syntax is uncommon but legal. The bare {|LX103|} marker asserts that a
+        // diagnostic fires for this rule somewhere in the document.
+        XamlDiagnosticVerifier<LX103_GridColumnSpanExceedsColumns>.Analyze(
+            """
+            {|LX103|}<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Button>
+                    <Grid.ColumnSpan>2</Grid.ColumnSpan>
+                </Button>
+            </Grid>
+            """);
+    }
 }
