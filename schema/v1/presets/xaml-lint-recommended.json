@@ -13,6 +13,7 @@
     "LX103": "warning",
     "LX104": "warning",
     "LX200": "info",
+    "LX201": "info",
     "LX300": "warning",
     "LX400": "info"
   }

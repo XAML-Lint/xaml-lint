@@ -5,3 +5,4 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+LX201   | Bindings | Info     | Prefer x:Bind over Binding
