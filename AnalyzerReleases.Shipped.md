@@ -23,3 +23,15 @@ Rule ID | Category  | Severity | Notes
 LX200   | Bindings  | Info     | SelectedItem binding should be TwoWay
 LX300   | Naming    | Warning  | x:Name should start with uppercase
 LX400   | Resources | Info     | Hardcoded string; use a resource
+
+## Release 0.3.0
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+LX100   | Layout   | Warning  | Grid.Row without matching RowDefinition
+LX101   | Layout   | Warning  | Grid.Column without matching ColumnDefinition
+LX102   | Layout   | Warning  | Grid.RowSpan exceeds available rows
+LX103   | Layout   | Warning  | Grid.ColumnSpan exceeds available columns
+LX104   | Layout   | Warning  | Grid definition shorthand not supported by target framework
