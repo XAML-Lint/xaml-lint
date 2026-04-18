@@ -15,6 +15,7 @@
     "LX200": "warning",
     "LX201": "warning",
     "LX300": "error",
+    "LX301": "error",
     "LX400": "warning"
   }
 }

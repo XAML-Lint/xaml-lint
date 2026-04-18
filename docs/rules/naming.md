@@ -7,3 +7,4 @@ code-behind, resource dictionaries, and animation storyboards.
 | ID | Title | Default |
 |---|---|---|
 | [LX300](LX300.md) | x:Name should start with uppercase | warning |
+| [LX301](LX301.md) | x:Uid should start with uppercase | warning |
