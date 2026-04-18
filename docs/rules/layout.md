@@ -7,3 +7,4 @@ valid indexes within the enclosing panel's declared definition set.
 | ID | Title | Default |
 |---|---|---|
 | [LX100](LX100.md) | Grid.Row without matching RowDefinition | warning |
+| [LX101](LX101.md) | Grid.Column without matching ColumnDefinition | warning |
