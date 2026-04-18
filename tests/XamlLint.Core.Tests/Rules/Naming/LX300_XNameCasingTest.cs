@@ -44,15 +44,30 @@ public sealed class LX300_XNameCasingTest
     }
 
     [Fact]
-    public void Digit_prefix_is_flagged()
+    public void Trailing_digit_is_not_flagged()
     {
-        // XAML forbids leading digits anyway — LX001 will usually fire first — but if the
-        // parser accepts it we still catch the casing violation.
+        // Digits are allowed anywhere except as the first character. The rule only inspects
+        // value[0]; trailing digits (MyButton1) are conventional PascalCase and pass.
         XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
             """
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
                 <Button x:Name="MyButton1" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Digit_prefix_is_flagged()
+    {
+        // XAML identifiers forbid leading digits (WPF will reject at runtime and LX001 may
+        // fire on the parser side), but if the raw XML parser accepts the attribute value we
+        // still catch the casing violation deterministically.
+        XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button [|x:Name="1stButton"|] />
             </Grid>
             """);
     }
