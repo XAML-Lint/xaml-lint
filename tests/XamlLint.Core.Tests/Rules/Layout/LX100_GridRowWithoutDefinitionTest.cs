@@ -148,4 +148,37 @@ public sealed class LX100_GridRowWithoutDefinitionTest
             </Grid>
             """);
     }
+
+    [Fact]
+    public void Wpf_legacy_framework_ignores_shorthand_RowDefinitions_attribute()
+    {
+        // On WPF .NET 9 (pre-shorthand), RowDefinitions="Auto,*" has no effect at runtime —
+        // the Grid behaves as having one implicit row. Grid.Row="1" is therefore out of range
+        // and should be flagged, even though the shorthand "looks like" it declares 2 rows.
+        XamlDiagnosticVerifier<LX100_GridRowWithoutDefinition>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  RowDefinitions="Auto,*">
+                <Button [|Grid.Row="1"|] />
+            </Grid>
+            """,
+            dialect: Dialect.Wpf,
+            frameworkMajorVersion: 9);
+    }
+
+    [Fact]
+    public void Wpf_modern_framework_honors_shorthand_RowDefinitions_attribute()
+    {
+        // Companion to the legacy-framework test: explicit frameworkVersion: 10 confirms the
+        // shorthand is honored and Grid.Row="1" sits within the 2-row Grid → no diagnostic.
+        XamlDiagnosticVerifier<LX100_GridRowWithoutDefinition>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  RowDefinitions="Auto,*">
+                <Button Grid.Row="1" />
+            </Grid>
+            """,
+            dialect: Dialect.Wpf,
+            frameworkMajorVersion: 10);
+    }
 }

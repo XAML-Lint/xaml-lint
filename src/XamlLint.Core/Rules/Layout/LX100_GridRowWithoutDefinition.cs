@@ -28,7 +28,9 @@ public sealed partial class LX100_GridRowWithoutDefinition : IXamlRule
             var grid = GridAncestryHelpers.FindNearestGridAncestor(element);
             if (grid is null) continue;
 
-            var rowCount = GridAncestryHelpers.CountRowDefinitions(grid);
+            var shorthandSupported = DialectFeatures.SupportsGridDefinitionShorthand(
+                context.Dialect, context.FrameworkMajorVersion);
+            var rowCount = GridAncestryHelpers.CountRowDefinitions(grid, shorthandSupported);
             var rowValue = read.Value.Value;
             if (rowValue < rowCount) continue;
 

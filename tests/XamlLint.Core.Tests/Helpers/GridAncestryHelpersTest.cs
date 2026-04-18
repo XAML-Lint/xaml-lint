@@ -272,4 +272,53 @@ public sealed class GridAncestryHelpersTest
             """);
         GridAncestryHelpers.CountRowDefinitions(doc.Root!).Should().Be(1);
     }
+
+    [Fact]
+    public void CountRowDefinitions_ignores_shorthand_attribute_when_unsupported()
+    {
+        // When shorthand isn't supported (e.g. legacy-WPF), the RowDefinitions attribute is
+        // treated as inert and we fall back to the element-syntax count (or implicit 1).
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" RowDefinitions="Auto,*,Auto" />
+            """);
+
+        GridAncestryHelpers.CountRowDefinitions(doc.Root!, shorthandSupported: false).Should().Be(1);
+    }
+
+    [Fact]
+    public void CountRowDefinitions_uses_element_syntax_when_shorthand_unsupported_and_both_present()
+    {
+        // Defensive: if a legacy-WPF user wrote both forms, ignore shorthand and trust element-syntax.
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" RowDefinitions="Auto,*,Auto">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+            </Grid>
+            """);
+
+        GridAncestryHelpers.CountRowDefinitions(doc.Root!, shorthandSupported: false).Should().Be(2);
+    }
+
+    [Fact]
+    public void CountColumnDefinitions_ignores_shorthand_attribute_when_unsupported()
+    {
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" ColumnDefinitions="*,Auto" />
+            """);
+
+        GridAncestryHelpers.CountColumnDefinitions(doc.Root!, shorthandSupported: false).Should().Be(1);
+    }
+
+    [Fact]
+    public void CountColumnDefinitions_default_overload_still_supports_shorthand()
+    {
+        // Existing call sites (no second arg) keep their behavior.
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" ColumnDefinitions="*,Auto" />
+            """);
+
+        GridAncestryHelpers.CountColumnDefinitions(doc.Root!).Should().Be(2);
+    }
 }

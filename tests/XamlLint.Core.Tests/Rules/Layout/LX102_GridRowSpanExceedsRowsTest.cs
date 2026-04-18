@@ -141,4 +141,20 @@ public sealed class LX102_GridRowSpanExceedsRowsTest
             </Grid>
             """);
     }
+
+    [Fact]
+    public void Wpf_legacy_framework_ignores_shorthand_when_evaluating_RowSpan()
+    {
+        // On WPF .NET 9, RowDefinitions="Auto,*" doesn't take effect — the Grid has 1 implicit
+        // row, so Grid.RowSpan="2" exceeds it.
+        XamlDiagnosticVerifier<LX102_GridRowSpanExceedsRows>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  RowDefinitions="Auto,*">
+                <Button [|Grid.RowSpan="2"|] />
+            </Grid>
+            """,
+            dialect: Dialect.Wpf,
+            frameworkMajorVersion: 9);
+    }
 }

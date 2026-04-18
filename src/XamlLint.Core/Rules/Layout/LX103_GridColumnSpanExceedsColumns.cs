@@ -28,7 +28,9 @@ public sealed partial class LX103_GridColumnSpanExceedsColumns : IXamlRule
             var grid = GridAncestryHelpers.FindNearestGridAncestor(element);
             if (grid is null) continue;
 
-            var columnCount = GridAncestryHelpers.CountColumnDefinitions(grid);
+            var shorthandSupported = DialectFeatures.SupportsGridDefinitionShorthand(
+                context.Dialect, context.FrameworkMajorVersion);
+            var columnCount = GridAncestryHelpers.CountColumnDefinitions(grid, shorthandSupported);
             var spanValue = read.Value.Value;
             // RXT104 parity: flag only when span alone exceeds total columns. Span == columnCount
             // is legal (element spans the whole Grid); column + span overflow is out of scope.
