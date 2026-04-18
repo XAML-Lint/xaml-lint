@@ -9,3 +9,4 @@ valid indexes within the enclosing panel's declared definition set.
 | [LX100](LX100.md) | Grid.Row without matching RowDefinition | warning |
 | [LX101](LX101.md) | Grid.Column without matching ColumnDefinition | warning |
 | [LX102](LX102.md) | Grid.RowSpan exceeds available rows | warning |
+| [LX103](LX103.md) | Grid.ColumnSpan exceeds available columns | warning |
