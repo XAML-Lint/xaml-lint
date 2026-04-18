@@ -12,12 +12,23 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX004 | — | Cannot read file. Tool-level I/O diagnostic; no upstream. |
 | LX005 | — | Skipping non-XAML file. Tool-level behavior; no upstream. |
 | LX006 | — | Internal error in rule. Tool-level crash capture; no upstream. |
+| LX200 | RXT160 | SelectedItem binding should be TwoWay. Matches upstream; applies to all dialects where binding markup is used. |
+| LX300 | RXT452 | x:Name should start with uppercase. Matches upstream casing rule; unprefixed `Name` remains out of scope. |
+| LX400 | RXT200 | Hardcoded string. Our attribute-name list is deliberately conservative at v0.2; upstream's list is broader and will be matched as real-world false negatives surface. |
 
 Lint-rule mappings for LX100+ land as those rules ship (v0.2 onward).
 
 ## Behavior differences
 
-v0.1 only ports tool-level diagnostics and does not re-implement any analysis rules, so there are no behavior differences to note yet. This table grows with each rule release.
+- **LX300 vs RXT452** — xaml-lint limits the casing check to `Name` in the XAML 2006
+  (`http://schemas.microsoft.com/winfx/2006/xaml`) or 2009
+  (`http://schemas.microsoft.com/winfx/2009/xaml`) namespace. Upstream historically treated
+  the unprefixed `Name=` attribute the same way; we do not, because unprefixed `Name` in
+  WPF is a framework-level convenience rather than a XAML-language identifier.
+- **LX400 vs RXT200** — upstream flags a wider set of text-presenting attribute names than
+  our v0.2 scope (`Text`, `Title`, `Header`, `ToolTip`, `Content`, `PlaceholderText`,
+  `Placeholder`, `Description`, `Watermark`). The list will grow as real projects surface
+  false negatives.
 
 ## Suppression model
 
