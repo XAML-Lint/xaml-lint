@@ -74,7 +74,7 @@ public sealed class LX100_GridRowWithoutDefinitionTest
     }
 
     [Fact]
-    public void WinUI_shorthand_RowDefinitions_attribute_is_respected()
+    public void Grid_definition_shorthand_RowDefinitions_attribute_is_respected()
     {
         XamlDiagnosticVerifier<LX100_GridRowWithoutDefinition>.Analyze(
             """

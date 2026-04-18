@@ -20,6 +20,8 @@ M3 — Grid-family layout rules.
 - [LX103](docs/rules/LX103.md) — Grid.ColumnSpan exceeds available columns ([#4])
 - Category overview page: [layout](docs/rules/layout.md) ([#4])
 - `GridAncestryHelpers` and `LocationHelpers.GetElementNameSpan` in `XamlLint.Core` ([#4])
+- [LX104](docs/rules/LX104.md) — Grid definition shorthand not supported by target framework ([#4])
+- `frameworkVersion` config field for opting into legacy framework targets; `DialectFeatures` helper for framework-gated capability detection ([#4])
 
 ## [0.2.0] - 2026-04-18
 
