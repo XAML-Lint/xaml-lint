@@ -84,4 +84,24 @@ public sealed class LocationHelpersTest
         XamlNamespaces.IsXamlNamespace("http://schemas.microsoft.com/winfx/2006/xaml/presentation").Should().BeFalse();
         XamlNamespaces.IsXamlNamespace("").Should().BeFalse();
     }
+
+    [Fact]
+    public void GetElementNameSpan_covers_opening_tag_name()
+    {
+        const string xaml =
+            "<Button xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">\n" +
+            "    <Grid.Row>1</Grid.Row>\n" +
+            "</Button>";
+        var doc = Doc(xaml);
+        var gridRow = doc.Root!.Elements().First(e => e.Name.LocalName == "Grid.Row");
+
+        var span = LocationHelpers.GetElementNameSpan(gridRow);
+
+        // The '<Grid.Row>' opens at column 6 (1-based) on line 2. The name "Grid.Row" spans
+        // columns 6..14 (inclusive of end exclusive).
+        span.StartLine.Should().Be(2);
+        span.StartCol.Should().Be(6);
+        span.EndLine.Should().Be(2);
+        span.EndCol.Should().Be(14);
+    }
 }
