@@ -1,4 +1,3 @@
-using System.Xml.Linq;
 using XamlLint.Core.Helpers;
 
 namespace XamlLint.Core.Rules.Resources;
