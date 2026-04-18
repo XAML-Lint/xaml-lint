@@ -71,8 +71,12 @@ public static class GridAncestryHelpers
         if (propertyElement is null)
             return 1;  // implicit single row/column
 
-        return propertyElement.Elements().Count(
+        var count = propertyElement.Elements().Count(
             e => e.Name.LocalName == definitionElementName);
+
+        // An empty <Grid.RowDefinitions /> collection behaves identically to an absent one — WPF,
+        // WinUI, and the rest of the target dialects fall back to a single implicit row.
+        return count == 0 ? 1 : count;
     }
 
     /// <summary>
@@ -80,8 +84,9 @@ public static class GridAncestryHelpers
     /// (<c>&lt;Button Grid.Row="1" /&gt;</c>) or element syntax
     /// (<c>&lt;Button&gt;&lt;Grid.Row&gt;1&lt;/Grid.Row&gt;&lt;/Button&gt;</c>). Returns the
     /// integer value plus the source <see cref="XObject"/> for span computation, or
-    /// <c>null</c> when the property is absent or its value does not parse as an integer
-    /// (e.g. a markup-extension value like <c>{Binding Idx}</c>).
+    /// <c>null</c> when the property is absent, its value contains non-digit characters
+    /// (e.g. a markup-extension value like <c>{Binding Idx}</c>), or the value has a leading
+    /// sign (<c>"-1"</c>, <c>"+0"</c>) — attached-property indexes are unsigned integers.
     /// </summary>
     public static AttachedPropertyValue? TryReadIntegerAttachedProperty(
         XElement element,
@@ -90,7 +95,7 @@ public static class GridAncestryHelpers
         var attr = element.Attribute(propertyName);
         if (attr is not null)
         {
-            return int.TryParse(attr.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var attrValue)
+            return int.TryParse(attr.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var attrValue)
                 ? new AttachedPropertyValue(attrValue, attr)
                 : null;
         }
@@ -98,7 +103,7 @@ public static class GridAncestryHelpers
         var elementChild = element.Elements().FirstOrDefault(e => e.Name.LocalName == propertyName);
         if (elementChild is not null)
         {
-            return int.TryParse(elementChild.Value.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var elemValue)
+            return int.TryParse(elementChild.Value.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var elemValue)
                 ? new AttachedPropertyValue(elemValue, elementChild)
                 : null;
         }
