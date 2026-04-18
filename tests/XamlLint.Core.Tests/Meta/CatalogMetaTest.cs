@@ -80,6 +80,30 @@ public sealed class CatalogMetaTest
             m.ReplacedBy.Should().NotBeNullOrEmpty($"deprecated {m.Id} must set ReplacedBy");
     }
 
+    [Fact]
+    public void Analyzer_release_category_column_matches_category_derivation()
+    {
+        var repoRoot = FindRepoRoot();
+        var shipped = File.ReadAllText(Path.Combine(repoRoot, "AnalyzerReleases.Shipped.md"));
+        var unshipped = File.ReadAllText(Path.Combine(repoRoot, "AnalyzerReleases.Unshipped.md"));
+        var combined = shipped + "\n" + unshipped;
+
+        // Match rows like:   LX300   | Naming   | Warning  | Description
+        // The first two pipe-delimited cells are the ID and the category.
+        var row = new System.Text.RegularExpressions.Regex(
+            @"^(?<id>LX\d{3})\s*\|\s*(?<category>\w+)\s*\|",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        foreach (System.Text.RegularExpressions.Match m in row.Matches(combined))
+        {
+            var id = m.Groups["id"].Value;
+            var writtenCategory = m.Groups["category"].Value;
+            var expected = XamlLintCategoryNames.NameOf(XamlLintCategoryExtensions.ForId(id));
+            writtenCategory.Should().Be(expected,
+                $"AnalyzerReleases row for {id} must list category '{expected}', got '{writtenCategory}'");
+        }
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
