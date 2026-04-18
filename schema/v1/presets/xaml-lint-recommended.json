@@ -17,6 +17,7 @@
     "LX300": "warning",
     "LX301": "warning",
     "LX400": "info",
-    "LX500": "info"
+    "LX500": "info",
+    "LX501": "warning"
   }
 }

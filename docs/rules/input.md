@@ -8,3 +8,4 @@ parses fine but fails silently at runtime.
 | ID | Title | Default |
 |---|---|---|
 | [LX500](LX500.md) | TextBox lacks InputScope | info |
+| [LX501](LX501.md) | Slider Minimum is greater than Maximum | warning |
