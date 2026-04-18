@@ -111,4 +111,17 @@ public sealed class LX201_PreferXBindTest
             """,
             Dialect.WinUI3);
     }
+
+    [Fact]
+    public void Empty_binding_shorthand_is_flagged()
+    {
+        // `{Binding}` with no path binds to the current DataContext. Still a {Binding} usage,
+        // so still subject to the "prefer x:Bind" recommendation.
+        XamlDiagnosticVerifier<LX201_PreferXBind>.Analyze(
+            """
+            <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    [|Content="{Binding}"|] />
+            """,
+            Dialect.WinUI3);
+    }
 }
