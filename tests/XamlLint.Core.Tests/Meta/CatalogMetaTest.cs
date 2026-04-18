@@ -104,6 +104,26 @@ public sealed class CatalogMetaTest
         }
     }
 
+    [Fact]
+    public void Every_rule_appears_in_its_category_overview_page()
+    {
+        var repoRoot = FindRepoRoot();
+        foreach (var m in Rules)
+        {
+            var category = XamlLintCategoryExtensions.ForId(m.Id);
+            var overviewFile = Path.Combine(
+                repoRoot, "docs", "rules",
+                XamlLintCategoryNames.NameOf(category).ToLowerInvariant() + ".md");
+
+            File.Exists(overviewFile).Should().BeTrue(
+                $"category overview page '{overviewFile}' must exist for rule {m.Id}");
+
+            var text = File.ReadAllText(overviewFile);
+            text.Should().Contain($"[{m.Id}]",
+                $"{overviewFile} must link to rule {m.Id} (expected a '[{m.Id}](…)' markdown link)");
+        }
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
