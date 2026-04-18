@@ -90,4 +90,17 @@ public sealed class LX200_SelectedItemTwoWayTest
                       SelectedItem="{Binding Current, Converter={StaticResource C}, Mode=TwoWay}" />
             """);
     }
+
+    [Fact]
+    public void Multiple_violations_each_emit_a_diagnostic()
+    {
+        XamlDiagnosticVerifier<LX200_SelectedItemTwoWay>.Analyze(
+            """
+            <StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <ListView [|SelectedItem="{Binding First}"|] />
+                <ListView [|SelectedItem="{x:Bind Second}"|] />
+            </StackPanel>
+            """);
+    }
 }
