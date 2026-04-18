@@ -7,6 +7,7 @@
     "LX004": "error",
     "LX005": "warning",
     "LX006": "error",
+    "LX200": "warning",
     "LX300": "error"
   }
 }
