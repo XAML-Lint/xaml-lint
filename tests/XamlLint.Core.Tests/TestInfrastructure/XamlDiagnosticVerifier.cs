@@ -8,7 +8,10 @@ namespace XamlLint.Core.Tests.TestInfrastructure;
 /// </summary>
 public static class XamlDiagnosticVerifier<TRule> where TRule : IXamlRule, new()
 {
-    public static void Analyze(string markedSource, Dialect dialect = Dialect.Wpf)
+    public static void Analyze(
+        string markedSource,
+        Dialect dialect = Dialect.Wpf,
+        int? frameworkMajorVersion = null)
     {
         var rule = new TRule();
         var parsed = XamlTestCode.Parse(markedSource, defaultRuleId: rule.Metadata.Id);
@@ -19,7 +22,7 @@ public static class XamlDiagnosticVerifier<TRule> where TRule : IXamlRule, new()
         var pragma = PragmaParser.Parse(doc);
         var dispatcher = new RuleDispatcher(new IXamlRule[] { rule });
         var severities = new Dictionary<string, Severity> { [rule.Metadata.Id] = rule.Metadata.DefaultSeverity };
-        var actual = dispatcher.Dispatch(doc, pragma.Map, severities);
+        var actual = dispatcher.Dispatch(doc, pragma.Map, severities, frameworkMajorVersion);
 
         AssertDiagnosticsMatch(parsed.Expected, actual, rule.Metadata.Id);
     }

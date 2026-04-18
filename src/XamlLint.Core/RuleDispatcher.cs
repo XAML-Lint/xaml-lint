@@ -22,7 +22,8 @@ public sealed class RuleDispatcher
     public IReadOnlyList<Diagnostic> Dispatch(
         XamlDocument document,
         SuppressionMap suppressions,
-        IReadOnlyDictionary<string, Severity> severityMap)
+        IReadOnlyDictionary<string, Severity> severityMap,
+        int? frameworkMajorVersion = null)
     {
         if (document.ParseError is not null) return Array.Empty<Diagnostic>();
 
@@ -32,6 +33,7 @@ public sealed class RuleDispatcher
             SeverityMap = severityMap,
             Suppressions = suppressions,
             Source = document.Source.AsMemory(),
+            FrameworkMajorVersion = frameworkMajorVersion,
         };
 
         var output = new List<Diagnostic>();
