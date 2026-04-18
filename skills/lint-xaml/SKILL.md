@@ -25,7 +25,7 @@ The envelope always has the shape:
 ```json
 {
   "version": "1",
-  "tool": { "name": "xaml-lint", "version": "0.1.0" },
+  "tool": { "name": "xaml-lint", "version": "<tool-version>" },
   "results": [ ... ]
 }
 ```
