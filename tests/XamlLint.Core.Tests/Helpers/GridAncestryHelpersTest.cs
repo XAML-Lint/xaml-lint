@@ -184,4 +184,48 @@ public sealed class GridAncestryHelpersTest
 
         GridAncestryHelpers.TryReadIntegerAttachedProperty(button, "Grid.Row").Should().BeNull();
     }
+
+    [Fact]
+    public void CountColumnDefinitions_returns_one_when_grid_has_no_definitions()
+    {
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" />
+            """);
+        GridAncestryHelpers.CountColumnDefinitions(doc.Root!).Should().Be(1);
+    }
+
+    [Fact]
+    public void TryReadIntegerAttachedProperty_reads_zero_value()
+    {
+        // Grid.Row="0" is the canonical "first row" value; the rule consumers check for
+        // N >= rowCount, so zero must round-trip correctly.
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}">
+                <Button Grid.Row="0" />
+            </Grid>
+            """);
+        var button = doc.Root!.Descendants().First(e => e.Name.LocalName == "Button");
+
+        var read = GridAncestryHelpers.TryReadIntegerAttachedProperty(button, "Grid.Row");
+        read.Should().NotBeNull();
+        read!.Value.Value.Should().Be(0);
+    }
+
+    [Fact]
+    public void TryReadIntegerAttachedProperty_element_syntax_whitespace_only_value_is_ignored()
+    {
+        // The .Trim() defensive step inside the helper means a whitespace-only element-syntax
+        // body parses to an empty string, which int.TryParse rejects. The helper returns null
+        // rather than crashing.
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}">
+                <Button>
+                    <Grid.Row>   </Grid.Row>
+                </Button>
+            </Grid>
+            """);
+        var button = doc.Root!.Descendants().First(e => e.Name.LocalName == "Button");
+
+        GridAncestryHelpers.TryReadIntegerAttachedProperty(button, "Grid.Row").Should().BeNull();
+    }
 }
