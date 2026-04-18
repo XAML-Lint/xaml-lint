@@ -8,6 +8,21 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-18
+
+M4 — dialect-gated rules spanning UWP/WinUI 3, .NET MAUI, and WPF.
+
+### Added
+
+- [LX201](docs/rules/LX201.md) — Prefer x:Bind over Binding ([#5])
+- [LX301](docs/rules/LX301.md) — x:Uid should start with uppercase ([#5])
+- [LX500](docs/rules/LX500.md) — TextBox lacks InputScope ([#5])
+- [LX501](docs/rules/LX501.md) — Slider Minimum is greater than Maximum ([#5])
+- [LX502](docs/rules/LX502.md) — Stepper Minimum is greater than Maximum ([#5])
+- [LX600](docs/rules/LX600.md) — MediaElement is deprecated — use MediaPlayerElement ([#5])
+- Category overview pages: [input](docs/rules/input.md), [deprecated](docs/rules/deprecated.md) ([#5])
+- `NumericRangeHelpers` in `XamlLint.Core` — literal-double parsing shared between LX501 and LX502 ([#5])
+
 ## [0.3.0] - 2026-04-18
 
 M3 — Grid-family layout rules.
@@ -65,10 +80,12 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
-[Unreleased]: https://github.com/jizc/xaml-lint/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/jizc/xaml-lint/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/jizc/xaml-lint/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/jizc/xaml-lint/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/jizc/xaml-lint/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jizc/xaml-lint/releases/tag/v0.1.0
 [#2]: https://github.com/jizc/xaml-lint/pull/2
 [#3]: https://github.com/jizc/xaml-lint/pull/3
 [#4]: https://github.com/jizc/xaml-lint/pull/4
+[#5]: https://github.com/jizc/xaml-lint/pull/5
