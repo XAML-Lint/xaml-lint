@@ -1,6 +1,6 @@
 {
   "name": "xaml-lint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Lints XAML files for common issues so Claude can catch problems as code is written.",
   "author": {
     "name": "Jan Ivar Z. Carlsen"
