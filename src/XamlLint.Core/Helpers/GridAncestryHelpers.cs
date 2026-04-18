@@ -31,6 +31,16 @@ public static class GridAncestryHelpers
     /// check is by local name only — every target dialect names the type <c>Grid</c> and none
     /// carries a dialect-specific prefix.
     /// </summary>
+    /// <remarks>
+    /// Traversal is unconstrained: it walks <see cref="XElement.Parent"/> all the way to the
+    /// document root without stopping at template boundaries. A control placed inside a
+    /// <c>&lt;DataTemplate&gt;</c> or <c>&lt;ControlTemplate&gt;</c> whose root is itself
+    /// inside a <c>&lt;Grid&gt;</c> will claim the outer Grid as its nearest ancestor, even
+    /// though at runtime the control is instantiated inside the template — the outer Grid is
+    /// not its real parent. Today's rules (LX100–LX103) rarely hit this edge in practice; a
+    /// future grid-aware rule that consults the ancestor's layout state should add its own
+    /// template-boundary filter or wait for this helper to grow one.
+    /// </remarks>
     public static XElement? FindNearestGridAncestor(XElement element)
     {
         for (var ancestor = element.Parent; ancestor is not null; ancestor = ancestor.Parent)
