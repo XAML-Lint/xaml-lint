@@ -69,7 +69,7 @@ public sealed class LX103_GridColumnSpanExceedsColumnsTest
     }
 
     [Fact]
-    public void WinUI_shorthand_ColumnDefinitions_attribute_is_respected()
+    public void Grid_definition_shorthand_ColumnDefinitions_attribute_is_respected()
     {
         XamlDiagnosticVerifier<LX103_GridColumnSpanExceedsColumns>.Analyze(
             """

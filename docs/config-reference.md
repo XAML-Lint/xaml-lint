@@ -9,7 +9,9 @@
   "$schema": "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json",
   "extends": "xaml-lint:recommended",
   "defaultDialect": "wpf",
+  "frameworkVersion": "10",
   "overrides": [
+    { "files": "src/legacy/**/*.xaml", "frameworkVersion": "9" },
     { "files": "src/winui/**/*.xaml", "dialect": "winui3" },
     { "files": "**/*.Designer.xaml", "rules": { "LX400": "off" } }
   ],
@@ -26,9 +28,11 @@
 - `$schema` — URL of the JSON Schema for autocomplete in VS Code / Rider.
 - `extends` — one of `xaml-lint:off`, `xaml-lint:recommended`, `xaml-lint:strict`. Preset severities are applied first; the local `rules` block overrides.
 - `defaultDialect` — one of `wpf`, `winui3`, `uwp`, `maui`, `avalonia`, `uno`. Required.
+- <a id="frameworkversion"></a>`frameworkVersion` (optional) — major version of the target framework. Accepted forms: `"10"`, `"10.0"`, `"net10.0"` (case-insensitive). Used by rules that gate behavior on framework support — most prominently the WPF-on-.NET-10 grid definition shorthand. Omit to assume the newest framework (current behavior). Set on a per-`overrides[]` entry to apply to a subset of files (e.g., a legacy folder).
 - `overrides[]` — each entry:
   - `files` — gitignore-style glob.
   - `dialect` (optional) — overrides `defaultDialect` for matching files.
+  - `frameworkVersion` (optional) — overrides root `frameworkVersion` for matching files.
   - `rules` (optional) — overrides severities for matching files.
 - `rules` — map from rule ID to severity:
   - Shorthand: `"LX100": "error"` — values are `off`, `info`, `warning`, `error`.

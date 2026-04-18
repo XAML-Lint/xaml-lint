@@ -71,7 +71,7 @@ public sealed class LX102_GridRowSpanExceedsRowsTest
     }
 
     [Fact]
-    public void WinUI_shorthand_RowDefinitions_attribute_is_respected()
+    public void Grid_definition_shorthand_RowDefinitions_attribute_is_respected()
     {
         XamlDiagnosticVerifier<LX102_GridRowSpanExceedsRows>.Analyze(
             """

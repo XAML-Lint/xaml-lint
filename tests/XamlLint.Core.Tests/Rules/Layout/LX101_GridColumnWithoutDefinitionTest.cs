@@ -69,7 +69,7 @@ public sealed class LX101_GridColumnWithoutDefinitionTest
     }
 
     [Fact]
-    public void WinUI_shorthand_ColumnDefinitions_attribute_is_respected()
+    public void Grid_definition_shorthand_ColumnDefinitions_attribute_is_respected()
     {
         XamlDiagnosticVerifier<LX101_GridColumnWithoutDefinition>.Analyze(
             """

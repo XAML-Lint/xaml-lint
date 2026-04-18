@@ -12,10 +12,11 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX004 | — | Cannot read file. Tool-level I/O diagnostic; no upstream. |
 | LX005 | — | Skipping non-XAML file. Tool-level behavior; no upstream. |
 | LX006 | — | Internal error in rule. Tool-level crash capture; no upstream. |
-| LX100 | RXT101 | Grid.Row without matching RowDefinition. Matches upstream semantics. Element syntax and WinUI/UWP `RowDefinitions="..."` shorthand are both supported. |
+| LX100 | RXT101 | Grid.Row without matching RowDefinition. Matches upstream semantics. Element syntax and the `RowDefinitions="..."` shorthand are both supported (the shorthand requires WPF .NET 10+, gated via `frameworkVersion` config). |
 | LX101 | RXT102 | Grid.Column without matching ColumnDefinition. Mirror of LX100 for columns. |
 | LX102 | RXT103 | Grid.RowSpan exceeds available rows. Span considered in isolation — not combined with Grid.Row; out-of-range starting rows are reported by LX100. |
 | LX103 | RXT104 | Grid.ColumnSpan exceeds available columns. Mirror of LX102 for columns. |
+| LX104 | — | Grid definition shorthand not supported by target framework. xaml-lint-original; no upstream RXT equivalent. Fires on legacy-WPF (frameworkVersion < 10) when a Grid uses the `RowDefinitions="..."` or `ColumnDefinitions="..."` shorthand attribute. |
 | LX200 | RXT160 | SelectedItem binding should be TwoWay. Matches upstream; applies to all dialects where binding markup is used. |
 | LX300 | RXT452 | x:Name should start with uppercase. Matches upstream casing rule; unprefixed `Name` remains out of scope. |
 | LX400 | RXT200 | Hardcoded string. Our attribute-name list is deliberately conservative at v0.2; upstream's list is broader and will be matched as real-world false negatives surface. |
