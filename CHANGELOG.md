@@ -8,6 +8,19 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-18
+
+M3 — Grid-family layout rules.
+
+### Added
+
+- [LX100](docs/rules/LX100.md) — Grid.Row without matching RowDefinition ([#4])
+- [LX101](docs/rules/LX101.md) — Grid.Column without matching ColumnDefinition ([#4])
+- [LX102](docs/rules/LX102.md) — Grid.RowSpan exceeds available rows ([#4])
+- [LX103](docs/rules/LX103.md) — Grid.ColumnSpan exceeds available columns ([#4])
+- Category overview page: [layout](docs/rules/layout.md) ([#4])
+- `GridAncestryHelpers` and `LocationHelpers.GetElementNameSpan` in `XamlLint.Core` ([#4])
+
 ## [0.2.0] - 2026-04-18
 
 M2 — first content lint rules.
@@ -50,8 +63,10 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
-[Unreleased]: https://github.com/jizc/xaml-lint/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/jizc/xaml-lint/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/jizc/xaml-lint/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/jizc/xaml-lint/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jizc/xaml-lint/releases/tag/v0.1.0
 [#2]: https://github.com/jizc/xaml-lint/pull/2
 [#3]: https://github.com/jizc/xaml-lint/pull/3
+[#4]: https://github.com/jizc/xaml-lint/pull/4
