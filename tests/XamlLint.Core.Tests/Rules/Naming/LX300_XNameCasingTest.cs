@@ -33,7 +33,7 @@ public sealed class LX300_XNameCasingTest
     public void Underscore_prefix_is_flagged()
     {
         // Convention for "private" named elements varies; this rule enforces the canonical
-        // WPF style: first character must be uppercase ASCII.
+        // WPF style: first character must be an uppercase letter (Unicode-aware, via char.IsUpper).
         XamlDiagnosticVerifier<LX300_XNameCasing>.Analyze(
             """
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
