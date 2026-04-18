@@ -56,6 +56,11 @@ public static class SchemaWriter
             w.WriteEndArray();
             w.WriteEndObject();
 
+            w.WriteStartObject("frameworkVersion");
+            w.WriteString("type", "string");
+            w.WriteString("description", "Major version of the target framework. Accepted forms include \"10\", \"10.0\", and \"net10.0\" (case-insensitive). Used by rules that gate behavior on framework support — most prominently the WPF-on-.NET-10 grid definition shorthand. Omit to assume the newest framework.");
+            w.WriteEndObject();
+
             w.WriteStartObject("overrides");
             w.WriteString("type", "array");
             w.WriteEndObject();

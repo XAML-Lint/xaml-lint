@@ -139,4 +139,38 @@ public sealed class LX101_GridColumnWithoutDefinitionTest
             </Grid>
             """);
     }
+
+    [Fact]
+    public void Wpf_legacy_framework_ignores_shorthand_ColumnDefinitions_attribute()
+    {
+        // On WPF .NET 9 (pre-shorthand), ColumnDefinitions="Auto,*" has no effect at runtime —
+        // the Grid behaves as having one implicit column. Grid.Column="1" is therefore out of
+        // range and should be flagged, even though the shorthand "looks like" it declares 2
+        // columns.
+        XamlDiagnosticVerifier<LX101_GridColumnWithoutDefinition>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  ColumnDefinitions="Auto,*">
+                <Button [|Grid.Column="1"|] />
+            </Grid>
+            """,
+            dialect: Dialect.Wpf,
+            frameworkMajorVersion: 9);
+    }
+
+    [Fact]
+    public void Wpf_modern_framework_honors_shorthand_ColumnDefinitions_attribute()
+    {
+        // Companion: explicit frameworkVersion: 10 confirms the shorthand is honored and
+        // Grid.Column="1" sits within the 2-column Grid → no diagnostic.
+        XamlDiagnosticVerifier<LX101_GridColumnWithoutDefinition>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  ColumnDefinitions="Auto,*">
+                <Button Grid.Column="1" />
+            </Grid>
+            """,
+            dialect: Dialect.Wpf,
+            frameworkMajorVersion: 10);
+    }
 }

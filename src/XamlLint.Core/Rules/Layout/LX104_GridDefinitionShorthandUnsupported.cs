@@ -27,6 +27,9 @@ public sealed partial class LX104_GridDefinitionShorthandUnsupported : IXamlRule
         if (DialectFeatures.SupportsGridDefinitionShorthand(context.Dialect, context.FrameworkMajorVersion))
             yield break;
 
+        // The else-branch is defensive: every "shorthand unsupported" combination today implies
+        // a non-null FrameworkMajorVersion (WPF + version < 10). The fallback covers a future
+        // dialect that might mark shorthand as unsupported regardless of version.
         var frameworkLabel = context.FrameworkMajorVersion is { } v
             ? $"{context.Dialect} .NET {v}"
             : context.Dialect.ToString();
