@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 LX100   | Layout   | Warning  | Grid.Row without matching RowDefinition
+LX101   | Layout   | Warning  | Grid.Column without matching ColumnDefinition
