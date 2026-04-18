@@ -52,29 +52,40 @@ public static class GridAncestryHelpers
     }
 
     /// <summary>
-    /// Returns the number of rows the Grid declares. The WinUI/UWP shorthand attribute
-    /// <c>RowDefinitions="Auto,*,..."</c> takes precedence; falls back to counting
-    /// <c>&lt;RowDefinition&gt;</c> children inside <c>&lt;Grid.RowDefinitions&gt;</c>. A Grid
-    /// that declares neither has an implicit single row — returns 1.
+    /// Returns the number of rows the Grid declares. When <paramref name="shorthandSupported"/>
+    /// is <c>true</c> (the default) the WinUI/UWP/MAUI/Avalonia/Uno (and WPF on .NET 10+)
+    /// shorthand attribute <c>RowDefinitions="Auto,*,..."</c> takes precedence; otherwise the
+    /// shorthand attribute is ignored. Falls back to counting <c>&lt;RowDefinition&gt;</c>
+    /// children inside <c>&lt;Grid.RowDefinitions&gt;</c>. A Grid that declares neither has an
+    /// implicit single row — returns 1.
     /// </summary>
-    public static int CountRowDefinitions(XElement grid) =>
-        CountDefinitions(grid, RowDefinitionsShorthandAttribute, RowDefinitionsPropertyElement, RowDefinitionElement);
+    public static int CountRowDefinitions(XElement grid, bool shorthandSupported = true) =>
+        CountDefinitions(grid, RowDefinitionsShorthandAttribute, RowDefinitionsPropertyElement, RowDefinitionElement, shorthandSupported);
 
     /// <summary>
-    /// Mirror of <see cref="CountRowDefinitions"/> for columns.
+    /// Returns the number of columns the Grid declares. When <paramref name="shorthandSupported"/>
+    /// is <c>true</c> (the default) the WinUI/UWP/MAUI/Avalonia/Uno (and WPF on .NET 10+)
+    /// shorthand attribute <c>ColumnDefinitions="*,Auto,..."</c> takes precedence; otherwise the
+    /// shorthand attribute is ignored. Falls back to counting <c>&lt;ColumnDefinition&gt;</c>
+    /// children inside <c>&lt;Grid.ColumnDefinitions&gt;</c>. A Grid that declares neither has an
+    /// implicit single column — returns 1.
     /// </summary>
-    public static int CountColumnDefinitions(XElement grid) =>
-        CountDefinitions(grid, ColumnDefinitionsShorthandAttribute, ColumnDefinitionsPropertyElement, ColumnDefinitionElement);
+    public static int CountColumnDefinitions(XElement grid, bool shorthandSupported = true) =>
+        CountDefinitions(grid, ColumnDefinitionsShorthandAttribute, ColumnDefinitionsPropertyElement, ColumnDefinitionElement, shorthandSupported);
 
     private static int CountDefinitions(
         XElement grid,
         string shorthandAttributeName,
         string propertyElementName,
-        string definitionElementName)
+        string definitionElementName,
+        bool shorthandSupported)
     {
-        var shorthand = grid.Attribute(shorthandAttributeName);
-        if (shorthand is not null)
-            return CountCommaSeparated(shorthand.Value);
+        if (shorthandSupported)
+        {
+            var shorthand = grid.Attribute(shorthandAttributeName);
+            if (shorthand is not null)
+                return CountCommaSeparated(shorthand.Value);
+        }
 
         var propertyElement = grid.Elements().FirstOrDefault(
             e => e.Name.LocalName == propertyElementName);

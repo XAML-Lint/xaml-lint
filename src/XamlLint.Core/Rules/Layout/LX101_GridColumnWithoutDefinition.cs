@@ -28,7 +28,9 @@ public sealed partial class LX101_GridColumnWithoutDefinition : IXamlRule
             var grid = GridAncestryHelpers.FindNearestGridAncestor(element);
             if (grid is null) continue;
 
-            var columnCount = GridAncestryHelpers.CountColumnDefinitions(grid);
+            var shorthandSupported = DialectFeatures.SupportsGridDefinitionShorthand(
+                context.Dialect, context.FrameworkMajorVersion);
+            var columnCount = GridAncestryHelpers.CountColumnDefinitions(grid, shorthandSupported);
             var columnValue = read.Value.Value;
             if (columnValue < columnCount) continue;
 
