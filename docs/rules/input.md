@@ -9,3 +9,4 @@ parses fine but fails silently at runtime.
 |---|---|---|
 | [LX500](LX500.md) | TextBox lacks InputScope | info |
 | [LX501](LX501.md) | Slider Minimum is greater than Maximum | warning |
+| [LX502](LX502.md) | Stepper Minimum is greater than Maximum | warning |
