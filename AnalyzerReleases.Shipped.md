@@ -35,3 +35,16 @@ LX101   | Layout   | Warning  | Grid.Column without matching ColumnDefinition
 LX102   | Layout   | Warning  | Grid.RowSpan exceeds available rows
 LX103   | Layout   | Warning  | Grid.ColumnSpan exceeds available columns
 LX104   | Layout   | Warning  | Grid definition shorthand not supported by target framework
+
+## Release 0.4.0
+
+### New Rules
+
+Rule ID | Category   | Severity | Notes
+--------|------------|----------|-------
+LX201   | Bindings   | Info     | Prefer x:Bind over Binding
+LX301   | Naming     | Warning  | x:Uid should start with uppercase
+LX500   | Input      | Info     | TextBox lacks InputScope
+LX501   | Input      | Warning  | Slider Minimum is greater than Maximum
+LX502   | Input      | Warning  | Stepper Minimum is greater than Maximum
+LX600   | Deprecated | Warning  | MediaElement is deprecated — use MediaPlayerElement
