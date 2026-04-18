@@ -83,6 +83,28 @@ public static class LocationHelpers
         return (line, col);
     }
 
+    /// <summary>
+    /// Returns the 1-based span that covers an element's opening-tag name only (for example,
+    /// <c>Grid.Row</c> inside <c>&lt;Grid.Row&gt;</c>). Used by rules whose diagnostic source is
+    /// an <see cref="XElement"/> — element-syntax attached properties. Line info on
+    /// <see cref="XElement"/> points at the first character of the name, immediately after the
+    /// opening <c>&lt;</c>. The returned <c>EndCol</c> is one past the last character of the
+    /// local name (exclusive), consistent with <see cref="GetAttributeSpan"/>.
+    /// </summary>
+    public static (int StartLine, int StartCol, int EndLine, int EndCol) GetElementNameSpan(
+        XElement element)
+    {
+        var lineInfo = (IXmlLineInfo)element;
+        if (!lineInfo.HasLineInfo())
+            throw new InvalidOperationException(
+                "Element has no line info; XamlDocument must load with LoadOptions.SetLineInfo.");
+
+        var line = lineInfo.LineNumber;
+        var startCol = lineInfo.LinePosition;
+        var nameLen = element.Name.LocalName.Length;
+        return (line, startCol, line, startCol + nameLen);
+    }
+
     private static int IndexOf(ReadOnlySpan<char> source, int startOffset, char target)
     {
         for (var i = startOffset; i < source.Length; i++)
