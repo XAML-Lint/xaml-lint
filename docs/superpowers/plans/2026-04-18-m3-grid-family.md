@@ -2228,6 +2228,6 @@ tag.
 - `dotnet build D:/GitHub/jizc/xaml-lint/xaml-lint.slnx --configuration Release` — 0 warnings, 0 errors.
 - `dotnet test --solution D:/GitHub/jizc/xaml-lint/xaml-lint.slnx` — every project green, including the new helper tests (13 in `GridAncestryHelpersTest`, 1 in `LocationHelpersTest` addendum) and 35 rule-unit tests across LX100–LX103.
 - `dotnet run --project D:/GitHub/jizc/xaml-lint/src/XamlLint.DocTool --configuration Release -- --check` — exit code 0, no drift.
-- `git -C D:/GitHub/jizc/xaml-lint log --oneline main..m3-grid-family` — shows exactly 9 commits, one per task (Tasks 1–9).
+- `git -C D:/GitHub/jizc/xaml-lint log --oneline main..m3-grid-family` — shows one `feat/chore/docs` commit per task (Tasks 1–9). Review-driven `fix(core):` commits that land between the helper commit and its first consumer are expected and should be preserved as audit trail.
 - PR `M3: LX100–LX103 (v0.3.0)` merged; `v0.3.0` tag pushed; Shipped.md contains the new `## Release 0.3.0` section; Unshipped.md is empty of rows; plugin manifest reads `"version": "0.3.0"`.
 - `XamlLint.Cli.0.3.0.nupkg` (stable, no `-alpha` suffix) produced from the tag.
