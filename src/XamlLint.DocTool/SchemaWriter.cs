@@ -30,7 +30,7 @@ public static class SchemaWriter
         {
             w.WriteStartObject();
             w.WriteString("$schema", "https://json-schema.org/draft/2020-12/schema");
-            w.WriteString("$id", "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json");
+            w.WriteString("$id", "https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/schema/v1/config.json");
             w.WriteString("title", "xaml-lint configuration");
             w.WriteString("type", "object");
 

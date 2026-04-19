@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json",
+  "$id": "https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/schema/v1/config.json",
   "title": "xaml-lint configuration",
   "type": "object",
   "properties": {
