@@ -42,7 +42,7 @@ Test stack: xUnit v3 on Microsoft Testing Platform (`xunit.v3.mtp-v2`), AwesomeA
 
 ## Doc tool and CI checks
 
-`XamlLint.DocTool` is a post-build step that stubs missing rule docs, deletes orphaned stubs (only when the file is clearly stub-shaped), regenerates `schema/v1/config.json`, and regenerates presets from each rule's `DefaultSeverity`. CI runs it as a drift check:
+`XamlLint.DocTool` is a console tool that stubs missing rule docs, deletes orphaned stubs (only when the file is clearly stub-shaped), regenerates `schema/v1/config.json`, and regenerates presets from each rule's `DefaultSeverity`. It is not wired into `dotnet build` — run it explicitly whenever you add or change a rule. CI runs it as a drift check:
 
 ```
 dotnet run --project src/XamlLint.DocTool --configuration Release -- --check
