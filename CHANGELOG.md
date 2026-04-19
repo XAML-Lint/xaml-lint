@@ -8,6 +8,10 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-04-19
+
+Stable release. No behavior changes since v0.5.0 beyond the `main`-branch polish below. Starting here, `version.json` carries the full 3-segment version verbatim (no prerelease suffix, no git-height-as-patch) — published package version matches the git tag exactly.
+
 ### Added
 
 - `DefaultEnabled` property on `XamlRuleAttribute` (defaults `true`). Rules marked `DefaultEnabled = false` are written as `"off"` in the `xaml-lint:recommended` preset — useful for signals that are valuable but too noisy for most projects out-of-the-box. `:strict` still enables them at the escalated severity, and users extending `:recommended` can opt in explicitly.
@@ -109,7 +113,8 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
-[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.5.0...v1.0.0
 [0.5.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.2.0...v0.3.0
