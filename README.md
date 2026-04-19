@@ -6,24 +6,7 @@
 [![CI](https://github.com/XAML-Lint/xaml-lint/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/XAML-Lint/xaml-lint/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/XAML-Lint/xaml-lint.svg)](LICENSE)
 
-A Claude Code plugin that lints XAML files for common issues, so Claude can catch XAML problems as it writes and edits code.
-
-## Status
-
-v0.5.0 — 20 rule IDs shipping: 6 tool/engine diagnostics (LX001–LX006) plus 14 analysis rules across Layout, Bindings, Naming, Resources, Input, and Deprecated categories. Rules are dialect-gated where the upstream semantics require it. Full catalog at [docs/rules/](docs/rules/); release history in [CHANGELOG.md](CHANGELOG.md).
-
-### Platform support
-
-Rule counts reflect how many of the 20 catalog IDs actually fire for each dialect — set `defaultDialect` in `xaml-lint.config.json` (or a `dialect="..."` file pragma) so dialect-specific rules gate correctly.
-
-| Platform | Rules applying | Status |
-| --- | --- | --- |
-| WPF | 15 | Supported (primary target) |
-| WinUI 3 | 18 | Supported (incl. `x:Bind`, `x:Uid`, `InputScope`, `MediaElement`) |
-| UWP | 18 | Supported (incl. `x:Bind`, `x:Uid`, `InputScope`, `MediaElement`) |
-| .NET MAUI | 16 | Supported (incl. `Slider`/`Stepper` range checks) |
-| Avalonia | 14 | Dialect-agnostic rules only; no Avalonia-specific rules yet |
-| Uno Platform | 14 | Dialect-agnostic rules only; no Uno-specific rules yet |
+A XAML linter, with Claude Code plugin integration so Claude can catch XAML problems as it writes and edits code.
 
 ## Install
 
@@ -31,14 +14,34 @@ Rule counts reflect how many of the 20 catalog IDs actually fire for each dialec
 dotnet tool install -g xaml-lint
 ```
 
-## Use
+Requires the .NET 10 SDK on `PATH`.
+
+## Use with Claude Code
+
+After installing the CLI above, install the plugin from inside Claude Code:
+
+```
+/plugin marketplace add XAML-Lint/xaml-lint
+/plugin install xaml-lint@xaml-lint
+```
+
+The bundled `PostToolUse` hook runs `xaml-lint` on every `.xaml` file Claude writes or edits, and feeds diagnostics back into the conversation automatically. Use `/xaml-lint:lint <path-or-glob>` to trigger a manual lint.
+
+## Use from the CLI
 
 ```
 xaml-lint lint src/Views/MainView.xaml
 xaml-lint lint "src/**/*.xaml"
 ```
 
-Invoke as a plugin: install the plugin from the Claude Code marketplace (or `claude --plugin-dir ./path/to/this/repo` for dev). The `PostToolUse` hook fires on every `Write`/`Edit` of a `.xaml` file and runs `xaml-lint hook` to report diagnostics back to Claude automatically.
+Sample output:
+
+```
+src/Views/MainView.xaml
+     8:20  warning LX100  Grid.Row="5" but the enclosing Grid declares only 2 rows.
+     8:33  info    LX400  Hardcoded string on 'Text' should be moved to a resource.
+     9:18  warning LX300  x:Name 'userInput' should start with an uppercase letter.
+```
 
 ## Configure
 
@@ -53,7 +56,7 @@ Create `xaml-lint.config.json` at your repo root:
 }
 ```
 
-See [docs/config-reference.md](docs/config-reference.md) for the full schema.
+See [docs/config-reference.md](docs/config-reference.md) for the full schema, and [docs/rules/](docs/rules/) for the full rule catalog (20 rules across Layout, Bindings, Naming, Resources, Input, and Deprecated categories, dialect-gated for WPF / WinUI 3 / UWP / MAUI / Avalonia / Uno).
 
 ## Output formats
 
