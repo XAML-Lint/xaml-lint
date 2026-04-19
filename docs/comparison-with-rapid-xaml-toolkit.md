@@ -60,4 +60,4 @@ Lint-rule mappings continue to accrue as new categories ship.
 
 ## Suppression model
 
-Rapid XAML Toolkit uses `xaml-analysis` comments; `xaml-lint` uses `xaml-lint` comments with a fuller grammar (`disable once`, `restore` blocks, `All`). See the [suppression section of the design spec](superpowers/specs/2026-04-17-xaml-lint-design.md#34-suppression-pipeline-resharper-style) for the full grammar.
+Rapid XAML Toolkit uses `xaml-analysis` comments; `xaml-lint` uses `xaml-lint` comments with a fuller grammar (`disable once`, `restore` blocks, `All`). Every per-rule doc under [`docs/rules/`](rules/) has a "How to suppress violations" section with copy-pasteable pragma snippets.

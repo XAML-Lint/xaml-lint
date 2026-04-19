@@ -126,7 +126,7 @@ public sealed class LX100_GridRowWithoutDefinitionTest
         // Element syntax is uncommon but legal. The harness's {|LXnnn|} bare marker asserts
         // that a diagnostic exists for this rule somewhere in the document; precise span
         // assertion for element syntax would require a nested-marker form the harness does
-        // not yet support (see docs/superpowers/specs/2026-04-17-xaml-lint-design.md §8.2).
+        // not yet support.
         XamlDiagnosticVerifier<LX100_GridRowWithoutDefinition>.Analyze(
             """
             {|LX100|}<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
