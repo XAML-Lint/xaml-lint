@@ -2,7 +2,7 @@
 
 # xaml-lint
 
-[![NuGet](https://img.shields.io/nuget/vpre/xaml-lint.svg)](https://www.nuget.org/packages/xaml-lint)
+[![NuGet](https://img.shields.io/nuget/v/xaml-lint.svg)](https://www.nuget.org/packages/xaml-lint)
 [![CI](https://github.com/XAML-Lint/xaml-lint/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/XAML-Lint/xaml-lint/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/XAML-Lint/xaml-lint.svg)](LICENSE)
 
