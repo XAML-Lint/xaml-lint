@@ -6,7 +6,7 @@ namespace XamlLint.Cli.Formatters;
 public sealed class SarifFormatter : IDiagnosticFormatter
 {
     private const string Schema = "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/Schemata/sarif-schema-2.1.0.json";
-    private const string InfoUri = "https://github.com/jizc/xaml-lint";
+    private const string InfoUri = "https://github.com/XAML-Lint/xaml-lint";
 
     public void Write(TextWriter writer, IReadOnlyList<Diagnostic> diagnostics, string toolVersion) =>
         Write(writer, diagnostics, toolVersion, Array.Empty<Diagnostic>());

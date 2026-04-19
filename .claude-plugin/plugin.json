@@ -6,6 +6,6 @@
     "name": "Jan Ivar Z. Carlsen"
   },
   "license": "MIT",
-  "homepage": "https://github.com/jizc/xaml-lint",
+  "homepage": "https://github.com/XAML-Lint/xaml-lint",
   "keywords": ["xaml", "lint", "wpf", "winui", "maui", "avalonia"]
 }

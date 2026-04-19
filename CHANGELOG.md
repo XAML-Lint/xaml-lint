@@ -80,12 +80,12 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
-[Unreleased]: https://github.com/jizc/xaml-lint/compare/v0.4.0...HEAD
-[0.4.0]: https://github.com/jizc/xaml-lint/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/jizc/xaml-lint/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/jizc/xaml-lint/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/jizc/xaml-lint/releases/tag/v0.1.0
-[#2]: https://github.com/jizc/xaml-lint/pull/2
-[#3]: https://github.com/jizc/xaml-lint/pull/3
-[#4]: https://github.com/jizc/xaml-lint/pull/4
-[#5]: https://github.com/jizc/xaml-lint/pull/5
+[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/XAML-Lint/xaml-lint/releases/tag/v0.1.0
+[#2]: https://github.com/XAML-Lint/xaml-lint/pull/2
+[#3]: https://github.com/XAML-Lint/xaml-lint/pull/3
+[#4]: https://github.com/XAML-Lint/xaml-lint/pull/4
+[#5]: https://github.com/XAML-Lint/xaml-lint/pull/5
