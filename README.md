@@ -40,7 +40,7 @@ Create `xaml-lint.config.json` at your repo root:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json",
+  "$schema": "https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/schema/v1/config.json",
   "extends": "xaml-lint:recommended",
   "defaultDialect": "wpf",
   "rules": { "LX005": "off" }
