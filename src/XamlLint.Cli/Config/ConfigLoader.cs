@@ -14,7 +14,7 @@ public sealed class ConfigLoader
 {
     private const string ConfigFileName = "xaml-lint.config.json";
     private const string LX003 = "LX003";
-    private const string HelpUriLX003 = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX003.md";
+    private const string HelpUriLX003 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX003.md";
 
     public sealed record LoadResult(ResolvedConfig? Config, IReadOnlyList<Diagnostic> Diagnostics);
 

@@ -5,7 +5,7 @@ namespace XamlLint.Core.Rules.Tool;
     Title = "Malformed configuration",
     DefaultSeverity = Severity.Error,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX003.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX003.md")]
 public sealed partial class LX003_MalformedConfig : IToolRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context) =>

@@ -8,7 +8,7 @@ namespace XamlLint.Core.Rules.Bindings;
     Title = "SelectedItem binding should be TwoWay",
     DefaultSeverity = Severity.Info,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX200.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX200.md")]
 public sealed partial class LX200_SelectedItemTwoWay : IXamlRule
 {
     private static readonly HashSet<string> BindingExtensions = new(StringComparer.Ordinal)

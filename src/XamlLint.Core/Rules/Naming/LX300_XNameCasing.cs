@@ -8,7 +8,7 @@ namespace XamlLint.Core.Rules.Naming;
     Title = "x:Name should start with uppercase",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX300.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX300.md")]
 public sealed partial class LX300_XNameCasing : IXamlRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)

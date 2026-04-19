@@ -8,6 +8,23 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-19
+
+M5 — pre-v1 polish. Rules-inert release focused on org migration, repo hygiene, release-surface polish, and contributor docs.
+
+### Added
+
+- `CONTRIBUTING.md` with versioning policy and the "add a new rule" flow ([#6])
+- Project branding: logo (`assets/logo.png`, `assets/logo.svg`), wired as NuGet `<PackageIcon>` — README and icon now ship at the nupkg root ([#6])
+- Marketplace submission materials under `docs/marketplace/` (listing copy + screenshot spec for 3 PNGs) ([#6])
+
+### Changed
+
+- Repo transferred from `jizc/xaml-lint` to [`XAML-Lint/xaml-lint`](https://github.com/XAML-Lint/xaml-lint) ([#6])
+- `HelpUri` owner slug flipped across 26 in-source sites (20 `[XamlRule]` attributes + 3 consts in `RuleDispatcher` / `PragmaParser` / `ConfigLoader` + 3 inline strings in `LintPipeline`). URL shape preserved: `https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX###.md` ([#6])
+- `$id` / `$schema` URLs in `schema/v1/config.json`, the three bundled presets, `README.md`, and `docs/config-reference.md` now point at the new owner. URL shape preserved on `raw.githubusercontent.com` ([#6])
+- Repo-metadata owner refs updated: `.claude-plugin/plugin.json` homepage, `Directory.Build.props` (`PackageProjectUrl` + `RepositoryUrl`), `CHANGELOG.md` compare/PR links, SARIF output `informationUri`, `docs/rules/LX006.md` issue-tracker link ([#6])
+
 ## [0.4.0] - 2026-04-18
 
 M4 — dialect-gated rules spanning UWP/WinUI 3, .NET MAUI, and WPF.
@@ -80,12 +97,14 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
-[Unreleased]: https://github.com/jizc/xaml-lint/compare/v0.4.0...HEAD
-[0.4.0]: https://github.com/jizc/xaml-lint/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/jizc/xaml-lint/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/jizc/xaml-lint/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/jizc/xaml-lint/releases/tag/v0.1.0
-[#2]: https://github.com/jizc/xaml-lint/pull/2
-[#3]: https://github.com/jizc/xaml-lint/pull/3
-[#4]: https://github.com/jizc/xaml-lint/pull/4
-[#5]: https://github.com/jizc/xaml-lint/pull/5
+[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/XAML-Lint/xaml-lint/releases/tag/v0.1.0
+[#2]: https://github.com/XAML-Lint/xaml-lint/pull/2
+[#3]: https://github.com/XAML-Lint/xaml-lint/pull/3
+[#4]: https://github.com/XAML-Lint/xaml-lint/pull/4
+[#5]: https://github.com/XAML-Lint/xaml-lint/pull/5
+[#6]: https://github.com/XAML-Lint/xaml-lint/pull/6

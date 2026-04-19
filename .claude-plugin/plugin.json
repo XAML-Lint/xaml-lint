@@ -1,11 +1,11 @@
 {
   "name": "xaml-lint",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Lints XAML files for common issues so Claude can catch problems as code is written.",
   "author": {
     "name": "Jan Ivar Z. Carlsen"
   },
   "license": "MIT",
-  "homepage": "https://github.com/jizc/xaml-lint",
+  "homepage": "https://github.com/XAML-Lint/xaml-lint",
   "keywords": ["xaml", "lint", "wpf", "winui", "maui", "avalonia"]
 }

@@ -9,7 +9,7 @@ namespace XamlLint.Core.Rules.Layout;
     Title = "Grid.RowSpan exceeds available rows",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX102.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX102.md")]
 public sealed partial class LX102_GridRowSpanExceedsRows : IXamlRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)

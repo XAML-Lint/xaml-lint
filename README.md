@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/jizc/xaml-lint/main/assets/logo.png" alt="xaml-lint" width="128" height="128">
+<img src="https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/assets/logo.png" alt="xaml-lint" width="128" height="128">
 
 # xaml-lint
 
@@ -40,7 +40,7 @@ Create `xaml-lint.config.json` at your repo root:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json",
+  "$schema": "https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/schema/v1/config.json",
   "extends": "xaml-lint:recommended",
   "defaultDialect": "wpf",
   "rules": { "LX005": "off" }
@@ -67,6 +67,10 @@ See [docs/config-reference.md](docs/config-reference.md) for the full schema.
 ## Attribution
 
 The analysis rules in this project are derived from the [Rapid XAML Toolkit](https://github.com/mrlacey/Rapid-XAML-Toolkit) by Matt Lacey, used under the MIT License. The VS extension, code generation, and IDE-specific pieces of the original project are not part of this fork's scope — only the XAML analysis. See [docs/comparison-with-rapid-xaml-toolkit.md](docs/comparison-with-rapid-xaml-toolkit.md) for the per-rule mapping.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the versioning policy, the "add a new rule" flow, and how to run tests locally.
 
 ## License
 

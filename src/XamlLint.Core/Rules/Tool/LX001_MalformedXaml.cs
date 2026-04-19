@@ -6,7 +6,7 @@ namespace XamlLint.Core.Rules.Tool;
     Title = "Malformed XAML",
     DefaultSeverity = Severity.Error,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX001.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX001.md")]
 public sealed partial class LX001_MalformedXaml : IToolRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context) =>

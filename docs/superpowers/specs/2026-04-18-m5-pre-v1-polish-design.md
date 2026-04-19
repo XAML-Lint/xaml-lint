@@ -1,5 +1,7 @@
 # M5 — Pre-v1 polish — Design
 
+> **Re-scope note (2026-04-19):** During execution the GitHub Pages migration was declined (user preferred serving rule docs directly from the `github.com/blob` rendering). The repo was transferred to the `XAML-Lint` GitHub organization. Tasks 3 (move `schema/v1/` under `docs/`), 4 (Jekyll scaffold + front matter), and 9 (enable Pages + smoke tests) were cancelled. Tasks 2, 5, 6, 7, 8 reduced to owner-only URL swaps (`jizc` → `XAML-Lint`) with URL shape preserved. The rest of the plan (Tasks 1, 10–16) executed as written.
+
 | | |
 |---|---|
 | **Status** | Draft |

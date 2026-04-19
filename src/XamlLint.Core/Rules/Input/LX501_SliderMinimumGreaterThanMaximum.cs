@@ -9,7 +9,7 @@ namespace XamlLint.Core.Rules.Input;
     Title = "Slider Minimum is greater than Maximum",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.Wpf | Dialect.Maui,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX501.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX501.md")]
 public sealed partial class LX501_SliderMinimumGreaterThanMaximum : IXamlRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)

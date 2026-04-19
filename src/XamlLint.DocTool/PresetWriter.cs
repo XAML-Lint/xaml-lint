@@ -37,7 +37,7 @@ public static class PresetWriter
         using (var w = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true, NewLine = "\n" }))
         {
             w.WriteStartObject();
-            w.WriteString("$schema", "https://raw.githubusercontent.com/jizc/xaml-lint/main/schema/v1/config.json");
+            w.WriteString("$schema", "https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/schema/v1/config.json");
             w.WriteStartObject("rules");
             foreach (var m in rules)
                 w.WriteString(m.Id, level(m));
