@@ -1,0 +1,19 @@
+{
+  "name": "xaml-lint",
+  "owner": {
+    "name": "Jan Ivar Z. Carlsen"
+  },
+  "metadata": {
+    "description": "xaml-lint — a XAML linter with Claude Code plugin integration."
+  },
+  "plugins": [
+    {
+      "name": "xaml-lint",
+      "source": "./",
+      "description": "Lints XAML files for common issues so Claude can catch problems as code is written.",
+      "homepage": "https://github.com/XAML-Lint/xaml-lint",
+      "license": "MIT",
+      "keywords": ["xaml", "lint", "wpf", "winui", "maui", "avalonia"]
+    }
+  ]
+}
