@@ -5,7 +5,7 @@
 | **Status** | In progress |
 | **Updated** | 2026-04-19 |
 | **Spec** | [2026-04-17-xaml-lint-design.md](specs/2026-04-17-xaml-lint-design.md) |
-| **Current release** | [v0.4.0](../../CHANGELOG.md#040---2026-04-18) |
+| **Current release** | [v0.5.0](../../CHANGELOG.md#050---2026-04-19) |
 
 A single-page snapshot of what's shipped against the v1 design and what remains before a v1.0.0 tag. Keep it current when milestones graduate or §13 open items close.
 
@@ -18,7 +18,7 @@ A single-page snapshot of what's shipped against the v1 design and what remains 
 | M2 — Easy rules | [v0.2.0](https://github.com/jizc/xaml-lint/releases/tag/v0.2.0) | ✅ Done | LX200, LX300, LX400 |
 | M3 — Grid family | [v0.3.0](https://github.com/jizc/xaml-lint/releases/tag/v0.3.0) | ✅ Done | LX100–LX103 plus bonus LX104 (framework-version-gated shorthand) |
 | M4 — Dialect-gated rules | [v0.4.0](https://github.com/jizc/xaml-lint/releases/tag/v0.4.0) | ✅ Done | LX201, LX301, LX500, LX501, LX502, LX600 |
-| M5 — Pre-v1 polish | v0.5.0 | 🚧 In progress | Repo transfer + owner-only URL migration, `CONTRIBUTING.md`, NuGet readme+icon (pre-M5 via branding commit), marketplace materials. See [spec](specs/2026-04-18-m5-pre-v1-polish-design.md). |
+| M5 — Pre-v1 polish | v0.5.0 | ✅ Done | Repo transfer + owner-only URL migration, `CONTRIBUTING.md`, NuGet readme+icon (pre-M5 via branding commit), marketplace materials. See [spec](specs/2026-04-18-m5-pre-v1-polish-design.md). |
 | **v1.0.0 release** | **v1.0.0** | 🚧 Remaining | Gates: M5 complete, alpha suffix dropped from version.json, announcement drafted. |
 
 ## Rule catalog (20 IDs)
