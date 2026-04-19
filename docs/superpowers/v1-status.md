@@ -44,7 +44,7 @@ Direct mapping of M5 spec §2 — each row is one gate.
 | # | Item | Phase | Status | Notes |
 |---|---|---|---|---|
 | 1 | Transfer repo from `jizc/` to `XAML-Lint` org | A | ✅ Done | Transferred via `gh api POST /repos/jizc/xaml-lint/transfer`; local remote updated; 5 in-repo owner references flipped (plugin manifest, Directory.Build.props, CHANGELOG compare links, SARIF InfoUri, LX006 bug-report link). |
-| 2 | Migrate owner slug across all HelpUri + `$schema` URLs | B | ✅ Done | 26 in-source HelpUri sites + 2 DocTool URL constants + 4 regenerated schema/preset JSONs + 3 user-facing `$schema` refs. URL shape preserved — GitHub Pages explored and declined. |
+| 2 | Migrate owner slug across all HelpUri + `$schema` URLs | B | ✅ Done | 26 in-source HelpUri sites + 2 DocTool URL constants + 4 regenerated schema/preset JSONs + 2 user-facing `$schema` refs. URL shape preserved — GitHub Pages explored and declined. |
 | 3 | Write `CONTRIBUTING.md` | C | ✅ Done | Versioning policy (spec §10) + "add a new rule" flow + how to run tests + DocTool usage. Linked from README. |
 | 4 | NuGet package readme + icon | C | ✅ Done | Completed pre-M5 via branding commit 98fe56d; verified via `dotnet pack` — nupkg includes `logo.png` and `README.md` at archive root. |
 | 5 | Plugin marketplace submission materials | C | ✅ Done | Listing copy + screenshot spec under `docs/marketplace/`. Submission itself deferred to v1.0.0. |
