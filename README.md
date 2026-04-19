@@ -68,6 +68,10 @@ See [docs/config-reference.md](docs/config-reference.md) for the full schema.
 
 The analysis rules in this project are derived from the [Rapid XAML Toolkit](https://github.com/mrlacey/Rapid-XAML-Toolkit) by Matt Lacey, used under the MIT License. The VS extension, code generation, and IDE-specific pieces of the original project are not part of this fork's scope — only the XAML analysis. See [docs/comparison-with-rapid-xaml-toolkit.md](docs/comparison-with-rapid-xaml-toolkit.md) for the per-rule mapping.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the versioning policy, the "add a new rule" flow, and how to run tests locally.
+
 ## License
 
 [MIT](LICENSE)
