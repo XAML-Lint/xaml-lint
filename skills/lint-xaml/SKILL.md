@@ -13,10 +13,17 @@ Run `xaml-lint lint <path>` to analyze one or more XAML files. The tool emits co
 - Multiple files / glob: `xaml-lint lint "src/**/*.xaml"`
 - Explicit format: `xaml-lint lint --format compact-json path/to/View.xaml`
 
-If `xaml-lint` isn't on PATH, check install with:
-```
-dotnet tool install -g xaml-lint
-```
+If `xaml-lint` isn't on PATH, install with `dotnet tool install -g xaml-lint` and retry.
+
+## Dialect selection
+
+Some rules are gated to specific XAML dialects (WPF, WinUI 3, UWP, MAUI, Avalonia, Uno). Detection order:
+
+1. `xaml-lint.config.json` at or above the repo root with `defaultDialect` — use it when present.
+2. `dialect="..."` pragma at the top of the XAML file — honored per-file.
+3. Tool default — WPF.
+
+If the target project isn't WPF and no config is set, pass `--dialect <name>` explicitly (`winui3`, `uwp`, `maui`, `avalonia`, `uno`). Otherwise the user's dialect-specific rules (e.g. `LX201` for `x:Bind`, `LX301` for `x:Uid` casing) won't fire.
 
 ## Interpreting output
 
