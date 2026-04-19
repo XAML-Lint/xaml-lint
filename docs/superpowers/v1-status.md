@@ -19,7 +19,8 @@ A single-page snapshot of what's shipped against the v1 design and what remains 
 | M3 — Grid family | [v0.3.0](https://github.com/jizc/xaml-lint/releases/tag/v0.3.0) | ✅ Done | LX100–LX103 plus bonus LX104 (framework-version-gated shorthand) |
 | M4 — Dialect-gated rules | [v0.4.0](https://github.com/jizc/xaml-lint/releases/tag/v0.4.0) | ✅ Done | LX201, LX301, LX500, LX501, LX502, LX600 |
 | M5 — Pre-v1 polish | v0.5.0 | ✅ Done | Repo transfer + owner-only URL migration, `CONTRIBUTING.md`, NuGet readme+icon (pre-M5 via branding commit), marketplace materials. See [spec](specs/2026-04-18-m5-pre-v1-polish-design.md). |
-| **v1.0.0 release** | **v1.0.0** | 🚧 Remaining | Gates: M5 complete, alpha suffix dropped from version.json, announcement drafted. |
+| Post-M5 polish on `main` | — | ✅ Done | Between v0.5.0 and the v1.0.0 cut, on `main` but unreleased: `.claude-plugin/marketplace.json` so the plugin is installable via `/plugin marketplace add XAML-Lint/xaml-lint`; README rework (install flows + sample output, cut stale Status section); multi-target `net8.0;net9.0;net10.0`; `DefaultEnabled` property on `XamlRuleAttribute` with LX300/LX400 marked off-by-default in `:recommended` after dogfooding against a 1k-file WPF codebase. |
+| **v1.0.0 release** | **v1.0.0** | 🚧 Remaining | Gates: graduate `AnalyzerReleases.Unshipped.md`, add `[1.0.0]` section to `CHANGELOG.md`, drop alpha suffix from `version.json`, tag + push. |
 
 ## Rule catalog (20 IDs)
 
@@ -53,6 +54,7 @@ Direct mapping of M5 spec §2 — each row is one gate.
 
 From spec §12 — none of these block v1.0.0.
 
+- Submit to the official `claude-plugins-official` marketplace for discoverability (`https://claude.ai/settings/plugins/submit`). Self-hosted install via `/plugin marketplace add XAML-Lint/xaml-lint` is already working; submission is purely about surfacing in Discover.
 - LSP server (v2 headliner; engine is already stateless-by-design to make the wrap additive).
 - Auto-fix (`--fix` flag; rule-declared `Fix()` methods).
 - `--error-on` / `--warning-on` severity promotion flags.
@@ -65,4 +67,4 @@ From spec §12 — none of these block v1.0.0.
 
 ## Definition of done for v1.0.0
 
-All five §13 items closed, tag pushed, `AnalyzerReleases.Unshipped.md` graduated to a `## Release 1.0.0` header, `CHANGELOG.md` updated with a `[1.0.0]` section, plugin marketplace listing live, and the announcement post drafted. After tagging: drop the alpha suffix from `version.json` (see the `project_alpha_versioning` memory — stable semver reserved for v1+).
+`AnalyzerReleases.Unshipped.md` graduated to a `## Release 1.0.0` header, `CHANGELOG.md` updated with a `[1.0.0]` section, alpha suffix dropped from `version.json` (`0.5-alpha` → `1.0`; stable semver reserved for v1+ per the `project_alpha_versioning` memory), tag pushed. Official-marketplace submission and an announcement post are deliberately out of scope — no users to notify yet, self-hosted install is sufficient.
