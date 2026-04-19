@@ -10,18 +10,20 @@ A Claude Code plugin that lints XAML files for common issues, so Claude can catc
 
 ## Status
 
-v0.4.0 — Dialect-gated rules shipped: [LX201](docs/rules/LX201.md) (prefer x:Bind), [LX301](docs/rules/LX301.md) (x:Uid casing), [LX500](docs/rules/LX500.md) (TextBox InputScope), [LX501](docs/rules/LX501.md) (Slider Minimum > Maximum), [LX502](docs/rules/LX502.md) (Stepper Minimum > Maximum), and [LX600](docs/rules/LX600.md) (MediaElement deprecated), on top of v0.3.0's Grid-family rules (LX100–LX104), v0.2.0's content rules (LX200, LX300, LX400), and v0.1.0's six tool/engine diagnostics (LX001–LX006). Full catalog at [docs/rules/](docs/rules/). See [CHANGELOG.md](CHANGELOG.md) for release history.
+v0.5.0 — 20 rule IDs shipping: 6 tool/engine diagnostics (LX001–LX006) plus 14 analysis rules across Layout, Bindings, Naming, Resources, Input, and Deprecated categories. Rules are dialect-gated where the upstream semantics require it. Full catalog at [docs/rules/](docs/rules/); release history in [CHANGELOG.md](CHANGELOG.md).
 
-### Planned platform support
+### Platform support
 
-| Platform | Status |
-| --- | --- |
-| WPF | In progress |
-| WinUI 3 | Partial (dialect-gated rules only) |
-| UWP | Partial (dialect-gated rules only) |
-| .NET MAUI | Partial (dialect-gated rules only) |
-| Avalonia | Planned |
-| Uno Platform | Planned |
+Rule counts reflect how many of the 20 catalog IDs actually fire for each dialect — set `defaultDialect` in `xaml-lint.config.json` (or a `dialect="..."` file pragma) so dialect-specific rules gate correctly.
+
+| Platform | Rules applying | Status |
+| --- | --- | --- |
+| WPF | 15 | Supported (primary target) |
+| WinUI 3 | 18 | Supported (incl. `x:Bind`, `x:Uid`, `InputScope`, `MediaElement`) |
+| UWP | 18 | Supported (incl. `x:Bind`, `x:Uid`, `InputScope`, `MediaElement`) |
+| .NET MAUI | 16 | Supported (incl. `Slider`/`Stepper` range checks) |
+| Avalonia | 14 | Dialect-agnostic rules only; no Avalonia-specific rules yet |
+| Uno Platform | 14 | Dialect-agnostic rules only; no Uno-specific rules yet |
 
 ## Install
 
