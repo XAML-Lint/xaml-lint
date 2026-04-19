@@ -693,13 +693,22 @@ Each milestone is an independently dogfood-able plugin.
 - Category-overview pages: `input.md`, `deprecated.md`
 - `AnalyzerReleases.Unshipped.md` → `Shipped.md` graduation on tag
 
+### M5 — Pre-v1 polish (v0.5.0)
+- Close every parent-spec §13 gate in a dedicated milestone, rules-inert
+- Phase A: transfer repo ownership from `jizc/` to `XAML-Lint/` GitHub org
+- Phase B: migrate owner slug across all URLs (20 rule-attribute `HelpUri` strings + 3 consts + 3 inline CLI strings, `$id`/`$schema` in schema + presets + DocTool, user-facing `$schema` in README and config reference). URL shape preserved on `github.com/<owner>/xaml-lint/blob/main/...` and `raw.githubusercontent.com/<owner>/xaml-lint/main/...`
+- Phase C: `CONTRIBUTING.md` (versioning policy + add-a-new-rule flow), NuGet package readme + logo icon wired via `<PackageReadmeFile>` + `<PackageIcon>`, marketplace submission materials under `docs/marketplace/`
+- No new rules, no behavior changes; catalog frozen at 20 IDs through v1.0.0
+- `AnalyzerReleases.Unshipped.md` stays empty; no graduation to `Shipped.md` at tag time
+- GitHub Pages migration was explored but declined during implementation — rule docs remain served via github.com/blob rendering
+- Full design: [specs/2026-04-18-m5-pre-v1-polish-design.md](2026-04-18-m5-pre-v1-polish-design.md)
+
 ### v1.0.0 release
-- M4 complete; all rule IDs live (13 lint rules + 6 tool/engine diagnostics)
-- Rule docs migrated to GitHub Pages (cleaner URLs); `HelpUri` scheme updated across rules + meta-test
-- Potential repo move to a GitHub organization (before or immediately after tag)
-- Announcement, plugin marketplace submission
-- `CHANGELOG.md` follows [Keep a Changelog 1.0.0](https://keepachangelog.com/en/1.0.0/); per-version sections `### Added / Changed / Fixed / Removed`; each entry links to the PR. Bare `LX###` references are rewritten by the doc tool to `[LX###](docs/rules/LX###.md) — title` links. Cross-references `AnalyzerReleases.Shipped.md`
-- Versioning policy: semver; rule additions minor, rule removals major, severity downgrades minor, severity upgrades major
+- M5 complete; alpha suffix dropped from `version.json`
+- Announcement post; plugin marketplace listing goes live
+- Final meta-test sweep (HelpUri pattern, AnalyzerReleases invariants, doc existence)
+- Tag push; NuGet graduates from `0.5.0-alpha` to `1.0.0`
+- Versioning policy from M5's `CONTRIBUTING.md` applies from this point on
 
 ## 11. Attribution and rule documentation
 
@@ -808,8 +817,4 @@ The table's `RXT###` column is seeded from `RuleMetadata.UpstreamId`; prose is a
 
 ## 13. Open items before v1 tag
 
-- Decide and migrate to GitHub Pages for schema + rule docs URLs (currently raw blob URLs).
-- Decide repo location (personal `jizc/` vs new organization). Migration before v1 tag is preferred to avoid link breakage.
-- Write CHANGELOG and versioning policy in `CONTRIBUTING.md` / `CHANGELOG.md`.
-- NuGet package readme + icon.
-- Plugin marketplace submission materials.
+These items were tracked as **M5 deliverables** and closed in [specs/2026-04-18-m5-pre-v1-polish-design.md](2026-04-18-m5-pre-v1-polish-design.md). Heading preserved so existing links don't break.
