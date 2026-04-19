@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/jizc/xaml-lint/main/assets/logo.png" alt="xaml-lint" width="128" height="128">
+
 # xaml-lint
 
 A Claude Code plugin that lints XAML files for common issues, so Claude can catch XAML problems as it writes and edits code.

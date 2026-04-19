@@ -12,6 +12,7 @@
     <PackageId>xaml-lint</PackageId>
     <IsPackable>true</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>logo.png</PackageIcon>
     <Description>Command-line XAML linter. Install via `dotnet tool install -g xaml-lint`.</Description>
     <PackageTags>xaml;lint;wpf;winui;maui;avalonia;uno;analysis</PackageTags>
   </PropertyGroup>
@@ -31,6 +32,7 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\assets\logo.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>

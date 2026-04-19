@@ -420,3 +420,6 @@ FodyWeavers.xsd
 
 # Git worktrees (project-local)
 .worktrees/
+
+# Superpowers brainstorming companion artifacts
+.superpowers/
