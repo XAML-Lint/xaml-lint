@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -25,7 +25,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\XamlLint.Core\XamlLint.Core.csproj" />
+  </ItemGroup>
+
+  <!-- DocTool is net10-only (internal build-time tool). Its tests only run on net10. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <ProjectReference Include="..\..\src\XamlLint.DocTool\XamlLint.DocTool.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0'">
+    <Compile Remove="DocTool\**\*.cs" />
   </ItemGroup>
 
 </Project>

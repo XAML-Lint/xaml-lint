@@ -14,7 +14,7 @@ A XAML linter, with Claude Code plugin integration so Claude can catch XAML prob
 dotnet tool install -g xaml-lint
 ```
 
-Requires the .NET 10 SDK on `PATH`.
+Requires the .NET 8, 9, or 10 SDK on `PATH`.
 
 ## Use with Claude Code
 

@@ -22,10 +22,13 @@ jobs:
         with:
           fetch-depth: 0  # Nerdbank.GitVersioning needs full history
 
-      - name: Setup .NET SDK
+      - name: Setup .NET SDK + runtimes
         uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
         with:
           global-json-file: global.json
+          dotnet-version: |
+            8.0.x
+            9.0.x
 
       - name: Print SDK version
         run: dotnet --info
