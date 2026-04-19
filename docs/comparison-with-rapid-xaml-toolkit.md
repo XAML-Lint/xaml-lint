@@ -40,6 +40,13 @@ Lint-rule mappings continue to accrue as new categories ship.
   our v0.2 scope (`Text`, `Title`, `Header`, `ToolTip`, `Content`, `PlaceholderText`,
   `Placeholder`, `Description`, `Watermark`). The list will grow as real projects surface
   false negatives.
+- **Default-preset severities** — `xaml-lint:recommended` is deliberately quieter than
+  upstream RXT for two rules that are noisy on typical real-world WPF codebases:
+  `LX400` is `off` (most apps aren't fully localized, so the hardcoded-string rule fires
+  thousands of times on legitimately-intentional literals) and `LX300` is `info` (lowercase
+  `x:Name` is common for template-internal or pure-layout names). RXT fires both at warning
+  level by default. Users who want upstream-style strictness can extend `xaml-lint:strict`,
+  where `LX400` is `warning` and `LX300` is `error`.
 - **LX201 vs RXT170** — xaml-lint flags every `{Binding …}` attribute on UWP/WinUI 3, with
   no heuristic for "is this form likely convertible to `{x:Bind}`?". The intent is a noisy
   informational signal that Claude and human reviewers can triage case-by-case; projects

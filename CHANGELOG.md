@@ -8,6 +8,12 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+### Changed
+
+- `xaml-lint:recommended` preset tuned based on dogfooding against a real ~1k-file WPF codebase:
+  - [LX400](docs/rules/LX400.md) (hardcoded string → resource): `info` → `off`. Localization is opt-in; most apps aren't fully localized and the rule otherwise dominates output. Users who want it on can set it explicitly or extend `xaml-lint:strict` (unchanged, still `warning` there).
+  - [LX300](docs/rules/LX300.md) (x:Name should start with uppercase): `warning` → `info`. Lowercase `x:Name` is common for template-internal or pure-layout names (`border`, `grid`, `PART_ContentHost`); demoting keeps the signal visible without raising alarm on idiomatic patterns. `xaml-lint:strict` unchanged (still `error`).
+
 ## [0.5.0] - 2026-04-19
 
 M5 — pre-v1 polish. Rules-inert release focused on org migration, repo hygiene, release-surface polish, and contributor docs.
