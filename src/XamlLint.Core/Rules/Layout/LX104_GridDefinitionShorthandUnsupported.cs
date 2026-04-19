@@ -8,7 +8,7 @@ namespace XamlLint.Core.Rules.Layout;
     Title = "Grid definition shorthand not supported by target framework",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX104.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX104.md")]
 public sealed partial class LX104_GridDefinitionShorthandUnsupported : IXamlRule
 {
     private static readonly string[] ShorthandAttributeNames =

@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/jizc/xaml-lint/main/assets/logo.png" alt="xaml-lint" width="128" height="128">
+<img src="https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/assets/logo.png" alt="xaml-lint" width="128" height="128">
 
 # xaml-lint
 

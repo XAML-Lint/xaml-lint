@@ -5,7 +5,7 @@ namespace XamlLint.Core.Rules.Tool;
     Title = "Skipping non-XAML file",
     DefaultSeverity = Severity.Info,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX005.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX005.md")]
 public sealed partial class LX005_SkippingNonXaml : IToolRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context) =>

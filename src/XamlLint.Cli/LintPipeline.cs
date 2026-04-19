@@ -67,7 +67,7 @@ public sealed class LintPipeline
                     allDiagnostics.Add(new Diagnostic(
                         "LX005", s5, $"Skipping non-XAML file '{ef.AbsolutePath}'.",
                         ef.AbsolutePath, 1, 1, 1, 1,
-                        "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX005.md"));
+                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX005.md"));
                 continue;
             }
 
@@ -82,7 +82,7 @@ public sealed class LintPipeline
                     allDiagnostics.Add(new Diagnostic(
                         "LX004", s4, $"Cannot read file '{ef.AbsolutePath}': {ex.Message}",
                         ef.AbsolutePath, 1, 1, 1, 1,
-                        "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX004.md"));
+                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX004.md"));
                 continue;
             }
 
@@ -102,7 +102,7 @@ public sealed class LintPipeline
                         ef.AbsolutePath,
                         doc.ParseError.Line, doc.ParseError.Column,
                         doc.ParseError.Line, doc.ParseError.Column,
-                        "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX001.md"));
+                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX001.md"));
                 continue;
             }
 

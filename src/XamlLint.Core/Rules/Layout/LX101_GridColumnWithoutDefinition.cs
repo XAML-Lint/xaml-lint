@@ -9,7 +9,7 @@ namespace XamlLint.Core.Rules.Layout;
     Title = "Grid.Column without matching ColumnDefinition",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX101.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX101.md")]
 public sealed partial class LX101_GridColumnWithoutDefinition : IXamlRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)

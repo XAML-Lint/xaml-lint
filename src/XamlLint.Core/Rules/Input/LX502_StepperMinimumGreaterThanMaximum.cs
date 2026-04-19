@@ -9,7 +9,7 @@ namespace XamlLint.Core.Rules.Input;
     Title = "Stepper Minimum is greater than Maximum",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.Maui,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX502.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX502.md")]
 public sealed partial class LX502_StepperMinimumGreaterThanMaximum : IXamlRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)

@@ -9,7 +9,7 @@ namespace XamlLint.Core.Rules.Layout;
     Title = "Grid.ColumnSpan exceeds available columns",
     DefaultSeverity = Severity.Warning,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX103.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX103.md")]
 public sealed partial class LX103_GridColumnSpanExceedsColumns : IXamlRule
 {
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)

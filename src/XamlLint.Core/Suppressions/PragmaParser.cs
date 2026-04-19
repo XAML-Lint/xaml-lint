@@ -12,7 +12,7 @@ namespace XamlLint.Core.Suppressions;
 public static class PragmaParser
 {
     private const string LX002 = "LX002";
-    private const string HelpUriLX002 = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX002.md";
+    private const string HelpUriLX002 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX002.md";
 
     private static readonly Regex RuleIdPattern = new(@"^[A-Z]+\d+$", RegexOptions.Compiled);
 

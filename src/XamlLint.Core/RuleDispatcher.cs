@@ -10,7 +10,7 @@ namespace XamlLint.Core;
 public sealed class RuleDispatcher
 {
     public const string LX006 = "LX006";
-    public const string HelpUriLX006 = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX006.md";
+    public const string HelpUriLX006 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX006.md";
 
     private readonly IReadOnlyList<IXamlRule> _rules;
 

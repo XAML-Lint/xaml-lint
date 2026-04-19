@@ -8,7 +8,7 @@ namespace XamlLint.Core.Rules.Resources;
     Title = "Hardcoded string; use a resource",
     DefaultSeverity = Severity.Info,
     Dialects = Dialect.All,
-    HelpUri = "https://github.com/jizc/xaml-lint/blob/main/docs/rules/LX400.md")]
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX400.md")]
 public sealed partial class LX400_HardcodedString : IXamlRule
 {
     // Conservative baseline list of text-presenting attributes that commonly need localisation.
