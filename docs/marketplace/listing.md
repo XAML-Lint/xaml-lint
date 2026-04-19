@@ -12,13 +12,13 @@ The plugin installs a `PostToolUse` hook that runs `xaml-lint` on every `.xaml` 
 
 The rule catalog (20 IDs at v1) is derived from Matt Lacey's Rapid XAML Toolkit: Grid-layout sanity (`Grid.Row`/`Grid.Column` without matching definitions, spans exceeding available rows/columns), binding issues (`SelectedItem` should be `TwoWay`, prefer `x:Bind` on UWP/WinUI 3), naming (`x:Name` / `x:Uid` casing), resource-localization hints, input-control scope gaps, Slider/Stepper range checks, and deprecation warnings (`MediaElement` → `MediaPlayerElement`). Rules are dialect-gated; the WPF-primary, WinUI 3 / UWP / .NET MAUI rules only fire when those dialects are detected.
 
-Output formats: `pretty` (ANSI, TTY default), `compact-json` (stable envelope, what the hook reads), `sarif` (SARIF 2.1.0 for CI), `msbuild` (one line per diagnostic, `dotnet build` style).
+Output formats: `pretty` (ANSI, TTY default), `compact-json` (stable envelope; the hook emits this by default), `sarif` (SARIF 2.1.0 for CI), `msbuild` (one line per diagnostic, `dotnet build` style).
 
-The analysis engine is stateless and AOT-friendly; a v2 LSP server is planned as a purely additive wrap.
+The analysis engine is stateless — no reflection, no MEF. A v2 LSP server is planned as a purely additive wrap.
 
 ## Feature bullets
 
-- 20 XAML lint rules across Layout, Bindings, Naming, Resources, Input, and Deprecated categories
+- 14 analysis rules across Layout, Bindings, Naming, Resources, Input, and Deprecated categories, plus 6 tool diagnostics (LX001–LX006) — 20 rule IDs total at v1
 - Dialect-aware: WPF primary, with dialect-gated rules for WinUI 3, UWP, and .NET MAUI
 - ReSharper-style suppression pragmas (`<!-- xaml-lint disable [once] RULE -->`)
 - Configurable via `xaml-lint.config.json` with three bundled presets (`xaml-lint:off`, `xaml-lint:recommended`, `xaml-lint:strict`)
