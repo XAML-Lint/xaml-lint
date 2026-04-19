@@ -64,6 +64,9 @@ namespace XamlLint.Core.SourceGen
             var deprecated = GetBool("Deprecated");
             var severity = GetEnumInt("DefaultSeverity");
             var dialects = GetEnumInt("Dialects");
+            // DefaultEnabled defaults to true when the attribute omits it.
+            var defaultEnabledArg = attr.NamedArguments.FirstOrDefault(p => p.Key == "DefaultEnabled").Value.Value;
+            var defaultEnabled = defaultEnabledArg is bool b ? b : true;
 
             if (id is null || title is null || helpUri is null || severity is null || dialects is null)
                 return null;
@@ -79,7 +82,8 @@ namespace XamlLint.Core.SourceGen
                 Dialects: dialects.Value,
                 HelpUri: helpUri,
                 Deprecated: deprecated,
-                ReplacedBy: replacedBy);
+                ReplacedBy: replacedBy,
+                DefaultEnabled: defaultEnabled);
         }
 
         private static void EmitMetadataProperties(SourceProductionContext spc, ImmutableArray<RuleInfo> rules)
@@ -102,7 +106,8 @@ namespace XamlLint.Core.SourceGen
                 sb.Append("Dialects: (global::XamlLint.Core.Dialect)").Append(r.Dialects).Append(", ");
                 sb.Append("HelpUri: ").Append(Quote(r.HelpUri)).Append(", ");
                 sb.Append("Deprecated: ").Append(r.Deprecated ? "true" : "false").Append(", ");
-                sb.Append("ReplacedBy: ").Append(QuoteOrNull(r.ReplacedBy));
+                sb.Append("ReplacedBy: ").Append(QuoteOrNull(r.ReplacedBy)).Append(", ");
+                sb.Append("DefaultEnabled: ").Append(r.DefaultEnabled ? "true" : "false");
                 sb.AppendLine(");");
                 sb.AppendLine("}");
 
@@ -148,6 +153,7 @@ namespace XamlLint.Core.SourceGen
             int Dialects,
             string HelpUri,
             bool Deprecated,
-            string? ReplacedBy);
+            string? ReplacedBy,
+            bool DefaultEnabled);
     }
 }

@@ -12,4 +12,5 @@ public sealed record RuleMetadata(
     Dialect Dialects,
     string HelpUri,
     bool Deprecated,
-    string? ReplacedBy);
+    string? ReplacedBy,
+    bool DefaultEnabled = true);

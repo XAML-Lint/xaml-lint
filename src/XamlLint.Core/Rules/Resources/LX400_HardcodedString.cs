@@ -7,6 +7,7 @@ namespace XamlLint.Core.Rules.Resources;
     UpstreamId = "RXT200",
     Title = "Hardcoded string; use a resource",
     DefaultSeverity = Severity.Info,
+    DefaultEnabled = false,
     Dialects = Dialect.All,
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX400.md")]
 public sealed partial class LX400_HardcodedString : IXamlRule

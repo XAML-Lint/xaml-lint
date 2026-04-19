@@ -8,12 +8,17 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+### Added
+
+- `DefaultEnabled` property on `XamlRuleAttribute` (defaults `true`). Rules marked `DefaultEnabled = false` are written as `"off"` in the `xaml-lint:recommended` preset — useful for signals that are valuable but too noisy for most projects out-of-the-box. `:strict` still enables them at the escalated severity, and users extending `:recommended` can opt in explicitly.
+
 ### Changed
 
 - Multi-target `net8.0;net9.0;net10.0` for the shipped CLI tool and `XamlLint.Core` library. Previously `net10.0`-only, which required users to have the .NET 10 runtime installed to run the tool; now matches prevailing dotnet-tool practice (csharpier, dotnet-ef, reportgenerator, NSwag, etc. all multi-target the same set). The source generator stays `netstandard2.0`; the internal `DocTool` stays `net10.0` (it only runs in CI via `dotnet run`, which picks the highest-compatible TFM anyway).
-- `xaml-lint:recommended` preset tuned based on dogfooding against a real ~1k-file WPF codebase:
-  - [LX400](docs/rules/LX400.md) (hardcoded string → resource): `info` → `off`. Localization is opt-in; most apps aren't fully localized and the rule otherwise dominates output. Users who want it on can set it explicitly or extend `xaml-lint:strict` (unchanged, still `warning` there).
-  - [LX300](docs/rules/LX300.md) (x:Name should start with uppercase): `warning` → `info`. Lowercase `x:Name` is common for template-internal or pure-layout names (`border`, `grid`, `PART_ContentHost`); demoting keeps the signal visible without raising alarm on idiomatic patterns. `xaml-lint:strict` unchanged (still `error`).
+- `xaml-lint:recommended` preset tuned based on dogfooding against a real ~1k-file WPF codebase — two rules are now off-by-default (`DefaultEnabled = false`) because they dominated output noise without catching real bugs:
+  - [LX400](docs/rules/LX400.md) (hardcoded string → resource): `info` → `off`. Localization is opt-in; most apps aren't fully localized.
+  - [LX300](docs/rules/LX300.md) (x:Name should start with uppercase): `warning` → `off`. Lowercase `x:Name` is common for template-internal or pure-layout names (`border`, `grid`, `PART_ContentHost`); style consistency is a team preference.
+  - Both rules retain their original `DefaultSeverity` and still fire in `:strict` (LX400 `warning`, LX300 `error`); users who want them on in `:recommended` can enable them explicitly.
 
 ## [0.5.0] - 2026-04-19
 

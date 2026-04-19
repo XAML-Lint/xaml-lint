@@ -48,7 +48,8 @@ public static class PresetWriter
     }
 
     private static string OffLevel(RuleMetadata m) => "off";
-    private static string RecommendedLevel(RuleMetadata m) => SeverityName(m.DefaultSeverity);
+    private static string RecommendedLevel(RuleMetadata m) =>
+        m.DefaultEnabled ? SeverityName(m.DefaultSeverity) : "off";
     private static string StrictLevel(RuleMetadata m) => m.DefaultSeverity switch
     {
         Severity.Info => "warning",
