@@ -24,7 +24,7 @@ public sealed class CatalogMetaTest
     [Fact]
     public void Every_rule_has_help_uri_matching_pattern()
     {
-        var pattern = new Regex(@"^https://github\.com/jizc/xaml-lint/blob/main/docs/rules/LX\d{3}\.md$");
+        var pattern = new Regex(@"^https://github\.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX\d{3}\.md$");
         foreach (var m in Rules)
             pattern.IsMatch(m.HelpUri).Should().BeTrue($"{m.Id} HelpUri must match expected pattern; got '{m.HelpUri}'");
     }
