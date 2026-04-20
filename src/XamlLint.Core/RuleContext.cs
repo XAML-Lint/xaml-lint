@@ -1,3 +1,5 @@
+using System.Xml.Linq;
+using XamlLint.Core.NameResolution;
 using XamlLint.Core.Suppressions;
 
 namespace XamlLint.Core;
@@ -33,4 +35,30 @@ public sealed class RuleContext
     /// runtime platform — most prominently the WPF-on-.NET-10 grid definition shorthand.
     /// </summary>
     public int? FrameworkMajorVersion { get; init; }
+
+    /// <summary>
+    /// Optional builder for <see cref="Names"/>. When null, <see cref="Names"/> throws —
+    /// callers must provide one via the dispatcher. Lazy: evaluated on first access and cached.
+    /// </summary>
+    public Func<XamlNameIndex>? NameIndexBuilder { get; init; }
+
+    private XamlNameIndex? _names;
+
+    /// <summary>
+    /// Scope-aware index of <c>x:Name</c> / <c>Name</c> declarations in the document, built on
+    /// first access. Use <see cref="XamlNameIndex.IsDefinedInScopeOf"/> to validate
+    /// <c>{x:Reference}</c> targets.
+    /// </summary>
+    public XamlNameIndex Names
+    {
+        get
+        {
+            if (_names is not null) return _names;
+            if (NameIndexBuilder is null)
+                throw new InvalidOperationException(
+                    "RuleContext.Names accessed without a NameIndexBuilder. The dispatcher should supply one.");
+            _names = NameIndexBuilder();
+            return _names;
+        }
+    }
 }
