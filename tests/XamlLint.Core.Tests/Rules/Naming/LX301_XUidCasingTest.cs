@@ -32,6 +32,20 @@ public sealed class LX301_XUidCasingTest
     }
 
     [Fact]
+    public void Lowercase_x_Uid_on_Uno_is_flagged()
+    {
+        // Uno uses UWP-style x:Uid + .resw localization; the casing convention applies.
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button [|x:Uid="loginButton"|] />
+            </Grid>
+            """,
+            Dialect.Uno);
+    }
+
+    [Fact]
     public void Lowercase_x_Uid_on_Wpf_is_not_flagged()
     {
         // x:Uid's casing convention is a UWP/WinUI .resw concern; the rule's Dialects mask filters WPF out.

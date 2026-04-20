@@ -18,21 +18,21 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX103 | RXT104 | Grid.ColumnSpan exceeds available columns. Mirror of LX102 for columns. |
 | LX104 | — | Grid definition shorthand not supported by target framework. xaml-lint-original; no upstream RXT equivalent. Fires on legacy-WPF (frameworkVersion < 10) when a Grid uses the `RowDefinitions="..."` or `ColumnDefinitions="..."` shorthand attribute. |
 | LX200 | RXT160 | SelectedItem binding should be TwoWay. Matches upstream; applies to all dialects where binding markup is used. |
-| LX201 | RXT170 | Prefer x:Bind over Binding. Scoped to UWP/WinUI 3 per upstream semantics — on those dialects `{x:Bind}` compiles to generated code and validates paths at build time. |
+| LX201 | RXT170 | Prefer x:Bind over Binding. Scoped to UWP, WinUI 3, and Uno Platform — on those dialects `{x:Bind}` compiles to generated code and validates paths at build time. |
 | LX300 | RXT452 | x:Name should start with uppercase. Matches upstream casing rule; unprefixed `Name` remains out of scope. |
-| LX301 | RXT451 | x:Uid should start with uppercase. UWP/WinUI 3 only; `x:Uid` has no runtime meaning on WPF. Mirror of LX300 for `x:Uid`. |
+| LX301 | RXT451 | x:Uid should start with uppercase. UWP, WinUI 3, and Uno Platform; `x:Uid` has no runtime meaning on WPF. Mirror of LX300 for `x:Uid`. |
 | LX400 | RXT200 | Hardcoded string. Our attribute-name list is deliberately conservative at v0.2; upstream's list is broader and will be matched as real-world false negatives surface. |
 | LX402 | RXT310 | Image Source filename invalid on Android. MAUI-only. URI skip list (`http://`, `https://`, `ms-appx:`, `ms-appdata:`, `file://`) is xaml-lint-specific — see Behavior differences. |
-| LX500 | RXT150 | TextBox lacks InputScope. UWP/WinUI 3 only — `InputScope` is a platform-specific hint that does not exist on WPF. Any literal or bound value suppresses the check. |
-| LX501 | RXT330 | Slider Minimum is greater than Maximum. WPF and MAUI only; UWP/WinUI raise a runtime exception on the same state, so static analysis is redundant there. Literal pair required — markup extensions on either attribute suppress the check. |
+| LX500 | RXT150 | TextBox lacks InputScope. UWP, WinUI 3, and Uno Platform — `InputScope` is a platform-specific hint that does not exist on WPF. Any literal or bound value suppresses the check. |
+| LX501 | RXT330 | Slider Minimum is greater than Maximum. WPF, MAUI, and Avalonia; UWP/WinUI raise a runtime exception on the same state (redundant there). Avalonia silently coerces Maximum up to Minimum — exactly the intent-vs-runtime mismatch the rule catches. Literal pair required; markup extensions suppress. |
 | LX502 | RXT335 | Stepper Minimum is greater than Maximum. MAUI-only control; same semantics as LX501. |
 | LX503 | RXT300 | Entry lacks Keyboard. MAUI-only mirror of LX500/RXT150; any literal or bound `Keyboard` value suppresses. |
 | LX504 | RXT301 | Password Entry lacks MaxLength. MAUI-only; fires only when `IsPassword="True"` is a literal (case-insensitive). Bound `IsPassword`, literal-false, or any present `MaxLength` suppresses. |
 | LX505 | RXT325 | Pin lacks Label. MAUI-only; rule is a guardrail against the `ArgumentException` the Maps control throws at runtime when a pin is added without a label. Any `Label` value (literal or bound) suppresses. |
 | LX506 | RXT331 | Slider sets both ThumbColor and ThumbImageSource. MAUI-only; presence of both attributes is the signal regardless of literal/bound values — see Behavior differences. |
-| LX601 | RXT320 | Line.Fill has no effect. MAUI-only; presence of any `Fill` value on `<Line>` fires. Placed in the Deprecated category alongside superseded-API rules; category scope widened to cover "no runtime effect" markup. |
-| LX600 | RXT402 | MediaElement deprecated — use MediaPlayerElement. UWP/WinUI 3 only; WPF continues to ship `MediaElement` as its primary media control. |
-| LX700 | RXT350 | Image lacks accessibility description. MAUI-only; opens the new Accessibility category. Off by default in `:recommended` — see Behavior differences. `IsInAccessibleTree` value-gated (literal `"False"` or bound suppresses; `"True"` does not). |
+| LX601 | RXT320 | Line.Fill has no effect. Applies to all dialects — a `<Line>`'s geometry has zero interior area in WPF, WinUI 3, UWP, MAUI, Avalonia, and Uno, so `Fill` is a universal no-op. Presence of any `Fill` value on `<Line>` fires. Placed in the Deprecated category alongside superseded-API rules; category scope widened to cover "no runtime effect" markup. |
+| LX600 | RXT402 | MediaElement deprecated — use MediaPlayerElement. UWP, WinUI 3, and Uno Platform; WPF continues to ship `MediaElement` as its primary media control. |
+| LX700 | RXT350 | Image lacks accessibility description. Applies to all dialects — `AutomationProperties.Name`/`HelpText`/`LabeledBy` are supported across WPF, WinUI 3, UWP, MAUI, Avalonia, and Uno. Opens the Accessibility category. Off by default in `:recommended` — see Behavior differences. `IsInAccessibleTree` value-gated (literal `"False"` or bound suppresses; `"True"` does not). |
 | LX701 | RXT351 | ImageButton lacks accessibility description. MAUI-only; structural mirror of LX700 for `ImageButton`. Same off-by-default stance and same `IsInAccessibleTree` gating. |
 | LX702 | RXT601 | TextBox lacks accessibility description. Applies to WPF/WinUI 3/UWP/Avalonia/Uno (MAUI is covered by LX703). `DefaultEnabled=false`, `off` in `:recommended`, `warning` in `:strict`. `AutomationProperties.LabeledBy="{x:Reference <name>}"` requires the target to resolve in the same XAML name scope — dangling references fire. |
 | LX703 | — | Entry lacks accessibility description. MAUI-original sibling to LX702; no upstream equivalent. `DefaultEnabled=false`, `off` in `:recommended`, `warning` in `:strict`. |
@@ -60,8 +60,8 @@ Lint-rule mappings continue to accrue as new categories ship.
   RXT fires both at warning level by default. Users who want upstream-style strictness
   can extend `xaml-lint:strict`, where `LX400` is `warning` and `LX300` is `error`, or
   enable either rule explicitly in their own config.
-- **LX201 vs RXT170** — xaml-lint flags every `{Binding …}` attribute on UWP/WinUI 3, with
-  no heuristic for "is this form likely convertible to `{x:Bind}`?". The intent is a noisy
+- **LX201 vs RXT170** — xaml-lint flags every `{Binding …}` attribute on UWP / WinUI 3 / Uno,
+  with no heuristic for "is this form likely convertible to `{x:Bind}`?". The intent is a noisy
   informational signal that Claude and human reviewers can triage case-by-case; projects
   mid-migration typically suppress at the file or glob level.
 - **LX402 vs RXT310** — xaml-lint suppresses the rule when `Source`

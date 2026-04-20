@@ -7,7 +7,7 @@ namespace XamlLint.Core.Rules.Deprecated;
     UpstreamId = "RXT320",
     Title = "Line.Fill has no effect",
     DefaultSeverity = Severity.Info,
-    Dialects = Dialect.Maui,
+    Dialects = Dialect.All,
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX601.md")]
 public sealed partial class LX601_LineFillNoEffect : IXamlRule
 {

@@ -7,7 +7,7 @@ namespace XamlLint.Core.Rules.Input;
     UpstreamId = "RXT150",
     Title = "TextBox lacks InputScope",
     DefaultSeverity = Severity.Info,
-    Dialects = Dialect.Uwp | Dialect.WinUI3,
+    Dialects = Dialect.Uwp | Dialect.WinUI3 | Dialect.Uno,
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX500.md")]
 public sealed partial class LX500_TextBoxWithoutInputScope : IXamlRule
 {

@@ -30,6 +30,20 @@ public sealed class LX500_TextBoxWithoutInputScopeTest
     }
 
     [Fact]
+    public void TextBox_without_InputScope_on_Uno_is_flagged()
+    {
+        // Uno fully implements InputScopeNameValue across all platform heads (Android, iOS,
+        // WebAssembly, macOS, Skia, Windows) — the soft-keyboard hint applies identically.
+        XamlDiagnosticVerifier<LX500_TextBoxWithoutInputScope>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <[|TextBox|] />
+            </Grid>
+            """,
+            Dialect.Uno);
+    }
+
+    [Fact]
     public void TextBox_without_InputScope_on_Wpf_is_not_flagged()
     {
         // InputScope is a UWP/WinUI concept — meaningless on WPF.

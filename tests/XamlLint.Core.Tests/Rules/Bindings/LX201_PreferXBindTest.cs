@@ -28,6 +28,19 @@ public sealed class LX201_PreferXBindTest
     }
 
     [Fact]
+    public void Binding_on_Uno_is_flagged()
+    {
+        // Uno Platform supports {x:Bind} via its WinUI-compatible compiler; the "prefer x:Bind"
+        // guidance applies identically on Uno targets.
+        XamlDiagnosticVerifier<LX201_PreferXBind>.Analyze(
+            """
+            <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    [|Content="{Binding Label}"|] />
+            """,
+            Dialect.Uno);
+    }
+
+    [Fact]
     public void Binding_on_Wpf_is_not_flagged()
     {
         // LX201 targets UWP/WinUI 3 only; the dispatcher's Dialects-mask gate filters WPF out

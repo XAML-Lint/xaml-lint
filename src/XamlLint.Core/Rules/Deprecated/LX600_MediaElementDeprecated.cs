@@ -7,7 +7,7 @@ namespace XamlLint.Core.Rules.Deprecated;
     UpstreamId = "RXT402",
     Title = "MediaElement is deprecated — use MediaPlayerElement",
     DefaultSeverity = Severity.Warning,
-    Dialects = Dialect.Uwp | Dialect.WinUI3,
+    Dialects = Dialect.Uwp | Dialect.WinUI3 | Dialect.Uno,
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX600.md")]
 public sealed partial class LX600_MediaElementDeprecated : IXamlRule
 {
