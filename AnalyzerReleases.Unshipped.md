@@ -5,6 +5,7 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+LX402   | Resources  | Warning  | Image Source filename invalid on Android
 LX503   | Input      | Info     | Entry lacks Keyboard
 LX504   | Input      | Warning  | Password Entry lacks MaxLength
 LX505   | Input      | Warning  | Pin lacks Label
