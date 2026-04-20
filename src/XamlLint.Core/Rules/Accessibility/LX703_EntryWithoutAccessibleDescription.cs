@@ -12,6 +12,11 @@ namespace XamlLint.Core.Rules.Accessibility;
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX703.md")]
 public sealed partial class LX703_EntryWithoutAccessibleDescription : IXamlRule
 {
+    // Each suppressor requires a non-empty value to fire. An empty string
+    // (e.g. AutomationProperties.Name="") is treated as "still missing" rather
+    // than suppressing — an empty a11y string is an obvious authoring mistake
+    // that a screen reader announces as silence. (LX700/LX701 use presence-only
+    // checks for historical reasons; harmonisation across LX70x is deferred.)
     private static readonly string[] PresenceEscapeAttributes =
     {
         "SemanticProperties.Description",
