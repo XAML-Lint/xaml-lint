@@ -133,4 +133,17 @@ public sealed class LX504_PasswordEntryWithoutMaxLengthTest
             """,
             Dialect.Maui);
     }
+
+    [Fact]
+    public void Multiple_password_entries_each_emit_a_diagnostic()
+    {
+        XamlDiagnosticVerifier<LX504_PasswordEntryWithoutMaxLength>.Analyze(
+            $"""
+            <StackLayout xmlns="{MauiXmlns}">
+                <Entry [|IsPassword="True"|] />
+                <Entry [|IsPassword="True"|] />
+            </StackLayout>
+            """,
+            Dialect.Maui);
+    }
 }
