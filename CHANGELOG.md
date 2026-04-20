@@ -8,6 +8,17 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+### Added
+
+- [LX702](docs/rules/LX702.md) — TextBox lacks accessibility description. Covers WPF, WinUI 3, UWP, Avalonia, and Uno (MAUI is covered by LX703). Port of upstream RXT601. Off by default in `:recommended`.
+- [LX703](docs/rules/LX703.md) — Entry lacks accessibility description. MAUI-original sibling to LX702. Off by default in `:recommended`.
+- [LX800](docs/rules/LX800.md) — Uno platform XML namespace must be `mc:Ignorable`. Port of upstream RXT700; opens the Platform category (LX800–LX899). On in `:recommended` at `warning`.
+- Scope-aware `XamlNameIndex` infrastructure backing `{x:Reference}` validation. Templates (`ControlTemplate`/`DataTemplate`/`ItemsPanelTemplate`/`HierarchicalDataTemplate`) isolate names from the outer scope — cross-template references are rejected, matching XAML runtime semantics.
+
+### Changed
+
+- [LX700](docs/rules/LX700.md) and [LX701](docs/rules/LX701.md) — `AutomationProperties.LabeledBy="{x:Reference <name>}"` now suppresses the rule only when the referenced name is declared in the same XAML name scope as the image. Dangling references (typo'd targets, deleted elements, cross-template references) now fire. Behaviour is unchanged for non-reference literals and for `{Binding …}` / other markup extensions.
+
 ### Fixed
 
 - `xaml-lint hook` no longer emits an `LX005` diagnostic for every non-XAML file Claude edits. The hook now short-circuits on any `tool_input.file_path` that doesn't end in `.xaml` (case-insensitive) before config discovery or the rule catalog load, writing an empty envelope to stdout. The `lint` subcommand's LX005 behavior is unchanged.
