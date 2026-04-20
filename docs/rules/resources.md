@@ -8,3 +8,4 @@ releases.
 | ID | Title | Default |
 |---|---|---|
 | [LX400](LX400.md) | Hardcoded string; use a resource | info |
+| [LX402](LX402.md) | Image Source filename invalid on Android | warning |

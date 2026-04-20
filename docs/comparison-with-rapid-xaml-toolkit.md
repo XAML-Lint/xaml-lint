@@ -22,6 +22,7 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX300 | RXT452 | x:Name should start with uppercase. Matches upstream casing rule; unprefixed `Name` remains out of scope. |
 | LX301 | RXT451 | x:Uid should start with uppercase. UWP/WinUI 3 only; `x:Uid` has no runtime meaning on WPF. Mirror of LX300 for `x:Uid`. |
 | LX400 | RXT200 | Hardcoded string. Our attribute-name list is deliberately conservative at v0.2; upstream's list is broader and will be matched as real-world false negatives surface. |
+| LX402 | RXT310 | Image Source filename invalid on Android. MAUI-only. URI skip list (`http://`, `https://`, `ms-appx:`, `ms-appdata:`, `file://`) is xaml-lint-specific — see Behavior differences. |
 | LX500 | RXT150 | TextBox lacks InputScope. UWP/WinUI 3 only — `InputScope` is a platform-specific hint that does not exist on WPF. Any literal or bound value suppresses the check. |
 | LX501 | RXT330 | Slider Minimum is greater than Maximum. WPF and MAUI only; UWP/WinUI raise a runtime exception on the same state, so static analysis is redundant there. Literal pair required — markup extensions on either attribute suppress the check. |
 | LX502 | RXT335 | Stepper Minimum is greater than Maximum. MAUI-only control; same semantics as LX501. |
@@ -53,6 +54,11 @@ Lint-rule mappings continue to accrue as new categories ship.
   no heuristic for "is this form likely convertible to `{x:Bind}`?". The intent is a noisy
   informational signal that Claude and human reviewers can triage case-by-case; projects
   mid-migration typically suppress at the file or glob level.
+- **LX402 vs RXT310** — xaml-lint suppresses the rule when `Source`
+  begins with a recognised URI scheme (`http://`, `https://`, `ms-appx:`,
+  `ms-appdata:`, `file://`). Upstream RXT310's documentation does not
+  enumerate such a list; our behavior is deliberate — those schemes are
+  not local files and do not flow through the Android drawable pipeline.
 - **LX501/LX502 vs RXT330/RXT335** — xaml-lint requires both attributes to be literal
   numbers before firing. Upstream Rapid XAML Toolkit also flags the case when only one
   attribute is literal and the other is bound; we defer that until the false-positive rate

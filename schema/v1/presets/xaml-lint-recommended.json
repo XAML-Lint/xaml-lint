@@ -17,6 +17,7 @@
     "LX300": "off",
     "LX301": "warning",
     "LX400": "off",
+    "LX402": "warning",
     "LX500": "info",
     "LX501": "warning",
     "LX502": "warning",
