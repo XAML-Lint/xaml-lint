@@ -14,3 +14,4 @@ LX601   | Deprecated    | Info     | Line.Fill has no effect
 LX700   | Accessibility | Info     | Image lacks accessibility description
 LX701   | Accessibility | Info     | ImageButton lacks accessibility description
 LX702   | Accessibility | Info     | TextBox lacks accessibility description
+LX703   | Accessibility | Info     | Entry lacks accessibility description
