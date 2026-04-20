@@ -12,3 +12,4 @@ parses fine but fails silently at runtime.
 | [LX502](LX502.md) | Stepper Minimum is greater than Maximum | warning |
 | [LX503](LX503.md) | Entry lacks Keyboard | info |
 | [LX504](LX504.md) | Password Entry lacks MaxLength | warning |
+| [LX505](LX505.md) | Pin lacks Label | warning |
