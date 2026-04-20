@@ -11,3 +11,4 @@ parses fine but fails silently at runtime.
 | [LX501](LX501.md) | Slider Minimum is greater than Maximum | warning |
 | [LX502](LX502.md) | Stepper Minimum is greater than Maximum | warning |
 | [LX503](LX503.md) | Entry lacks Keyboard | info |
+| [LX504](LX504.md) | Password Entry lacks MaxLength | warning |
