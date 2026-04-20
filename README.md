@@ -18,14 +18,23 @@ Requires the .NET 8, 9, or 10 SDK on `PATH`.
 
 ## Use with Claude Code
 
-After installing the CLI above, install the plugin from inside Claude Code:
+The plugin's `PostToolUse` hook shells out to the `xaml-lint` CLI, so the CLI must be installed and on `PATH` before the plugin can do anything:
+
+```
+dotnet tool install -g xaml-lint
+xaml-lint --version
+```
+
+If `xaml-lint --version` fails, add the global tool directory to your `PATH` (`%USERPROFILE%\.dotnet\tools` on Windows, `~/.dotnet/tools` on macOS/Linux) and try again.
+
+Then, inside Claude Code:
 
 ```
 /plugin marketplace add XAML-Lint/xaml-lint
 /plugin install xaml-lint@xaml-lint
 ```
 
-The bundled `PostToolUse` hook runs `xaml-lint` on every `.xaml` file Claude writes or edits, and feeds diagnostics back into the conversation automatically. Use `/xaml-lint:lint <path-or-glob>` to trigger a manual lint.
+The bundled `PostToolUse` hook runs `xaml-lint` on every `.xaml` file Claude writes or edits and feeds diagnostics back into the conversation automatically. Use `/xaml-lint:lint <path-or-glob>` to trigger a manual lint.
 
 ## Use from the CLI
 

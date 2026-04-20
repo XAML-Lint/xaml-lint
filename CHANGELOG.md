@@ -8,6 +8,11 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+### Fixed
+
+- `xaml-lint hook` no longer emits an `LX005` diagnostic for every non-XAML file Claude edits. The hook now short-circuits on any `tool_input.file_path` that doesn't end in `.xaml` (case-insensitive) before config discovery or the rule catalog load, writing an empty envelope to stdout. The `lint` subcommand's LX005 behavior is unchanged.
+- Hook empty-envelope response now reports the actual tool version instead of a hardcoded `"dev"` literal. Both empty-payload and non-XAML code paths go through `CompactJsonFormatter`, so the shape matches every other hook response.
+
 ## [1.0.0] - 2026-04-19
 
 Stable release. No behavior changes since v0.5.0 beyond the `main`-branch polish below. Starting here, `version.json` carries the full 3-segment version verbatim (no prerelease suffix, no git-height-as-patch) — published package version matches the git tag exactly.

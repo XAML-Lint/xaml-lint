@@ -1,6 +1,8 @@
 using System.CommandLine;
 using System.Text.Json;
 using XamlLint.Cli.Config;
+using XamlLint.Cli.Formatters;
+using XamlLint.Core;
 
 namespace XamlLint.Cli.Commands;
 
@@ -38,10 +40,10 @@ internal static class HookCommand
         }
 
         var filePath = payload?.ToolInput?.FilePath;
-        if (string.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath)
+            || !filePath.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
         {
-            // No file to lint; emit empty envelope so Claude sees a well-formed response.
-            stdout.Write("""{"version":"1","tool":{"name":"xaml-lint","version":"dev"},"results":[]}""");
+            WriteEmptyEnvelope(stdout);
             return 0;
         }
 
@@ -57,4 +59,7 @@ internal static class HookCommand
         var pipeline = new LintPipeline(stdout, TextReader.Null, workingDirectory);
         return pipeline.Run(opts);
     }
+
+    private static void WriteEmptyEnvelope(TextWriter stdout)
+        => new CompactJsonFormatter().Write(stdout, Array.Empty<Diagnostic>(), ToolVersion.Current);
 }
