@@ -92,4 +92,17 @@ public sealed class LX505_PinWithoutLabelTest
             """,
             Dialect.Maui);
     }
+
+    [Fact]
+    public void Multiple_offending_pins_each_emit_a_diagnostic()
+    {
+        XamlDiagnosticVerifier<LX505_PinWithoutLabel>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <[|Pin|] />
+                <[|Pin|] />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
 }
