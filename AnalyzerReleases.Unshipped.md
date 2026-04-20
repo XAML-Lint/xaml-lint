@@ -5,3 +5,4 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+LX503   | Input    | Info     | Entry lacks Keyboard

@@ -20,6 +20,7 @@
     "LX500": "info",
     "LX501": "warning",
     "LX502": "warning",
+    "LX503": "info",
     "LX600": "warning"
   }
 }
