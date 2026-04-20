@@ -13,19 +13,18 @@ namespace XamlLint.Core.Rules.Accessibility;
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX700.md")]
 public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
 {
-    // Name / HelpText / LabeledBy suppress the rule regardless of value — any value the
-    // author supplied is something an AT can read out (even a bound path that resolves
-    // at runtime is a deliberate statement of "I've thought about this"). IsInAccessibleTree
-    // is different: it is a boolean flag where only "False" (or a bound value that can
-    // legitimately resolve to False) means "decorative — skip in AT." "True" reasserts the
-    // default inclusion and must not suppress the rule.
+    // Name / HelpText suppress the rule regardless of value — any value the author supplied
+    // is something an AT can read out (even a bound path that resolves at runtime is a
+    // deliberate statement of "I've thought about this"). LabeledBy is value-dependent now:
+    // a dangling {x:Reference} no longer suppresses. IsInAccessibleTree is boolean and only
+    // False (or a bound value) means "decorative — skip in AT."
     private static readonly string[] PresenceEscapeAttributes =
     {
         "AutomationProperties.Name",
         "AutomationProperties.HelpText",
-        "AutomationProperties.LabeledBy",
     };
 
+    private const string LabeledByAttribute = "AutomationProperties.LabeledBy";
     private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
 
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
@@ -35,7 +34,7 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
         foreach (var element in document.Root.DescendantsAndSelf())
         {
             if (element.Name.LocalName != "Image") continue;
-            if (HasAnyEscape(element)) continue;
+            if (HasAnyEscape(element, context)) continue;
 
             var span = LocationHelpers.GetElementNameSpan(element);
             yield return new Diagnostic(
@@ -51,12 +50,14 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
         }
     }
 
-    private static bool HasAnyEscape(XElement element)
+    private static bool HasAnyEscape(XElement element, RuleContext context)
     {
         foreach (var name in PresenceEscapeAttributes)
         {
             if (element.Attribute(name) is not null) return true;
         }
+
+        if (HasLabeledByEscape(element, context)) return true;
 
         var treeAttr = element.Attribute(IsInAccessibleTreeAttribute);
         if (treeAttr is not null)
@@ -67,5 +68,25 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
         }
 
         return false;
+    }
+
+    private static bool HasLabeledByEscape(XElement element, RuleContext context)
+    {
+        var labeledBy = element.Attribute(LabeledByAttribute);
+        if (labeledBy is null) return false;
+        var value = labeledBy.Value;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+
+        if (!MarkupExtensionHelpers.IsMarkupExtension(value)) return true;
+        if (!MarkupExtensionHelpers.TryParseExtension(value, out var info)) return true;
+
+        if (!string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
+            && !string.Equals(info.Name, "Reference", StringComparison.Ordinal))
+            return true;
+
+        var targetName = ReferenceTargetNameHelper.Extract(value);
+        if (string.IsNullOrWhiteSpace(targetName)) return true;
+
+        return context.Names.IsDefinedInScopeOf(element, targetName!);
     }
 }

@@ -13,16 +13,13 @@ namespace XamlLint.Core.Rules.Accessibility;
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX701.md")]
 public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXamlRule
 {
-    // Name / HelpText / LabeledBy suppress on any value. IsInAccessibleTree is the
-    // decorative opt-out and must be literal False (or bound) — "True" reasserts default
-    // inclusion and must not suppress.
     private static readonly string[] PresenceEscapeAttributes =
     {
         "AutomationProperties.Name",
         "AutomationProperties.HelpText",
-        "AutomationProperties.LabeledBy",
     };
 
+    private const string LabeledByAttribute = "AutomationProperties.LabeledBy";
     private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
 
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
@@ -32,7 +29,7 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
         foreach (var element in document.Root.DescendantsAndSelf())
         {
             if (element.Name.LocalName != "ImageButton") continue;
-            if (HasAnyEscape(element)) continue;
+            if (HasAnyEscape(element, context)) continue;
 
             var span = LocationHelpers.GetElementNameSpan(element);
             yield return new Diagnostic(
@@ -48,12 +45,14 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
         }
     }
 
-    private static bool HasAnyEscape(XElement element)
+    private static bool HasAnyEscape(XElement element, RuleContext context)
     {
         foreach (var name in PresenceEscapeAttributes)
         {
             if (element.Attribute(name) is not null) return true;
         }
+
+        if (HasLabeledByEscape(element, context)) return true;
 
         var treeAttr = element.Attribute(IsInAccessibleTreeAttribute);
         if (treeAttr is not null)
@@ -64,5 +63,25 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
         }
 
         return false;
+    }
+
+    private static bool HasLabeledByEscape(XElement element, RuleContext context)
+    {
+        var labeledBy = element.Attribute(LabeledByAttribute);
+        if (labeledBy is null) return false;
+        var value = labeledBy.Value;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+
+        if (!MarkupExtensionHelpers.IsMarkupExtension(value)) return true;
+        if (!MarkupExtensionHelpers.TryParseExtension(value, out var info)) return true;
+
+        if (!string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
+            && !string.Equals(info.Name, "Reference", StringComparison.Ordinal))
+            return true;
+
+        var targetName = ReferenceTargetNameHelper.Extract(value);
+        if (string.IsNullOrWhiteSpace(targetName)) return true;
+
+        return context.Names.IsDefinedInScopeOf(element, targetName!);
     }
 }
