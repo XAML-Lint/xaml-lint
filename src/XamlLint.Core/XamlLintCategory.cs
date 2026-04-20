@@ -53,12 +53,12 @@ public static class XamlLintCategoryNames
     // Stable wire-format names used in AnalyzerReleases and SARIF tool metadata.
     public static string NameOf(XamlLintCategory c) => c switch
     {
-        XamlLintCategory.Tool       => "Tool",
-        XamlLintCategory.Layout     => "Layout",
-        XamlLintCategory.Bindings   => "Bindings",
-        XamlLintCategory.Naming     => "Naming",
-        XamlLintCategory.Resources  => "Resources",
-        XamlLintCategory.Input      => "Input",
+        XamlLintCategory.Tool          => "Tool",
+        XamlLintCategory.Layout        => "Layout",
+        XamlLintCategory.Bindings      => "Bindings",
+        XamlLintCategory.Naming        => "Naming",
+        XamlLintCategory.Resources     => "Resources",
+        XamlLintCategory.Input         => "Input",
         XamlLintCategory.Deprecated    => "Deprecated",
         XamlLintCategory.Accessibility => "Accessibility",
         _ => throw new ArgumentOutOfRangeException(nameof(c)),
