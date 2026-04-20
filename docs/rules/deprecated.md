@@ -14,3 +14,4 @@ that should be rewritten for clarity, not for correctness.
 | ID | Title | Default |
 |---|---|---|
 | [LX600](LX600.md) | MediaElement is deprecated — use MediaPlayerElement | warning |
+| [LX601](LX601.md) | Line.Fill has no effect | info |
