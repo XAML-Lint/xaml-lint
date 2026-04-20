@@ -5,13 +5,14 @@ namespace XamlLint.Core;
 /// </summary>
 public enum XamlLintCategory
 {
-    Tool,        // LX001-LX099
-    Layout,      // LX100-LX199
-    Bindings,    // LX200-LX299
-    Naming,      // LX300-LX399
-    Resources,   // LX400-LX499
-    Input,       // LX500-LX599
-    Deprecated,  // LX600-LX699
+    Tool,          // LX001-LX099
+    Layout,        // LX100-LX199
+    Bindings,      // LX200-LX299
+    Naming,        // LX300-LX399
+    Resources,     // LX400-LX499
+    Input,         // LX500-LX599
+    Deprecated,    // LX600-LX699
+    Accessibility, // LX700-LX799
 }
 
 public static class XamlLintCategoryExtensions
@@ -41,7 +42,8 @@ public static class XamlLintCategoryExtensions
             4 => XamlLintCategory.Resources,
             5 => XamlLintCategory.Input,
             6 => XamlLintCategory.Deprecated,
-            _ => throw new ArgumentException($"Rule ID '{ruleId}' is outside the LX001-LX699 range currently defined.", nameof(ruleId)),
+            7 => XamlLintCategory.Accessibility,
+            _ => throw new ArgumentException($"Rule ID '{ruleId}' is outside the LX001-LX799 range currently defined.", nameof(ruleId)),
         };
     }
 }
@@ -57,7 +59,8 @@ public static class XamlLintCategoryNames
         XamlLintCategory.Naming     => "Naming",
         XamlLintCategory.Resources  => "Resources",
         XamlLintCategory.Input      => "Input",
-        XamlLintCategory.Deprecated => "Deprecated",
+        XamlLintCategory.Deprecated    => "Deprecated",
+        XamlLintCategory.Accessibility => "Accessibility",
         _ => throw new ArgumentOutOfRangeException(nameof(c)),
     };
 }
