@@ -15,3 +15,4 @@ LX700   | Accessibility | Info     | Image lacks accessibility description
 LX701   | Accessibility | Info     | ImageButton lacks accessibility description
 LX702   | Accessibility | Info     | TextBox lacks accessibility description
 LX703   | Accessibility | Info     | Entry lacks accessibility description
+LX800   | Platform      | Warning  | Uno platform XML namespace must be mc:Ignorable
