@@ -70,6 +70,33 @@ public sealed class LX700_ImageWithoutAccessibleDescriptionTest
     }
 
     [Fact]
+    public void Image_with_IsInAccessibleTree_True_is_still_flagged()
+    {
+        // IsInAccessibleTree="True" reasserts the default inclusion — the image IS in the
+        // AT tree and still needs a name. Presence alone must not suppress the rule.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <[|Image|] Source="icon.png" AutomationProperties.IsInAccessibleTree="True" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Image_with_bound_IsInAccessibleTree_is_not_flagged()
+    {
+        // A bound value may resolve to False at runtime — don't second-guess it.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+                <Image Source="icon.png" AutomationProperties.IsInAccessibleTree="{Binding IsDecorative}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void Image_with_bound_AutomationProperties_Name_is_not_flagged()
     {
         XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(

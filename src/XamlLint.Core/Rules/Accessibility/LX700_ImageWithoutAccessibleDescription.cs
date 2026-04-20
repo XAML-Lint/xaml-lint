@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using XamlLint.Core.Helpers;
 
 namespace XamlLint.Core.Rules.Accessibility;
@@ -12,13 +13,20 @@ namespace XamlLint.Core.Rules.Accessibility;
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX700.md")]
 public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
 {
-    private static readonly string[] EscapeAttributes =
+    // Name / HelpText / LabeledBy suppress the rule regardless of value — any value the
+    // author supplied is something an AT can read out (even a bound path that resolves
+    // at runtime is a deliberate statement of "I've thought about this"). IsInAccessibleTree
+    // is different: it is a boolean flag where only "False" (or a bound value that can
+    // legitimately resolve to False) means "decorative — skip in AT." "True" reasserts the
+    // default inclusion and must not suppress the rule.
+    private static readonly string[] PresenceEscapeAttributes =
     {
         "AutomationProperties.Name",
         "AutomationProperties.HelpText",
         "AutomationProperties.LabeledBy",
-        "AutomationProperties.IsInAccessibleTree",
     };
+
+    private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
 
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
     {
@@ -43,12 +51,21 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
         }
     }
 
-    private static bool HasAnyEscape(System.Xml.Linq.XElement element)
+    private static bool HasAnyEscape(XElement element)
     {
-        foreach (var name in EscapeAttributes)
+        foreach (var name in PresenceEscapeAttributes)
         {
             if (element.Attribute(name) is not null) return true;
         }
+
+        var treeAttr = element.Attribute(IsInAccessibleTreeAttribute);
+        if (treeAttr is not null)
+        {
+            var value = treeAttr.Value;
+            if (MarkupExtensionHelpers.IsMarkupExtension(value)) return true;
+            if (string.Equals(value.Trim(), "False", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
         return false;
     }
 }
