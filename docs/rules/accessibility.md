@@ -8,3 +8,4 @@ accessibility from the start. See each rule's doc for details.
 
 | ID | Title | Default |
 |---|---|---|
+| [LX700](LX700.md) | Image lacks accessibility description | info (off in :recommended) |
