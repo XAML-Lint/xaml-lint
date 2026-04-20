@@ -6,3 +6,4 @@ XAML document to load on all intended runtimes.
 
 | ID | Title | Default |
 |---|---|---|
+| [LX800](LX800.md) | Uno platform XML namespace must be mc:Ignorable | warning |

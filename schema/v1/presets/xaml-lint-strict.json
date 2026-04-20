@@ -30,6 +30,7 @@
     "LX700": "warning",
     "LX701": "warning",
     "LX702": "warning",
-    "LX703": "warning"
+    "LX703": "warning",
+    "LX800": "error"
   }
 }
