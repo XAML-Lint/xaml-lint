@@ -47,4 +47,22 @@ public sealed class PresetProfilesTest
         rec[ruleId].GetString().Should().Be(recommended, $"{ruleId} must be '{recommended}' in xaml-lint:recommended");
         str[ruleId].GetString().Should().Be(strict, $"{ruleId} must be '{strict}' in xaml-lint:strict");
     }
+
+    // Severity / enablement matrix for the remaining-upstream batch (LX702, LX703, LX800).
+    // :recommended reflects DefaultSeverity when DefaultEnabled=true, else "off".
+    // :strict auto-bumps one level (Info→warning, Warning→error).
+    [Theory]
+    [InlineData("LX702", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false
+    [InlineData("LX703", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false
+    [InlineData("LX800", "warning", "error")]   // Platform, Warning, DefaultEnabled=true
+    public void Remaining_upstream_batch_rules_match_preset_matrix(string ruleId, string recommended, string strict)
+    {
+        var off = PresetProfiles.Load("xaml-lint:off").Rules!;
+        var rec = PresetProfiles.Load("xaml-lint:recommended").Rules!;
+        var str = PresetProfiles.Load("xaml-lint:strict").Rules!;
+
+        off[ruleId].GetString().Should().Be("off", $"{ruleId} must be 'off' in xaml-lint:off");
+        rec[ruleId].GetString().Should().Be(recommended, $"{ruleId} must be '{recommended}' in xaml-lint:recommended");
+        str[ruleId].GetString().Should().Be(strict, $"{ruleId} must be '{strict}' in xaml-lint:strict");
+    }
 }
