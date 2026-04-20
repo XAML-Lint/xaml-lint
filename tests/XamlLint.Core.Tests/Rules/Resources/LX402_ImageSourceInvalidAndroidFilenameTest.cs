@@ -142,12 +142,24 @@ public sealed class LX402_ImageSourceInvalidAndroidFilenameTest
     }
 
     [Fact]
-    public void Http_uri_source_is_not_flagged()
+    public void Https_uri_source_is_not_flagged()
     {
         XamlDiagnosticVerifier<LX402_ImageSourceInvalidAndroidFilename>.Analyze(
             $"""
             <ContentPage xmlns="{MauiXmlns}">
                 <Image Source="https://example.com/MyIcon.png" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Http_uri_source_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX402_ImageSourceInvalidAndroidFilename>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Image Source="http://example.com/MyIcon.png" />
             </ContentPage>
             """,
             Dialect.Maui);
