@@ -158,4 +158,37 @@ public sealed class LX700_ImageWithoutAccessibleDescriptionTest
             """,
             Dialect.Maui);
     }
+
+    [Fact]
+    public void Image_with_dangling_LabeledBy_reference_is_flagged()
+    {
+        // After the XamlNameIndex retrofit, LabeledBy="{x:Reference Missing}" where no
+        // element is named Missing must not suppress — the dangling reference is the bug.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <[|Image|] Source="icon.png" AutomationProperties.LabeledBy="{x:Reference MissingLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Image_with_cross_template_LabeledBy_reference_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <ContentPage.Resources>
+                    <DataTemplate x:Key="t">
+                        <Label x:Name="InnerLabel" Text="Home" />
+                    </DataTemplate>
+                </ContentPage.Resources>
+                <[|Image|] Source="icon.png" AutomationProperties.LabeledBy="{x:Reference InnerLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
 }

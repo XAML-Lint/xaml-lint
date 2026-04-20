@@ -86,38 +86,9 @@ public sealed partial class LX702_TextBoxWithoutAccessibleDescription : IXamlRul
             && !string.Equals(info.Name, "Reference", StringComparison.Ordinal))
             return true; // some other extension (Binding, StaticResource, etc.) — can't evaluate statically
 
-        var targetName = ExtractReferenceTargetName(value);
+        var targetName = ReferenceTargetNameHelper.Extract(value);
         if (string.IsNullOrWhiteSpace(targetName)) return true; // empty/malformed reference — don't second-guess
 
         return context.Names.IsDefinedInScopeOf(element, targetName!);
-    }
-
-    private static string? ExtractReferenceTargetName(string value)
-    {
-        // {x:Reference Foo}, {x:Reference Name=Foo}, {Reference Foo}
-        var trimmed = value.AsSpan().Trim();
-        if (trimmed.Length < 3 || trimmed[0] != '{' || trimmed[^1] != '}') return null;
-        var inner = trimmed[1..^1].Trim();
-
-        // Skip the extension name (first token up to whitespace).
-        var i = 0;
-        while (i < inner.Length && !char.IsWhiteSpace(inner[i])) i++;
-        if (i >= inner.Length) return null;
-        var rest = inner[i..].Trim();
-        if (rest.Length == 0) return null;
-
-        // Named argument form (Name=Foo) — delegate to MarkupExtensionHelpers.
-        if (rest[0] == '{' || rest.IndexOf('=') >= 0)
-        {
-            if (MarkupExtensionHelpers.TryParseExtension(value, out var info)
-                && info.NamedArguments.TryGetValue("Name", out var named))
-                return named;
-            return null;
-        }
-
-        // Positional form: first token up to whitespace or comma.
-        var end = 0;
-        while (end < rest.Length && !char.IsWhiteSpace(rest[end]) && rest[end] != ',') end++;
-        return rest[..end].ToString();
     }
 }
