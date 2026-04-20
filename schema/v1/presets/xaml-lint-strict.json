@@ -26,6 +26,7 @@
     "LX505": "error",
     "LX506": "warning",
     "LX600": "error",
-    "LX601": "warning"
+    "LX601": "warning",
+    "LX700": "warning"
   }
 }
