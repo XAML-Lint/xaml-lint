@@ -64,6 +64,23 @@ public sealed class LX800_UnoPlatformXmlnsNotIgnorableTest
     }
 
     [Fact]
+    public void Ignorable_declared_under_non_standard_prefix_is_respected()
+    {
+        // The rule looks up Ignorable by expanded XName, so whatever prefix the author bound to
+        // the markup-compatibility namespace must work — not just 'mc'. Guard against a future
+        // regression that hardcodes the 'mc' prefix.
+        XamlDiagnosticVerifier<LX800_UnoPlatformXmlnsNotIgnorable>.Analyze(
+            $"""
+            <Page xmlns="{WinUI}"
+                  xmlns:android="http://uno.ui/android"
+                  xmlns:compat="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  compat:Ignorable="android">
+            </Page>
+            """,
+            Dialect.Uno);
+    }
+
+    [Fact]
     public void Document_without_any_Uno_xmlns_does_not_fire()
     {
         XamlDiagnosticVerifier<LX800_UnoPlatformXmlnsNotIgnorable>.Analyze(
