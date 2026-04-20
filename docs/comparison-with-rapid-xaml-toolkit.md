@@ -34,6 +34,9 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX600 | RXT402 | MediaElement deprecated — use MediaPlayerElement. UWP/WinUI 3 only; WPF continues to ship `MediaElement` as its primary media control. |
 | LX700 | RXT350 | Image lacks accessibility description. MAUI-only; opens the new Accessibility category. Off by default in `:recommended` — see Behavior differences. `IsInAccessibleTree` value-gated (literal `"False"` or bound suppresses; `"True"` does not). |
 | LX701 | RXT351 | ImageButton lacks accessibility description. MAUI-only; structural mirror of LX700 for `ImageButton`. Same off-by-default stance and same `IsInAccessibleTree` gating. |
+| LX702 | RXT601 | TextBox lacks accessibility description. Applies to WPF/WinUI 3/UWP/Avalonia/Uno (MAUI is covered by LX703). `DefaultEnabled=false`, `off` in `:recommended`, `warning` in `:strict`. `AutomationProperties.LabeledBy="{x:Reference <name>}"` requires the target to resolve in the same XAML name scope — dangling references fire. |
+| LX703 | — | Entry lacks accessibility description. MAUI-original sibling to LX702; no upstream equivalent. `DefaultEnabled=false`, `off` in `:recommended`, `warning` in `:strict`. |
+| LX800 | RXT700 | Uno platform XML namespace must be `mc:Ignorable`. Opens the Platform category. Rule is a no-op when no Uno URIs are present, so it applies to all dialects. |
 
 Lint-rule mappings continue to accrue as new categories ship.
 
@@ -86,6 +89,25 @@ Lint-rule mappings continue to accrue as new categories ship.
   inclusion, so the control is in the accessibility tree and still requires a name —
   treating that as a suppressor would hide a real a11y gap. The other three escape
   attributes (`Name`, `HelpText`, `LabeledBy`) suppress on any value.
+- **LX700 / LX701 `LabeledBy` tightening** — starting in this release,
+  `AutomationProperties.LabeledBy="{x:Reference <name>}"` suppresses the
+  rule only when `<name>` resolves in the same XAML name scope as the
+  image. Dangling references now fire. Non-reference literals and other
+  markup extensions (`{Binding …}`) continue to suppress as before.
+- **LX702 vs RXT601** — xaml-lint validates `{x:Reference}` targets
+  against a scope-aware name index (`ControlTemplate`/`DataTemplate`/
+  `ItemsPanelTemplate`/`HierarchicalDataTemplate` each open a nested
+  scope). Upstream RXT601 accepts any `LabeledBy` value on presence
+  alone, so a typo'd reference passes upstream but fires here.
+- **LX800 vs RXT700** — applied to all dialects rather than a
+  hypothetical `Dialect.Uno` gate; the rule is a structural no-op when
+  no Uno URIs are present, so universal application has no cost. The
+  Uno URI allowlist is hardcoded (no config knob) and matches Uno
+  Platform as of 2026-04.
+
+For rules that remain unported from upstream and the rationale behind
+deferring them, see
+[`unported-upstream-rules.md`](unported-upstream-rules.md).
 
 ## Suppression model
 
