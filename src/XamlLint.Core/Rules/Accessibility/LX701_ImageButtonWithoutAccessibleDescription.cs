@@ -13,13 +13,17 @@ namespace XamlLint.Core.Rules.Accessibility;
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX701.md")]
 public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXamlRule
 {
+    // Name / HelpText suppress the rule regardless of value — any value the author supplied
+    // is something an AT can read out (even a bound path that resolves at runtime is a
+    // deliberate statement of "I've thought about this"). LabeledBy is value-dependent now:
+    // a dangling {x:Reference} no longer suppresses. IsInAccessibleTree is boolean and only
+    // False (or a bound value) means "decorative — skip in AT."
     private static readonly string[] PresenceEscapeAttributes =
     {
         "AutomationProperties.Name",
         "AutomationProperties.HelpText",
     };
 
-    private const string LabeledByAttribute = "AutomationProperties.LabeledBy";
     private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
 
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
@@ -52,7 +56,7 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
             if (element.Attribute(name) is not null) return true;
         }
 
-        if (HasLabeledByEscape(element, context)) return true;
+        if (LabeledByEscapeHelper.Suppresses(element, context)) return true;
 
         var treeAttr = element.Attribute(IsInAccessibleTreeAttribute);
         if (treeAttr is not null)
@@ -63,25 +67,5 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
         }
 
         return false;
-    }
-
-    private static bool HasLabeledByEscape(XElement element, RuleContext context)
-    {
-        var labeledBy = element.Attribute(LabeledByAttribute);
-        if (labeledBy is null) return false;
-        var value = labeledBy.Value;
-        if (string.IsNullOrWhiteSpace(value)) return false;
-
-        if (!MarkupExtensionHelpers.IsMarkupExtension(value)) return true;
-        if (!MarkupExtensionHelpers.TryParseExtension(value, out var info)) return true;
-
-        if (!string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
-            && !string.Equals(info.Name, "Reference", StringComparison.Ordinal))
-            return true;
-
-        var targetName = ReferenceTargetNameHelper.Extract(value);
-        if (string.IsNullOrWhiteSpace(targetName)) return true;
-
-        return context.Names.IsDefinedInScopeOf(element, targetName!);
     }
 }
