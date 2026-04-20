@@ -13,3 +13,4 @@ parses fine but fails silently at runtime.
 | [LX503](LX503.md) | Entry lacks Keyboard | info |
 | [LX504](LX504.md) | Password Entry lacks MaxLength | warning |
 | [LX505](LX505.md) | Pin lacks Label | warning |
+| [LX506](LX506.md) | Slider sets both ThumbColor and ThumbImageSource | info |
