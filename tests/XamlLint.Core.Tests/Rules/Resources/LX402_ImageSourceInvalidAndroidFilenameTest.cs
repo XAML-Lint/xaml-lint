@@ -178,6 +178,31 @@ public sealed class LX402_ImageSourceInvalidAndroidFilenameTest
     }
 
     [Fact]
+    public void MsAppdata_uri_source_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX402_ImageSourceInvalidAndroidFilename>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Image Source="ms-appdata:///local/MyIcon.png" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Leading_dot_filename_is_flagged()
+    {
+        // aapt2 rejects drawable names whose first character is not a lowercase letter or underscore.
+        XamlDiagnosticVerifier<LX402_ImageSourceInvalidAndroidFilename>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Image [|Source=".hidden_icon.png"|] />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void File_uri_source_is_not_flagged()
     {
         XamlDiagnosticVerifier<LX402_ImageSourceInvalidAndroidFilename>.Analyze(

@@ -14,6 +14,8 @@ public sealed partial class LX402_ImageSourceInvalidAndroidFilename : IXamlRule
     private static readonly string[] UriSchemes =
         { "http://", "https://", "ms-appx:", "ms-appdata:", "file://" };
 
+    private static readonly char[] PathSeparators = { '/', '\\' };
+
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
     {
         if (document.Root is null) yield break;
@@ -59,14 +61,20 @@ public sealed partial class LX402_ImageSourceInvalidAndroidFilename : IXamlRule
 
     private static string ExtractLeafName(string path)
     {
-        var lastSep = path.LastIndexOfAny(new[] { '/', '\\' });
+        var lastSep = path.LastIndexOfAny(PathSeparators);
         return lastSep < 0 ? path : path.Substring(lastSep + 1);
     }
 
     private static bool IsValidAndroidDrawableName(string leaf)
     {
         if (leaf.Length == 0) return false;
-        if (char.IsDigit(leaf[0])) return false;
+
+        // First character must be a lowercase letter or underscore — digits are disallowed
+        // because Android drawable resource IDs cannot start with a digit, and leading dots
+        // (.png, ..png) are rejected by aapt2.
+        var first = leaf[0];
+        if (first != '_' && (first < 'a' || first > 'z')) return false;
+
         foreach (var c in leaf)
         {
             var ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_' || c == '.';
