@@ -13,6 +13,7 @@ public enum XamlLintCategory
     Input,         // LX500-LX599
     Deprecated,    // LX600-LX699
     Accessibility, // LX700-LX799
+    Platform,      // LX800-LX899
 }
 
 public static class XamlLintCategoryExtensions
@@ -43,7 +44,8 @@ public static class XamlLintCategoryExtensions
             5 => XamlLintCategory.Input,
             6 => XamlLintCategory.Deprecated,
             7 => XamlLintCategory.Accessibility,
-            _ => throw new ArgumentException($"Rule ID '{ruleId}' is outside the LX001-LX799 range currently defined.", nameof(ruleId)),
+            8 => XamlLintCategory.Platform,
+            _ => throw new ArgumentException($"Rule ID '{ruleId}' is outside the LX001-LX899 range currently defined.", nameof(ruleId)),
         };
     }
 }
@@ -61,6 +63,7 @@ public static class XamlLintCategoryNames
         XamlLintCategory.Input         => "Input",
         XamlLintCategory.Deprecated    => "Deprecated",
         XamlLintCategory.Accessibility => "Accessibility",
+        XamlLintCategory.Platform      => "Platform",
         _ => throw new ArgumentOutOfRangeException(nameof(c)),
     };
 }
