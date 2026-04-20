@@ -56,15 +56,30 @@ public sealed class LX601_LineFillNoEffectTest
     }
 
     [Fact]
-    public void Line_on_Wpf_dialect_is_not_flagged()
+    public void Line_with_Fill_on_Wpf_is_flagged()
     {
+        // A Line is a 1D geometry (LineGeometry) inheriting Fill from Shape. Fill paints the
+        // shape's interior, but a line has zero interior area — true in WPF, WinUI, UWP,
+        // MAUI, Avalonia, and Uno. Universal geometric fact, not dialect-specific.
         XamlDiagnosticVerifier<LX601_LineFillNoEffect>.Analyze(
             """
             <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <Line Fill="Red" />
+                <Line [|Fill="Red"|] />
             </Window>
             """,
             Dialect.Wpf);
+    }
+
+    [Fact]
+    public void Line_with_Fill_on_Avalonia_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX601_LineFillNoEffect>.Analyze(
+            """
+            <Window xmlns="https://github.com/avaloniaui">
+                <Line [|Fill="Red"|] />
+            </Window>
+            """,
+            Dialect.Avalonia);
     }
 
     [Fact]

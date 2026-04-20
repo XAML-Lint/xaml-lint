@@ -30,6 +30,20 @@ public sealed class LX600_MediaElementDeprecatedTest
     }
 
     [Fact]
+    public void MediaElement_on_Uno_is_flagged()
+    {
+        // Uno provides MediaPlayerElement as the preferred replacement on its WinUI-compatible
+        // stack; MediaElement inherits the UWP/WinUI deprecation.
+        XamlDiagnosticVerifier<LX600_MediaElementDeprecated>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <[|MediaElement|] Source="video.mp4" />
+            </Grid>
+            """,
+            Dialect.Uno);
+    }
+
+    [Fact]
     public void MediaElement_on_Wpf_is_not_flagged()
     {
         // WPF's MediaElement is current; MediaPlayerElement is UWP/WinUI only.

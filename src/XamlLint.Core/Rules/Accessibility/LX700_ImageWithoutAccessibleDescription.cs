@@ -9,7 +9,7 @@ namespace XamlLint.Core.Rules.Accessibility;
     Title = "Image lacks accessibility description",
     DefaultSeverity = Severity.Info,
     DefaultEnabled = false,
-    Dialects = Dialect.Maui,
+    Dialects = Dialect.All,
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX700.md")]
 public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
 {

@@ -7,7 +7,7 @@ namespace XamlLint.Core.Rules.Naming;
     UpstreamId = "RXT451",
     Title = "x:Uid should start with uppercase",
     DefaultSeverity = Severity.Warning,
-    Dialects = Dialect.Uwp | Dialect.WinUI3,
+    Dialects = Dialect.Uwp | Dialect.WinUI3 | Dialect.Uno,
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX301.md")]
 public sealed partial class LX301_XUidCasing : IXamlRule
 {

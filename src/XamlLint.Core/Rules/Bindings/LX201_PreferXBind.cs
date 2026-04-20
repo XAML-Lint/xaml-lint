@@ -7,7 +7,7 @@ namespace XamlLint.Core.Rules.Bindings;
     UpstreamId = "RXT170",
     Title = "Prefer x:Bind over Binding",
     DefaultSeverity = Severity.Info,
-    Dialects = Dialect.Uwp | Dialect.WinUI3,
+    Dialects = Dialect.Uwp | Dialect.WinUI3 | Dialect.Uno,
     HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX201.md")]
 public sealed partial class LX201_PreferXBind : IXamlRule
 {

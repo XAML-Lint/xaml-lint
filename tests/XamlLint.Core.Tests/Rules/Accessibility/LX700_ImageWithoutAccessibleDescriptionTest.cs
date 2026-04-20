@@ -133,16 +133,32 @@ public sealed class LX700_ImageWithoutAccessibleDescriptionTest
     }
 
     [Fact]
-    public void Image_on_Wpf_dialect_is_not_flagged()
+    public void Image_on_Wpf_is_flagged()
     {
-        // The rule is MAUI-only. Dialect gating excludes WPF.
+        // AutomationProperties.Name / HelpText / LabeledBy exist across WPF, WinUI 3, UWP,
+        // Avalonia, Uno, and MAUI — the rule is a universal accessibility concern.
         XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
             """
             <StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <Image Source="icon.png" />
+                <[|Image|] Source="icon.png" />
             </StackPanel>
             """,
             Dialect.Wpf);
+    }
+
+    [Fact]
+    public void Image_on_Avalonia_is_flagged()
+    {
+        // Avalonia exposes AutomationProperties.Name / HelpText / LabeledBy via its
+        // Automation infrastructure; the AutomationPeer relays them to the platform screen
+        // reader.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <StackPanel xmlns="https://github.com/avaloniaui">
+                <[|Image|] Source="icon.png" />
+            </StackPanel>
+            """,
+            Dialect.Avalonia);
     }
 
     [Fact]

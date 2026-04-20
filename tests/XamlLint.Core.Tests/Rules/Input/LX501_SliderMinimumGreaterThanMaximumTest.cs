@@ -28,6 +28,20 @@ public sealed class LX501_SliderMinimumGreaterThanMaximumTest
     }
 
     [Fact]
+    public void Minimum_greater_than_Maximum_on_Avalonia_is_flagged()
+    {
+        // Avalonia's RangeBase silently coerces Maximum up to Minimum (CoerceMaximum uses
+        // Math.Max(value, Minimum)). Author writes Maximum="5" but runtime delivers
+        // Maximum=10 — exactly the intent-vs-reality mismatch the rule exists to catch.
+        XamlDiagnosticVerifier<LX501_SliderMinimumGreaterThanMaximum>.Analyze(
+            """
+            <Slider xmlns="https://github.com/avaloniaui"
+                    [|Minimum="10"|] Maximum="5" />
+            """,
+            Dialect.Avalonia);
+    }
+
+    [Fact]
     public void Minimum_greater_than_Maximum_on_WinUI3_is_not_flagged()
     {
         // LX501's dialects are Wpf + Maui only — UWP/WinUI raise a runtime exception on this
