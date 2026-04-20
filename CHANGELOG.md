@@ -35,9 +35,7 @@ M5 — pre-v1 polish. Rules-inert release focused on org migration, repo hygiene
 
 ### Added
 
-- `CONTRIBUTING.md` with versioning policy and the "add a new rule" flow ([#6])
 - Project branding: logo (`assets/logo.png`, `assets/logo.svg`), wired as NuGet `<PackageIcon>` — README and icon now ship at the nupkg root ([#6])
-- Marketplace submission materials under `docs/marketplace/` (listing copy + screenshot spec for 3 PNGs) ([#6])
 
 ### Changed
 
@@ -59,7 +57,6 @@ M4 — dialect-gated rules spanning UWP/WinUI 3, .NET MAUI, and WPF.
 - [LX502](docs/rules/LX502.md) — Stepper Minimum is greater than Maximum ([#5])
 - [LX600](docs/rules/LX600.md) — MediaElement is deprecated — use MediaPlayerElement ([#5])
 - Category overview pages: [input](docs/rules/input.md), [deprecated](docs/rules/deprecated.md) ([#5])
-- `NumericRangeHelpers` in `XamlLint.Core` — literal-double parsing shared between LX501 and LX502 ([#5])
 
 ## [0.3.0] - 2026-04-18
 
@@ -72,7 +69,6 @@ M3 — Grid-family layout rules.
 - [LX102](docs/rules/LX102.md) — Grid.RowSpan exceeds available rows ([#4])
 - [LX103](docs/rules/LX103.md) — Grid.ColumnSpan exceeds available columns ([#4])
 - Category overview page: [layout](docs/rules/layout.md) ([#4])
-- `GridAncestryHelpers` and `LocationHelpers.GetElementNameSpan` in `XamlLint.Core` ([#4])
 - [LX104](docs/rules/LX104.md) — Grid definition shorthand not supported by target framework ([#4])
 - `frameworkVersion` config field for opting into legacy framework targets; `DialectFeatures` helper for framework-gated capability detection ([#4])
 
@@ -86,13 +82,6 @@ M2 — first content lint rules.
 - [LX300](docs/rules/LX300.md) — x:Name should start with uppercase ([#3])
 - [LX400](docs/rules/LX400.md) — Hardcoded string; use a resource ([#3])
 - Category overview pages: [bindings](docs/rules/bindings.md), [naming](docs/rules/naming.md), [resources](docs/rules/resources.md) ([#3])
-- Meta-tests: `AnalyzerReleases` category column must match `XamlLintCategory.ForId`, and every rule must be linked from its category overview page ([#3])
-- `MarkupExtensionHelpers` and `XamlNamespaces` / `LocationHelpers` in `XamlLint.Core` ([#3])
-
-### Changed
-
-- Plugin manifest version bumped to `0.2.0` to match the published tool and Nerdbank version ([#3])
-- [LX300](docs/rules/LX300.md) docs now describe the casing check as Unicode-permissive (any `char.IsUpper` letter), matching the implementation ([#3])
 
 ### Fixed
 
