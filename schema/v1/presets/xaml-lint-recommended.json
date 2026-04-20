@@ -27,6 +27,7 @@
     "LX506": "info",
     "LX600": "warning",
     "LX601": "info",
-    "LX700": "off"
+    "LX700": "off",
+    "LX701": "off"
   }
 }
