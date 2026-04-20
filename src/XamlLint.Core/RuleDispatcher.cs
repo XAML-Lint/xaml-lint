@@ -1,3 +1,4 @@
+using XamlLint.Core.NameResolution;
 using XamlLint.Core.Suppressions;
 
 namespace XamlLint.Core;
@@ -34,6 +35,9 @@ public sealed class RuleDispatcher
             Suppressions = suppressions,
             Source = document.Source.AsMemory(),
             FrameworkMajorVersion = frameworkMajorVersion,
+            NameIndexBuilder = document.Root is null
+                ? null
+                : () => XamlNameIndex.Build(document.Root),
         };
 
         var output = new List<Diagnostic>();
