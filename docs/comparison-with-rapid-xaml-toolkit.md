@@ -26,7 +26,14 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX500 | RXT150 | TextBox lacks InputScope. UWP/WinUI 3 only — `InputScope` is a platform-specific hint that does not exist on WPF. Any literal or bound value suppresses the check. |
 | LX501 | RXT330 | Slider Minimum is greater than Maximum. WPF and MAUI only; UWP/WinUI raise a runtime exception on the same state, so static analysis is redundant there. Literal pair required — markup extensions on either attribute suppress the check. |
 | LX502 | RXT335 | Stepper Minimum is greater than Maximum. MAUI-only control; same semantics as LX501. |
+| LX503 | RXT300 | Entry lacks Keyboard. MAUI-only mirror of LX500/RXT150; any literal or bound `Keyboard` value suppresses. |
+| LX504 | RXT301 | Password Entry lacks MaxLength. MAUI-only; fires only when `IsPassword="True"` is a literal (case-insensitive). Bound `IsPassword`, literal-false, or any present `MaxLength` suppresses. |
+| LX505 | RXT325 | Pin lacks Label. MAUI-only; rule is a guardrail against the `ArgumentException` the Maps control throws at runtime when a pin is added without a label. Any `Label` value (literal or bound) suppresses. |
+| LX506 | RXT331 | Slider sets both ThumbColor and ThumbImageSource. MAUI-only; presence of both attributes is the signal regardless of literal/bound values — see Behavior differences. |
+| LX601 | RXT320 | Line.Fill has no effect. MAUI-only; presence of any `Fill` value on `<Line>` fires. Placed in the Deprecated category alongside superseded-API rules; category scope widened to cover "no runtime effect" markup. |
 | LX600 | RXT402 | MediaElement deprecated — use MediaPlayerElement. UWP/WinUI 3 only; WPF continues to ship `MediaElement` as its primary media control. |
+| LX700 | RXT350 | Image lacks accessibility description. MAUI-only; opens the new Accessibility category. Off by default in `:recommended` — see Behavior differences. `IsInAccessibleTree` value-gated (literal `"False"` or bound suppresses; `"True"` does not). |
+| LX701 | RXT351 | ImageButton lacks accessibility description. MAUI-only; structural mirror of LX700 for `ImageButton`. Same off-by-default stance and same `IsInAccessibleTree` gating. |
 
 Lint-rule mappings continue to accrue as new categories ship.
 
@@ -63,6 +70,22 @@ Lint-rule mappings continue to accrue as new categories ship.
   numbers before firing. Upstream Rapid XAML Toolkit also flags the case when only one
   attribute is literal and the other is bound; we defer that until the false-positive rate
   on real projects is known.
+- **LX506 vs RXT331** — xaml-lint fires on any combination of literal and bound values
+  for `ThumbColor` and `ThumbImageSource`; presence of both attributes is the signal.
+  Upstream documentation does not specify the literal/bound combination behavior; we
+  chose the inclusive reading because MAUI's precedence (`ThumbImageSource` wins) is the
+  same regardless of whether either value is resolved at runtime.
+- **LX700 / LX701 default-preset stance** — both accessibility rules are
+  `DefaultEnabled = false` and appear as `"off"` in `:recommended` (same pattern as LX300
+  and LX400). Accessibility-complete codebases are rare; enabling these by default floods
+  output on typical MAUI projects. Teams who want to enforce a11y should extend `:strict`
+  (where both rules fire at `warning`) or enable them explicitly.
+- **LX700 / LX701 vs RXT350 / RXT351** — `AutomationProperties.IsInAccessibleTree` is
+  treated as value-gated rather than presence-only: only a literal `"False"`
+  (case-insensitive) or a bound value suppresses. A literal `"True"` reasserts default
+  inclusion, so the control is in the accessibility tree and still requires a name —
+  treating that as a suppressor would hide a real a11y gap. The other three escape
+  attributes (`Name`, `HelpText`, `LabeledBy`) suppress on any value.
 
 ## Suppression model
 
