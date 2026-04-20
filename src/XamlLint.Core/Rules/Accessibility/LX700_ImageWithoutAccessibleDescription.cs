@@ -24,7 +24,6 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
         "AutomationProperties.HelpText",
     };
 
-    private const string LabeledByAttribute = "AutomationProperties.LabeledBy";
     private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
 
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
@@ -57,7 +56,7 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
             if (element.Attribute(name) is not null) return true;
         }
 
-        if (HasLabeledByEscape(element, context)) return true;
+        if (LabeledByEscapeHelper.Suppresses(element, context)) return true;
 
         var treeAttr = element.Attribute(IsInAccessibleTreeAttribute);
         if (treeAttr is not null)
@@ -68,25 +67,5 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
         }
 
         return false;
-    }
-
-    private static bool HasLabeledByEscape(XElement element, RuleContext context)
-    {
-        var labeledBy = element.Attribute(LabeledByAttribute);
-        if (labeledBy is null) return false;
-        var value = labeledBy.Value;
-        if (string.IsNullOrWhiteSpace(value)) return false;
-
-        if (!MarkupExtensionHelpers.IsMarkupExtension(value)) return true;
-        if (!MarkupExtensionHelpers.TryParseExtension(value, out var info)) return true;
-
-        if (!string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
-            && !string.Equals(info.Name, "Reference", StringComparison.Ordinal))
-            return true;
-
-        var targetName = ReferenceTargetNameHelper.Extract(value);
-        if (string.IsNullOrWhiteSpace(targetName)) return true;
-
-        return context.Names.IsDefinedInScopeOf(element, targetName!);
     }
 }

@@ -14,14 +14,12 @@ namespace XamlLint.Core.Rules.Accessibility;
 public sealed partial class LX702_TextBoxWithoutAccessibleDescription : IXamlRule
 {
     // Name/x:Name/Header/AutomationProperties.Name suppress on any non-empty value.
-    // AutomationProperties.LabeledBy is value-dependent — see HasLabeledByEscape.
+    // AutomationProperties.LabeledBy is value-dependent — see LabeledByEscapeHelper.
     private static readonly string[] SimplePresenceEscapeAttributes =
     {
         "Header",
         "AutomationProperties.Name",
     };
-
-    private const string LabeledByAttribute = "AutomationProperties.LabeledBy";
 
     public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
     {
@@ -32,7 +30,7 @@ public sealed partial class LX702_TextBoxWithoutAccessibleDescription : IXamlRul
             if (element.Name.LocalName != "TextBox") continue;
             if (HasNameEscape(element)) continue;
             if (HasSimplePresenceEscape(element)) continue;
-            if (HasLabeledByEscape(element, context)) continue;
+            if (LabeledByEscapeHelper.Suppresses(element, context)) continue;
 
             var span = LocationHelpers.GetElementNameSpan(element);
             yield return new Diagnostic(
@@ -67,28 +65,5 @@ public sealed partial class LX702_TextBoxWithoutAccessibleDescription : IXamlRul
             if (attr is not null && !string.IsNullOrWhiteSpace(attr.Value)) return true;
         }
         return false;
-    }
-
-    private static bool HasLabeledByEscape(XElement element, RuleContext context)
-    {
-        var labeledBy = element.Attribute(LabeledByAttribute);
-        if (labeledBy is null) return false;
-        var value = labeledBy.Value;
-        if (string.IsNullOrWhiteSpace(value)) return false;
-
-        if (!MarkupExtensionHelpers.IsMarkupExtension(value))
-            return true; // non-extension literal — honour author intent
-
-        if (!MarkupExtensionHelpers.TryParseExtension(value, out var info))
-            return true; // malformed extension — don't second-guess
-
-        if (!string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
-            && !string.Equals(info.Name, "Reference", StringComparison.Ordinal))
-            return true; // some other extension (Binding, StaticResource, etc.) — can't evaluate statically
-
-        var targetName = ReferenceTargetNameHelper.Extract(value);
-        if (string.IsNullOrWhiteSpace(targetName)) return true; // empty/malformed reference — don't second-guess
-
-        return context.Names.IsDefinedInScopeOf(element, targetName!);
     }
 }
