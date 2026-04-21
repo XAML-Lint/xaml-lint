@@ -215,4 +215,61 @@ public sealed class LX701_ImageButtonWithoutAccessibleDescriptionTest
             """,
             Dialect.Maui);
     }
+
+    [Fact]
+    public void ImageButton_with_resolvable_ElementName_Binding_LabeledBy_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <Label x:Name="CloseLabel" Text="Close" />
+                <ImageButton Source="icon.png" AutomationProperties.LabeledBy="{Binding ElementName=CloseLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void ImageButton_with_dangling_ElementName_Binding_LabeledBy_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <[|ImageButton|] Source="icon.png" AutomationProperties.LabeledBy="{Binding ElementName=MissingLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void ImageButton_with_cross_template_ElementName_Binding_LabeledBy_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <ContentPage.Resources>
+                    <DataTemplate x:Key="t">
+                        <Label x:Name="InnerLabel" Text="Close" />
+                    </DataTemplate>
+                </ContentPage.Resources>
+                <[|ImageButton|] Source="icon.png" AutomationProperties.LabeledBy="{Binding ElementName=InnerLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void ImageButton_with_Binding_without_ElementName_still_suppresses()
+    {
+        XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+                <ImageButton Source="icon.png" AutomationProperties.LabeledBy="{Binding LabelElement}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
 }

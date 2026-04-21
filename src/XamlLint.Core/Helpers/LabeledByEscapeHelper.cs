@@ -7,14 +7,20 @@ namespace XamlLint.Core.Helpers;
 /// rules LX700/LX701/LX702. A <c>LabeledBy</c> value suppresses the diagnostic when:
 /// <list type="bullet">
 ///   <item>It's a non-extension literal (author-supplied name, honour the intent).</item>
-///   <item>It's a markup extension that cannot be statically evaluated (<c>{Binding …}</c>,
-///         <c>{StaticResource …}</c>, etc.).</item>
-///   <item>It's <c>{x:Reference &lt;name&gt;}</c> or <c>{Reference &lt;name&gt;}</c> AND the
-///         target name resolves in the current XAML name scope
-///         (see <see cref="XamlLint.Core.NameResolution.XamlNameIndex"/>).</item>
+///   <item>It's <c>{x:Reference &lt;name&gt;}</c> / <c>{Reference &lt;name&gt;}</c> OR
+///         <c>{Binding ElementName=&lt;name&gt;}</c> AND the target name resolves in the
+///         current XAML name scope (see
+///         <see cref="XamlLint.Core.NameResolution.XamlNameIndex"/>).
+///         These are the two statically-resolvable element-reference forms in XAML:
+///         <c>x:Reference</c> is the XAML 2009 primitive used on UWP / WinUI 3 / UWP-style
+///         markup; <c>{Binding ElementName=…}</c> is the dominant WPF idiom.</item>
+///   <item>It's a <c>{Binding …}</c> without <c>ElementName</c> (pure data binding) or any
+///         other markup extension that can't be statically evaluated
+///         (<c>{StaticResource …}</c>, etc.) — treated as "the author has stated intent".</item>
 /// </list>
-/// A dangling or cross-scope <c>{x:Reference}</c> does NOT suppress — the dangling reference
-/// is the bug the owning rule exists to catch.
+/// A dangling or cross-scope reference (<c>{x:Reference}</c> or
+/// <c>{Binding ElementName=…}</c>) does NOT suppress — the dangling reference is the bug
+/// the owning rule exists to catch.
 /// </summary>
 public static class LabeledByEscapeHelper
 {
@@ -33,15 +39,29 @@ public static class LabeledByEscapeHelper
         // Malformed extension — don't second-guess.
         if (!MarkupExtensionHelpers.TryParseExtension(value, out var info)) return true;
 
-        // Some other extension (Binding, StaticResource, etc.) — can't evaluate statically.
-        if (!string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
-            && !string.Equals(info.Name, "Reference", StringComparison.Ordinal))
+        // {x:Reference} / {Reference} — XAML 2009 element-reference primitive.
+        if (string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
+            || string.Equals(info.Name, "Reference", StringComparison.Ordinal))
+        {
+            var targetName = ReferenceTargetNameHelper.Extract(value);
+            if (string.IsNullOrWhiteSpace(targetName)) return true; // empty/malformed — don't second-guess
+            return context.Names.IsDefinedInScopeOf(element, targetName!);
+        }
+
+        // {Binding ElementName=…} — classic WPF element-reference idiom, statically
+        // resolvable just like {x:Reference}. Binding without ElementName is a pure
+        // data binding and is treated as permissively suppressing (unchanged behaviour).
+        if (string.Equals(info.Name, "Binding", StringComparison.Ordinal))
+        {
+            if (info.NamedArguments.TryGetValue("ElementName", out var elementName)
+                && !string.IsNullOrWhiteSpace(elementName))
+            {
+                return context.Names.IsDefinedInScopeOf(element, elementName);
+            }
             return true;
+        }
 
-        // {x:Reference} — validate the target exists in the current name scope.
-        var targetName = ReferenceTargetNameHelper.Extract(value);
-        if (string.IsNullOrWhiteSpace(targetName)) return true; // empty/malformed — don't second-guess
-
-        return context.Names.IsDefinedInScopeOf(element, targetName!);
+        // Some other extension (StaticResource, etc.) — can't evaluate statically.
+        return true;
     }
 }

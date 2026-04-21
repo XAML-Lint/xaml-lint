@@ -215,4 +215,66 @@ public sealed class LX700_ImageWithoutAccessibleDescriptionTest
             """,
             Dialect.Maui);
     }
+
+    [Fact]
+    public void Image_with_resolvable_ElementName_Binding_LabeledBy_is_not_flagged()
+    {
+        // {Binding ElementName=Foo} is statically resolvable just like {x:Reference Foo};
+        // both forms scope-validate against XamlNameIndex.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <Label x:Name="HomeLabel" Text="Home" />
+                <Image Source="icon.png" AutomationProperties.LabeledBy="{Binding ElementName=HomeLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Image_with_dangling_ElementName_Binding_LabeledBy_is_flagged()
+    {
+        // Dangling ElementName must not suppress — the typo'd target is the bug.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <[|Image|] Source="icon.png" AutomationProperties.LabeledBy="{Binding ElementName=MissingLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Image_with_cross_template_ElementName_Binding_LabeledBy_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                <ContentPage.Resources>
+                    <DataTemplate x:Key="t">
+                        <Label x:Name="InnerLabel" Text="Home" />
+                    </DataTemplate>
+                </ContentPage.Resources>
+                <[|Image|] Source="icon.png" AutomationProperties.LabeledBy="{Binding ElementName=InnerLabel}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Image_with_Binding_without_ElementName_still_suppresses()
+    {
+        // Pure data-binding expressions remain permissively suppressing — they can't be
+        // statically evaluated to an element, but the author has stated intent.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+                <Image Source="icon.png" AutomationProperties.LabeledBy="{Binding LabelElement}" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
 }
