@@ -24,7 +24,19 @@ public sealed partial class LX301_XUidCasing : IXamlRule
 
                 var value = attr.Value;
                 if (value.Length == 0) continue;
-                if (char.IsUpper(value[0])) continue;
+
+                // UWP/WinUI resw namespace-scope form: "/ResourceFile/Key" routes the
+                // lookup to a named .resw; only the segment after the final '/' is the
+                // resource key, so that's what the casing convention applies to.
+                var keyStart = 0;
+                if (value[0] == '/')
+                {
+                    var lastSlash = value.LastIndexOf('/');
+                    if (lastSlash == value.Length - 1) continue;
+                    keyStart = lastSlash + 1;
+                }
+
+                if (char.IsUpper(value[keyStart])) continue;
 
                 var span = LocationHelpers.GetAttributeSpan(attr, context.Source);
                 yield return new Diagnostic(
