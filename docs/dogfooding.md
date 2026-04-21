@@ -107,6 +107,13 @@ xaml-lint lint --dialect maui --format compact-json . -o /tmp/xl-ct-maui.json
 cd path/to/MVVM-Samples/samples/MvvmSampleMAUI
 xaml-lint lint --dialect maui --format compact-json . -o /tmp/xl-ct-mvvm-maui.json
 
+# Avalonia
+cd path/to/Avalonia.Samples
+xaml-lint lint --dialect avalonia --format compact-json . -o /tmp/xl-avalonia-samples.json
+
+cd path/to/WalletWasabi
+xaml-lint lint --dialect avalonia --format compact-json . -o /tmp/xl-walletwasabi.json
+
 # Uno
 cd path/to/Uno.Samples
 xaml-lint lint --dialect uno --format compact-json . -o /tmp/xl-uno-samples.json
@@ -114,10 +121,6 @@ xaml-lint lint --dialect uno --format compact-json . -o /tmp/xl-uno-samples.json
 cd path/to/Uno.Gallery
 xaml-lint lint --dialect uno --format compact-json . -o /tmp/xl-uno-gallery.json
 ```
-
-Avalonia entries (`AvaloniaUI/Avalonia.Samples`, `WalletWasabi/WalletWasabi`)
-are not yet runnable — both repos use `.axaml` and the tool currently rejects
-that extension. See [issue #11](https://github.com/XAML-Lint/xaml-lint/issues/11).
 
 Notes:
 
@@ -163,26 +166,6 @@ dialect gate wasn't wired up correctly.
 
 ## Known limitations
 
-- **Avalonia `.axaml` files are not linted today.** The tool's `--force` flag
-  lets `.axaml` files through file enumeration, but the per-file pipeline still
-  treats them as non-XAML (emits `LX005` and skips). Until that is fixed, both
-  Avalonia dogfood rows in the baseline snapshot below show zero diagnostics —
-  a tooling artifact, not evidence the corpus is clean. Tracked in
-  [issue #11](https://github.com/XAML-Lint/xaml-lint/issues/11); re-baseline
-  both Avalonia rows once it ships.
-- **LX702 can't see WPF reverse-labeling via `<Label Target="{x:Reference …}"/>`.**
-  The canonical WPF pattern for associating a label with an input is to author the
-  `Label` with a `Target` attribute that references the input's `x:Name`; at runtime
-  WPF wires the automation peer so screen readers announce the label as the input's
-  name. LX702 only inspects attributes on the `TextBox` itself (looking for
-  `AutomationProperties.Name`/`Header`/`LabeledBy`), so a `TextBox` labeled this way
-  looks unlabeled to the rule. No observed false positives in the current WPF-Samples
-  corpus — none of the flagged `TextBox` elements sit in files that use `Label.Target`
-  — but the gap is latent and would surface on a WPF codebase that follows the
-  reverse-labeling convention consistently. Tracked informally here until it starts
-  producing real-world noise; fixing it properly requires scanning the document for
-  `Label` elements whose `Target` references resolve to the current `TextBox`'s name
-  scope, which the existing `XamlNameIndex` infrastructure can do.
 - **LX100 / LX101 can't see runtime-registered layout managers.** MAUI lets
   callers replace `GridLayoutManager` at runtime via an `ILayoutManagerFactory`,
   and the replacement can auto-add rows or columns based on attached-property
@@ -202,14 +185,14 @@ dialect gate wasn't wired up correctly.
 
 ## Baseline snapshot
 
-Captured on 2026-04-21 from `xaml-lint` `main @ 9b8c875` against the commits
+Captured on 2026-04-21 from `xaml-lint` `main @ 8f128e3` against the commits
 listed. Numbers are total diagnostics per repo.
 
 | Dialect  | Repo                                             | Commit       | Total | By severity              | Top rule(s)                                      |
 |----------|--------------------------------------------------|--------------|------:|--------------------------|--------------------------------------------------|
 | WPF      | microsoft/WPF-Samples                            | `a121d7d9`   |    26 | 1 error, 19 warn, 6 info | LX101 (14), LX200 (6), LX100 (2), LX001 (1)      |
 | WPF      | MaterialDesignInXAML/MaterialDesignInXamlToolkit | `70516d3b`   |    39 | 3 warn, 36 info          | LX200 (36), LX102 (2), LX100 (1)                 |
-| WinUI 3  | microsoft/WindowsAppSDK-Samples                  | `9f033250`   |   222 | 21 warn, 201 info        | LX201 (144), LX500 (57), LX100 (15)              |
+| WinUI 3  | microsoft/WindowsAppSDK-Samples                  | `9f033250`   |   221 | 20 warn, 201 info        | LX201 (144), LX500 (57), LX100 (15)              |
 | WinUI 3  | files-community/Files                            | `fbc0a0b36`  |   225 | 19 warn, 206 info        | LX201 (166), LX500 (40), LX100 (11)              |
 | WinUI 3  | CommunityToolkit/Windows                         | `b1d8231`    |   215 | 18 warn, 197 info        | LX201 (162), LX500 (35), LX100 (7)               |
 | UWP      | microsoft/Windows-universal-samples              | `082195895`  |  1166 | 129 warn, 1037 info      | LX500 (534), LX201 (501), LX600 (47), LX100 (48) |
@@ -217,8 +200,8 @@ listed. Numbers are total diagnostics per repo.
 | MAUI     | dotnet/maui-samples                              | `8b53f57a`   |   272 | 42 warn, 230 info        | LX503 (204), LX200 (26), LX101 (14), LX504 (12)  |
 | MAUI     | CommunityToolkit/Maui                            | `bfc511e5`   |    81 | 29 warn, 52 info         | LX503 (43), LX101 (14), LX100 (13), LX200 (9)    |
 | MAUI     | CommunityToolkit/MVVM-Samples/MvvmSampleMAUI     | `7d67102`    |     2 | 1 warn, 1 info           | LX402 (1), LX503 (1)                             |
-| Avalonia | AvaloniaUI/Avalonia.Samples                      | `8956dbf`    |     0 | —                        | —                                                |
-| Avalonia | WalletWasabi/WalletWasabi                        | `cc0e9c0291` |     0 | —                        | —                                                |
+| Avalonia | AvaloniaUI/Avalonia.Samples                      | `8956dbf`    |    11 | 1 error, 10 info         | LX200 (10), LX001 (1)                            |
+| Avalonia | WalletWasabi/WalletWasabi                        | `cc0e9c0291` |    15 | 1 warn, 14 info          | LX200 (14), LX100 (1)                            |
 | Uno      | unoplatform/Uno.Samples                          | `1d9ea60a`   |  1334 | 43 warn, 1291 info       | LX201 (1185), LX500 (101), LX100 (14)            |
 | Uno      | unoplatform/Uno.Gallery                          | `54a08b15`   |   613 | 1 warn, 612 info         | LX201 (540), LX500 (72), LX102 (1)               |
 
@@ -226,11 +209,12 @@ The one `error` in WPF-Samples is an LX001 parse failure on
 `Documents/Fixed Documents/DocumentStructure/content/fixedpage1_structure.xaml` —
 the file is a fragment with a leading `<` inside an attribute value, not a
 well-formed XAML document. Treat it as a known-bad file in the corpus, not a
-regression. The `0` on both Avalonia rows is a tooling artifact (see "Known
-limitations"), not a clean corpus. The single LX402 hit on the MAUI MVVM sample
-is the first time that rule has fired against the corpus — `Source="headerBg"`
-in `FlyoutHeader.xaml:7` violates Android drawable naming (uppercase `B`), which
-the rule catches correctly.
+regression. The LX001 error on Avalonia.Samples is similar — the F# MusicStore
+sample's `Views/MainWindow.axaml` uses an undeclared `views:` prefix, a
+corpus bug rather than a lint failure. The single LX402 hit on the MAUI MVVM
+sample is the first time that rule has fired against the corpus —
+`Source="headerBg"` in `FlyoutHeader.xaml:7` violates Android drawable naming
+(uppercase `B`), which the rule catches correctly.
 
 ## Adding a repo
 
