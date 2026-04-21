@@ -40,8 +40,7 @@ internal static class HookCommand
         }
 
         var filePath = payload?.ToolInput?.FilePath;
-        if (string.IsNullOrEmpty(filePath)
-            || !filePath.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(filePath) || !FileEnumerator.IsXamlExtension(filePath))
         {
             WriteEmptyEnvelope(stdout);
             return 0;

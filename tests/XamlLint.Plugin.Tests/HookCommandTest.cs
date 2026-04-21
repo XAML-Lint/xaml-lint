@@ -74,6 +74,32 @@ public sealed class HookCommandTest
     }
 
     [Fact]
+    public void Payload_with_axaml_extension_is_linted()
+    {
+        // Avalonia .axaml must hit the pipeline just like .xaml — not trigger the
+        // "not a XAML file" short-circuit that would emit an empty envelope.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "View.axaml");
+        File.WriteAllText(file, "<UserControl>"); // malformed → LX001
+
+        var payload = new
+        {
+            tool_name = "Edit",
+            tool_input = new { file_path = file }
+        };
+        var json = JsonSerializer.Serialize(payload);
+
+        using var stdin = new StringReader(json);
+        using var stdout = new StringWriter();
+        using var stderr = new StringWriter();
+
+        var exit = HookCommand.Handle(stdin, stdout, stderr, tmp.Path);
+
+        exit.Should().Be(1);
+        stdout.ToString().Should().Contain("LX001");
+    }
+
+    [Fact]
     public void Payload_with_existing_xaml_lints_the_file()
     {
         using var tmp = new TempDir();

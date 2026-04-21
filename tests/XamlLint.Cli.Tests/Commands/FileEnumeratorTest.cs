@@ -34,6 +34,44 @@ public sealed class FileEnumeratorTest
     }
 
     [Fact]
+    public void Axaml_file_path_is_returned_as_xaml_extension()
+    {
+        // Avalonia uses .axaml as its XAML extension — treat it first-class, not force-gated.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "a.axaml");
+        File.WriteAllText(file, "<UserControl/>");
+
+        var result = FileEnumerator.Enumerate(
+            positional: new[] { file },
+            stdinPaths: null,
+            include: Array.Empty<string>(),
+            exclude: Array.Empty<string>(),
+            force: false,
+            workingDirectory: tmp.Path).ToList();
+
+        result.Should().ContainSingle(r => r.AbsolutePath == file && r.IsXamlExtension);
+    }
+
+    [Fact]
+    public void Directory_recursion_picks_up_axaml_files()
+    {
+        using var tmp = new TempDir();
+        File.WriteAllText(Path.Combine(tmp.Path, "a.xaml"), "<Root/>");
+        File.WriteAllText(Path.Combine(tmp.Path, "b.axaml"), "<Root/>");
+
+        var result = FileEnumerator.Enumerate(
+            positional: new[] { tmp.Path },
+            stdinPaths: null,
+            include: Array.Empty<string>(),
+            exclude: Array.Empty<string>(),
+            force: false,
+            workingDirectory: tmp.Path).ToList();
+
+        result.Select(r => Path.GetFileName(r.AbsolutePath)).Should().BeEquivalentTo(new[] { "a.xaml", "b.axaml" });
+        result.Should().OnlyContain(r => r.IsXamlExtension);
+    }
+
+    [Fact]
     public void Exclude_removes_matching_files()
     {
         using var tmp = new TempDir();
