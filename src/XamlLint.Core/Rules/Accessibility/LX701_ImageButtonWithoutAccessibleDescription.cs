@@ -22,6 +22,8 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
     {
         "AutomationProperties.Name",
         "AutomationProperties.HelpText",
+        "SemanticProperties.Description",
+        "SemanticProperties.Hint",
     };
 
     private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
