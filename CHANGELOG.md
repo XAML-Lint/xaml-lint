@@ -18,6 +18,8 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 ### Changed
 
 - [LX700](docs/rules/LX700.md) and [LX701](docs/rules/LX701.md) — `AutomationProperties.LabeledBy="{x:Reference <name>}"` now suppresses the rule only when the referenced name is declared in the same XAML name scope as the image. Dangling references (typo'd targets, deleted elements, cross-template references) now fire. Behaviour is unchanged for non-reference literals and for `{Binding …}` / other markup extensions.
+- [LX700](docs/rules/LX700.md), [LX701](docs/rules/LX701.md), and [LX702](docs/rules/LX702.md) — `AutomationProperties.LabeledBy="{Binding ElementName=<name>}"` is now recognised as an element reference on the same footing as `{x:Reference}` and scope-validated the same way. The `{Binding ElementName=…}` form is the dominant WPF element-reference idiom (predates `x:Reference`) and was previously swept under the permissive "any other markup extension suppresses" branch — dangling `ElementName` targets wrongly suppressed. `{Binding Path=…}` without `ElementName` still suppresses permissively since it can't be statically resolved to an element.
+- [LX702](docs/rules/LX702.md) — reverse-direction WPF labeling via `<Label Target="{x:Reference <name>}">` or `<Label Target="{Binding ElementName=<name>}">` now suppresses the diagnostic on the referenced `TextBox`. Matches the XAML runtime semantics where `Label.Target` wires the automation peer so screen readers announce the Label's content as the input's name. Scope isolation applies: a `Label` inside a `ControlTemplate` / `DataTemplate` only suppresses TextBoxes declared in the same template scope.
 
 ### Fixed
 

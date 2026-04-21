@@ -31,6 +31,7 @@ public sealed partial class LX702_TextBoxWithoutAccessibleDescription : IXamlRul
             if (HasNameEscape(element)) continue;
             if (HasSimplePresenceEscape(element)) continue;
             if (LabeledByEscapeHelper.Suppresses(element, context)) continue;
+            if (LabelTargetEscapeHelper.Suppresses(element, context)) continue;
 
             var span = LocationHelpers.GetElementNameSpan(element);
             yield return new Diagnostic(

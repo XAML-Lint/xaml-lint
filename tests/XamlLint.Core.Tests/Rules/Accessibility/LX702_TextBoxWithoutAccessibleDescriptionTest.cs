@@ -166,4 +166,70 @@ public sealed class LX702_TextBoxWithoutAccessibleDescriptionTest
             """,
             Dialect.Wpf);
     }
+
+    [Fact]
+    public void TextBox_with_resolvable_ElementName_Binding_LabeledBy_is_not_flagged()
+    {
+        // {Binding ElementName=Foo} is the dominant WPF element-reference idiom
+        // (x:Reference arrived later with XAML 2009). Treat it as equivalent for
+        // LabeledBy scope validation.
+        XamlDiagnosticVerifier<LX702_TextBoxWithoutAccessibleDescription>.Analyze(
+            """
+            <StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Label x:Name="UsernameLabel" Content="Username" />
+                <TextBox AutomationProperties.LabeledBy="{Binding ElementName=UsernameLabel}" />
+            </StackPanel>
+            """,
+            Dialect.Wpf);
+    }
+
+    [Fact]
+    public void TextBox_with_dangling_ElementName_Binding_LabeledBy_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX702_TextBoxWithoutAccessibleDescription>.Analyze(
+            """
+            <StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <[|TextBox|] AutomationProperties.LabeledBy="{Binding ElementName=MissingLabel}" />
+            </StackPanel>
+            """,
+            Dialect.Wpf);
+    }
+
+    [Fact]
+    public void TextBox_with_cross_template_ElementName_Binding_LabeledBy_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX702_TextBoxWithoutAccessibleDescription>.Analyze(
+            """
+            <ListBox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Label x:Name="ItemLabel" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Resources>
+                    <DataTemplate x:Key="t">
+                        <[|TextBox|] AutomationProperties.LabeledBy="{Binding ElementName=ItemLabel}" />
+                    </DataTemplate>
+                </ListBox.Resources>
+            </ListBox>
+            """,
+            Dialect.Wpf);
+    }
+
+    [Fact]
+    public void TextBox_with_Binding_without_ElementName_still_suppresses()
+    {
+        // Pure data-binding (no ElementName) can't be statically resolved to an element;
+        // the permissive "suppress" behaviour is retained.
+        XamlDiagnosticVerifier<LX702_TextBoxWithoutAccessibleDescription>.Analyze(
+            """
+            <StackPanel xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <TextBox AutomationProperties.LabeledBy="{Binding LabelElement}" />
+            </StackPanel>
+            """,
+            Dialect.Wpf);
+    }
 }

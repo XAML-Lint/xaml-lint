@@ -61,6 +61,19 @@ public sealed class XamlNameIndex
     }
 
     /// <summary>
+    /// Returns the element declaring <paramref name="name"/> in the innermost scope
+    /// enclosing <paramref name="referenceElement"/>, or <c>null</c> when the name isn't
+    /// declared in that scope (or the reference element isn't owned by the document tree).
+    /// First-one-wins semantics match <see cref="IsDefinedInScopeOf"/>.
+    /// </summary>
+    public XElement? ResolveInScopeOf(XElement referenceElement, string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        if (!_elementToScope.TryGetValue(referenceElement, out var scope)) return null;
+        return scope.Declarations.TryGetValue(name, out var el) ? el : null;
+    }
+
+    /// <summary>
     /// Enumerates every (name, declaring-element) pair across all scopes.
     /// </summary>
     public IEnumerable<(string Name, XElement DeclaringElement)> AllNames()
