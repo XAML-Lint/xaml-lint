@@ -113,4 +113,62 @@ public sealed class LX301_XUidCasingTest
             """,
             Dialect.WinUI3);
     }
+
+    [Fact]
+    public void Resw_namespace_scope_path_with_uppercase_key_is_not_flagged()
+    {
+        // /ResourceFile/Key is the documented UWP/WinUI resw namespace-scope form:
+        // the value's leading '/' routes the lookup to a named .resw; the casing
+        // convention applies to the key segment after the last '/'.
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <TextBlock x:Uid="/resources/Description" />
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
+
+    [Fact]
+    public void Resw_namespace_scope_path_with_lowercase_key_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <TextBlock [|x:Uid="/resources/description"|] />
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
+
+    [Fact]
+    public void Resw_namespace_scope_path_with_mixed_case_filename_and_lowercase_key_is_flagged()
+    {
+        // Only the segment after the final '/' is the resource key; a PascalCase
+        // .resw filename does not rescue a lowercase key.
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button [|x:Uid="/Resources/loginButton"|] />
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
+
+    [Fact]
+    public void Trailing_slash_resw_namespace_scope_path_is_not_flagged()
+    {
+        // No key segment to evaluate — don't fire.
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <TextBlock x:Uid="/resources/" />
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
 }
