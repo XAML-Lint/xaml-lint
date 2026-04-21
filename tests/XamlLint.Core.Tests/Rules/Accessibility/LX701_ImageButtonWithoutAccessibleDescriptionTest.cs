@@ -44,6 +44,30 @@ public sealed class LX701_ImageButtonWithoutAccessibleDescriptionTest
     }
 
     [Fact]
+    public void ImageButton_with_SemanticProperties_Description_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <ImageButton Source="icon.png" SemanticProperties.Description="Close" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void ImageButton_with_SemanticProperties_Hint_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <ImageButton Source="icon.png" SemanticProperties.Hint="Close the current dialog." />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void ImageButton_with_AutomationProperties_LabeledBy_is_not_flagged()
     {
         XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(

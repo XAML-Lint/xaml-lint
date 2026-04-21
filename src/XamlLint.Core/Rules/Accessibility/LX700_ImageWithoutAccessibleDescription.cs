@@ -22,6 +22,8 @@ public sealed partial class LX700_ImageWithoutAccessibleDescription : IXamlRule
     {
         "AutomationProperties.Name",
         "AutomationProperties.HelpText",
+        "SemanticProperties.Description",
+        "SemanticProperties.Hint",
     };
 
     private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";

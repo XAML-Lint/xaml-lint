@@ -44,6 +44,30 @@ public sealed class LX700_ImageWithoutAccessibleDescriptionTest
     }
 
     [Fact]
+    public void Image_with_SemanticProperties_Description_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Image Source="icon.png" SemanticProperties.Description="Cute dot net bot waving hi to you!" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Image_with_SemanticProperties_Hint_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Image Source="icon.png" SemanticProperties.Hint="Tap to return home." />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void Image_with_AutomationProperties_LabeledBy_is_not_flagged()
     {
         XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(

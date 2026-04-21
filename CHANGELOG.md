@@ -21,6 +21,7 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ### Fixed
 
+- [LX700](docs/rules/LX700.md) and [LX701](docs/rules/LX701.md) — MAUI's `SemanticProperties.Description` and `SemanticProperties.Hint` now suppress the rule. The idiomatic MAUI accessibility markup was previously flagged as missing even though `SemanticProperties.*` is the canonical way to attach an AT name/hint on MAUI. Matches LX703's existing behaviour.
 - [LX400](docs/rules/LX400.md) — values whose non-whitespace characters contain no letters and no digits are now treated as non-localisable chrome and skipped. Covers both icon-font glyphs in the Unicode Private Use Area (Segoe MDL2 Assets, Segoe Fluent Icons, Material Icons, FontAwesome, and similar) and UI-chrome punctuation like `"+"`, `"-"`, `":"`, `"&lt;&lt;"`. Single letters (`"X"`), digits (`"1"` localises to `"١"` in Arabic), and mixed values (`"+ Add"`) still fire.
 - `xaml-lint hook` no longer emits an `LX005` diagnostic for every non-XAML file Claude edits. The hook now short-circuits on any `tool_input.file_path` that doesn't end in `.xaml` (case-insensitive) before config discovery or the rule catalog load, writing an empty envelope to stdout. The `lint` subcommand's LX005 behavior is unchanged.
 - Hook empty-envelope response now reports the actual tool version instead of a hardcoded `"dev"` literal. Both empty-payload and non-XAML code paths go through `CompactJsonFormatter`, so the shape matches every other hook response.
