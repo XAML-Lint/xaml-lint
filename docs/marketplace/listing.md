@@ -8,7 +8,7 @@ A Claude Code plugin that lints XAML files — catch Grid-layout, binding, namin
 
 `xaml-lint` analyzes XAML files and reports common problems, so Claude catches them as it writes and edits views.
 
-The plugin installs a `PostToolUse` hook that runs `xaml-lint` on every `.xaml` file Claude writes or edits; diagnostics land back in context automatically, without any prompt. A `/xaml-lint:lint` slash command and an on-demand skill handle the cases where you want to check files manually.
+The plugin installs a `PostToolUse` hook that runs `xaml-lint` on every `.xaml` / `.axaml` file Claude writes or edits; diagnostics land back in context automatically, without any prompt. A `/xaml-lint:lint` slash command and an on-demand skill handle the cases where you want to check files manually.
 
 The rule catalog (20 IDs at v1) is derived from Matt Lacey's Rapid XAML Toolkit: Grid-layout sanity (`Grid.Row`/`Grid.Column` without matching definitions, spans exceeding available rows/columns), binding issues (`SelectedItem` should be `TwoWay`, prefer `x:Bind` on UWP/WinUI 3), naming (`x:Name` / `x:Uid` casing), resource-localization hints, input-control scope gaps, Slider/Stepper range checks, and deprecation warnings (`MediaElement` → `MediaPlayerElement`). Rules are dialect-gated; the WPF-primary, WinUI 3 / UWP / .NET MAUI rules only fire when those dialects are detected.
 

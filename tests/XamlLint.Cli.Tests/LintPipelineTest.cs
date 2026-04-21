@@ -32,6 +32,37 @@ public sealed class LintPipelineTest
     }
 
     [Fact]
+    public void Clean_axaml_is_linted_not_skipped_with_LX005()
+    {
+        // Avalonia .axaml is a first-class XAML extension — the pipeline must
+        // actually parse and analyse the file rather than emit LX005.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "a.axaml");
+        File.WriteAllText(file, "<UserControl xmlns=\"https://github.com/avaloniaui\" />");
+
+        var (exit, stdout) = Run(tmp, new[] { file });
+
+        exit.Should().Be(0);
+        stdout.Should().NotContain("LX005");
+        stdout.Should().Contain("\"results\": []");
+    }
+
+    [Fact]
+    public void Malformed_axaml_emits_LX001_not_LX005()
+    {
+        // Real proof the file hits the parser: a broken .axaml surfaces LX001.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "bad.axaml");
+        File.WriteAllText(file, "<UserControl>");
+
+        var (exit, stdout) = Run(tmp, new[] { file });
+
+        exit.Should().Be(1);
+        stdout.Should().Contain("LX001");
+        stdout.Should().NotContain("LX005");
+    }
+
+    [Fact]
     public void Non_xaml_without_force_emits_LX005_info()
     {
         using var tmp = new TempDir();

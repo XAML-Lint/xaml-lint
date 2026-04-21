@@ -34,7 +34,7 @@ Then, inside Claude Code:
 /plugin install xaml-lint@xaml-lint
 ```
 
-The bundled `PostToolUse` hook runs `xaml-lint` on every `.xaml` file Claude writes or edits and feeds diagnostics back into the conversation automatically. Use `/xaml-lint:lint <path-or-glob>` to trigger a manual lint.
+The bundled `PostToolUse` hook runs `xaml-lint` on every `.xaml` / `.axaml` file Claude writes or edits and feeds diagnostics back into the conversation automatically. Use `/xaml-lint:lint <path-or-glob>` to trigger a manual lint.
 
 ## Use from the CLI
 
