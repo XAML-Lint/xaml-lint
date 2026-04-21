@@ -1,3 +1,4 @@
+using System.Text;
 using XamlLint.Core.Helpers;
 
 namespace XamlLint.Core.Rules.Resources;
@@ -45,6 +46,7 @@ public sealed partial class LX400_HardcodedString : IXamlRule
                 var value = attr.Value;
                 if (string.IsNullOrWhiteSpace(value)) continue;
                 if (MarkupExtensionHelpers.IsMarkupExtension(value)) continue;
+                if (IsSymbolOrGlyph(value)) continue;
 
                 var span = LocationHelpers.GetAttributeSpan(attr, context.Source);
                 yield return new Diagnostic(
@@ -59,5 +61,27 @@ public sealed partial class LX400_HardcodedString : IXamlRule
                     HelpUri: Metadata.HelpUri);
             }
         }
+    }
+
+    // Values whose non-whitespace code points contain no letters and no digits aren't
+    // localisable prose. Covers two overlapping conventions:
+    //   - icon-font glyphs in the Unicode Private Use Area (Segoe MDL2 Assets, Segoe
+    //     Fluent Icons, Material Icons, FontAwesome, and similar) -- PUA code points
+    //     are not classified as letters or digits by Unicode category;
+    //   - UI-chrome punctuation like "+", "-", ":", "/" used as button captions or
+    //     separators.
+    // Letters and digits still fire: a single letter like "X" could be localisable copy,
+    // and a digit like "1" becomes different glyphs in Arabic/Thai/etc. locales. Mixed
+    // values such as "+ Add" fire because of the prose segment.
+    private static bool IsSymbolOrGlyph(string value)
+    {
+        var sawNonWhitespace = false;
+        foreach (var rune in value.EnumerateRunes())
+        {
+            if (Rune.IsWhiteSpace(rune)) continue;
+            sawNonWhitespace = true;
+            if (Rune.IsLetter(rune) || Rune.IsDigit(rune)) return false;
+        }
+        return sawNonWhitespace;
     }
 }
