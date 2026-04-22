@@ -46,7 +46,7 @@ public sealed class LX600_MediaElementDeprecatedTest
     [Fact]
     public void MediaElement_on_Wpf_is_not_flagged()
     {
-        // WPF's MediaElement is current; MediaPlayerElement is UWP/WinUI only.
+        // WPF's MediaElement is current; MediaPlayerElement is UWP/WinUI/Uno only.
         XamlDiagnosticVerifier<LX600_MediaElementDeprecated>.Analyze(
             """
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
@@ -54,6 +54,32 @@ public sealed class LX600_MediaElementDeprecatedTest
             </Grid>
             """,
             Dialect.Wpf);
+    }
+
+    [Fact]
+    public void MediaElement_on_Maui_is_not_flagged()
+    {
+        // MAUI's MediaElement (CommunityToolkit) is independent of the UWP/WinUI deprecation.
+        XamlDiagnosticVerifier<LX600_MediaElementDeprecated>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <MediaElement Source="video.mp4" />
+            </Grid>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void MediaElement_on_Avalonia_is_not_flagged()
+    {
+        // Avalonia does not ship MediaPlayerElement; the deprecation does not apply there.
+        XamlDiagnosticVerifier<LX600_MediaElementDeprecated>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <MediaElement Source="video.mp4" />
+            </Grid>
+            """,
+            Dialect.Avalonia);
     }
 
     [Fact]

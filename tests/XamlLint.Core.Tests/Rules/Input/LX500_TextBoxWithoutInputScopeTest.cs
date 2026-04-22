@@ -46,7 +46,7 @@ public sealed class LX500_TextBoxWithoutInputScopeTest
     [Fact]
     public void TextBox_without_InputScope_on_Wpf_is_not_flagged()
     {
-        // InputScope is a UWP/WinUI concept — meaningless on WPF.
+        // InputScope is a UWP/WinUI/Uno concept — meaningless on WPF.
         XamlDiagnosticVerifier<LX500_TextBoxWithoutInputScope>.Analyze(
             """
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
@@ -54,6 +54,32 @@ public sealed class LX500_TextBoxWithoutInputScopeTest
             </Grid>
             """,
             Dialect.Wpf);
+    }
+
+    [Fact]
+    public void TextBox_without_InputScope_on_Maui_is_not_flagged()
+    {
+        // MAUI uses Entry.Keyboard (LX503) rather than TextBox.InputScope.
+        XamlDiagnosticVerifier<LX500_TextBoxWithoutInputScope>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <TextBox />
+            </Grid>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void TextBox_without_InputScope_on_Avalonia_is_not_flagged()
+    {
+        // Avalonia does not surface InputScope; the rule's dialect mask filters it out.
+        XamlDiagnosticVerifier<LX500_TextBoxWithoutInputScope>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <TextBox />
+            </Grid>
+            """,
+            Dialect.Avalonia);
     }
 
     [Fact]

@@ -48,7 +48,7 @@ public sealed class LX301_XUidCasingTest
     [Fact]
     public void Lowercase_x_Uid_on_Wpf_is_not_flagged()
     {
-        // x:Uid's casing convention is a UWP/WinUI .resw concern; the rule's Dialects mask filters WPF out.
+        // x:Uid's casing convention is a UWP/WinUI/Uno .resw concern; the rule's Dialects mask filters WPF out.
         XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
             """
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -57,6 +57,34 @@ public sealed class LX301_XUidCasingTest
             </Grid>
             """,
             Dialect.Wpf);
+    }
+
+    [Fact]
+    public void Lowercase_x_Uid_on_Maui_is_not_flagged()
+    {
+        // MAUI localization doesn't use .resw; x:Uid has no framework meaning there.
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button x:Uid="loginButton" />
+            </Grid>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Lowercase_x_Uid_on_Avalonia_is_not_flagged()
+    {
+        // Avalonia doesn't use .resw; the rule's dialect mask filters it out.
+        XamlDiagnosticVerifier<LX301_XUidCasing>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <Button x:Uid="loginButton" />
+            </Grid>
+            """,
+            Dialect.Avalonia);
     }
 
     [Fact]

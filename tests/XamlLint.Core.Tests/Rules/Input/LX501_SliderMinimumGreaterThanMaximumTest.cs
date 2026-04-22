@@ -44,14 +44,37 @@ public sealed class LX501_SliderMinimumGreaterThanMaximumTest
     [Fact]
     public void Minimum_greater_than_Maximum_on_WinUI3_is_not_flagged()
     {
-        // LX501's dialects are Wpf + Maui only — UWP/WinUI raise a runtime exception on this
-        // state, so static analysis is redundant there.
+        // LX501's dialects are WPF + MAUI + Avalonia — UWP/WinUI/Uno raise a runtime exception
+        // on this state, so static analysis is redundant there.
         XamlDiagnosticVerifier<LX501_SliderMinimumGreaterThanMaximum>.Analyze(
             """
             <Slider xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     Minimum="10" Maximum="5" />
             """,
             Dialect.WinUI3);
+    }
+
+    [Fact]
+    public void Minimum_greater_than_Maximum_on_Uwp_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX501_SliderMinimumGreaterThanMaximum>.Analyze(
+            """
+            <Slider xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    Minimum="10" Maximum="5" />
+            """,
+            Dialect.Uwp);
+    }
+
+    [Fact]
+    public void Minimum_greater_than_Maximum_on_Uno_is_not_flagged()
+    {
+        // Uno inherits the UWP/WinUI runtime-exception behavior — redundant to lint.
+        XamlDiagnosticVerifier<LX501_SliderMinimumGreaterThanMaximum>.Analyze(
+            """
+            <Slider xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    Minimum="10" Maximum="5" />
+            """,
+            Dialect.Uno);
     }
 
     [Fact]
