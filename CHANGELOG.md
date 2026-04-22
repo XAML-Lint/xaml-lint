@@ -10,6 +10,10 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ### Added
 
+- CLI `--rule <ID>:<severity>` flag for ad-hoc rule-severity overrides. Severity values: `off` / `info` / `warning` / `error`. Repeatable and CSV-stackable on the short form (`--rule LX100:warning,LX200:off`); object form `--rule '{"ID":"severity",...}'` mirrors the `xaml-lint.config.json` `rules:` schema for forward-compatibility with future rule options. Applied on top of config-resolved severities, below inline pragmas.
+- CLI `--preset <recommended|strict|none>` flag. Overrides any `extends:` in the config file. `none` disables every rule; combine with `--rule` to build an isolated rule set for one invocation.
+- CLI `--no-inline-config` flag. Ignores `<!-- xaml-lint disable ... -->` pragmas inside source files — useful for CI audit passes that want to see the unvarnished diagnostic set.
+- CLI `-c` short alias for `--config`.
 - [LX702](docs/rules/LX702.md) — TextBox lacks accessibility description. Covers WPF, WinUI 3, UWP, Avalonia, and Uno (MAUI is covered by LX703). Port of upstream RXT601. Off by default in `:recommended`.
 - [LX703](docs/rules/LX703.md) — Entry lacks accessibility description. MAUI-original sibling to LX702. Off by default in `:recommended`.
 - [LX800](docs/rules/LX800.md) — Uno platform XML namespace must be `mc:Ignorable`. Port of upstream RXT700; opens the Platform category (LX800–LX899). On in `:recommended` at `warning`.
@@ -17,6 +21,8 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ### Changed
 
+- CLI `--only` is now a shorthand for `--preset none --no-config-lookup --rule ID:<severity>...` rather than a pure output filter. Bare IDs use the rule's `DefaultSeverity`; explicit severities (`--only LX700:warning`) override. Mutually exclusive with `--preset` / `--rule` / `--config` / `--no-config-lookup`. The old filter-only `--only` is gone — prior usage that relied on it respecting `xaml-lint.config.json`'s on/off switch will see different behaviour.
+- CLI `--no-config` renamed to `--no-config-lookup` (matches eslint). **Breaking.**
 - Dialect coverage corrections, verified against official documentation (`unoplatform/uno` docs and `AvaloniaUI/Avalonia` source):
   - [LX201](docs/rules/LX201.md) (Prefer x:Bind over Binding) now applies to Uno Platform in addition to UWP and WinUI 3 — Uno supports `{x:Bind}` via its WinUI-compatible compiler.
   - [LX301](docs/rules/LX301.md) (x:Uid casing) now applies to Uno Platform — Uno uses UWP-style `x:Uid` + `.resw` localization.
