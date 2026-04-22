@@ -50,8 +50,8 @@ internal static class HookCommand
             Paths: new[] { filePath },
             ReadFromStdin: false,
             Format: OutputFormat.CompactJson,
-            OutputPath: null, ConfigPath: null, NoConfig: false,
-            Dialect: null, OnlyRules: null,
+            OutputPath: null, ConfigPath: null, NoConfigLookup: false,
+            Dialect: null, Overrides: CliOverrides.Empty,
             Include: Array.Empty<string>(), Exclude: Array.Empty<string>(),
             Verbosity: Verbosity.Normal, Force: false);
 

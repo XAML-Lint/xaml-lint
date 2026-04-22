@@ -93,8 +93,8 @@ public sealed class LintPipelineTest
             Paths: args.ToList(),
             ReadFromStdin: false,
             Format: OutputFormat.CompactJson,
-            OutputPath: null, ConfigPath: null, NoConfig: false,
-            Dialect: null, OnlyRules: null,
+            OutputPath: null, ConfigPath: null, NoConfigLookup: false,
+            Dialect: null, Overrides: CliOverrides.Empty,
             Include: Array.Empty<string>(), Exclude: Array.Empty<string>(),
             Verbosity: Verbosity.Normal, Force: false);
 

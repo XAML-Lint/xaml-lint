@@ -28,11 +28,11 @@ public sealed class LintPipeline
 
         // 1. Config
         var loader = new ConfigLoader();
-        var loaded = opts.NoConfig
-            ? loader.LoadFallback(catalogIds)
+        var loaded = opts.NoConfigLookup
+            ? loader.LoadFallback(catalogIds, opts.Overrides.PresetOverride)
             : opts.ConfigPath is not null
-                ? loader.Load(opts.ConfigPath, catalogIds)
-                : loader.Discover(_workingDirectory, catalogIds);
+                ? loader.Load(opts.ConfigPath, catalogIds, opts.Overrides.PresetOverride)
+                : loader.Discover(_workingDirectory, catalogIds, opts.Overrides.PresetOverride);
 
         var allDiagnostics = new List<Diagnostic>(loaded.Diagnostics);
         var suppressedForSarif = new List<Diagnostic>();
@@ -107,10 +107,20 @@ public sealed class LintPipeline
             }
 
             var effective = ConfigLoader.ApplyOverridesForFile(loaded.Config, ef.AbsolutePath, _workingDirectory);
-            if (opts.OnlyRules is { Count: > 0 })
-                effective = effective.Where(kv => opts.OnlyRules.Contains(kv.Key)).ToDictionary(k => k.Key, v => v.Value);
+            if (opts.Overrides.RuleSeverities.Count > 0)
+            {
+                var combined = new Dictionary<string, Severity>(effective, StringComparer.Ordinal);
+                foreach (var kv in opts.Overrides.RuleSeverities)
+                {
+                    if (kv.Value is null) combined.Remove(kv.Key);
+                    else combined[kv.Key] = kv.Value.Value;
+                }
+                effective = combined;
+            }
 
-            var pragma = PragmaParser.Parse(doc);
+            var pragma = opts.Overrides.NoInlineConfig
+                ? new PragmaParser.PragmaParseResult(new SuppressionMap(), Array.Empty<Diagnostic>())
+                : PragmaParser.Parse(doc);
             allDiagnostics.AddRange(pragma.Diagnostics);
 
             var frameworkMajorVersion = ResolveFrameworkMajorVersion(loaded.Config, ef.AbsolutePath, _workingDirectory);
