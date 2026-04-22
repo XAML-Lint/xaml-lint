@@ -114,6 +114,36 @@ public sealed class ConfigLoaderTest
         unmatched["LX001"].Should().Be(Severity.Error);
     }
 
+    [Fact]
+    public void Cli_preset_override_replaces_extends()
+    {
+        using var tmp = new TempDir();
+        File.WriteAllText(Path.Combine(tmp.Path, "xaml-lint.config.json"), """
+            { "extends": "xaml-lint:recommended", "defaultDialect": "wpf" }
+            """);
+        var loader = new ConfigLoader();
+
+        var recommended = loader.Discover(tmp.Path, CatalogIds);
+        var forcedOff   = loader.Discover(tmp.Path, CatalogIds, cliPresetOverride: "xaml-lint:off");
+
+        // recommended ships LX001 at Error; the :off preset drops it entirely.
+        recommended.Config!.RuleSeverities.Should().ContainKey("LX001");
+        forcedOff.Config!.RuleSeverities.Should().NotContainKey("LX001");
+    }
+
+    [Fact]
+    public void Cli_preset_override_applies_on_fallback_too()
+    {
+        using var tmp = new TempDir(); // no config file on disk
+        var loader = new ConfigLoader();
+
+        var fallback = loader.Discover(tmp.Path, CatalogIds);
+        var forcedOff = loader.Discover(tmp.Path, CatalogIds, cliPresetOverride: "xaml-lint:off");
+
+        fallback.Config!.RuleSeverities.Should().ContainKey("LX001");
+        forcedOff.Config!.RuleSeverities.Should().NotContainKey("LX001");
+    }
+
     private sealed class TempDir : IDisposable
     {
         public string Path { get; } = Directory.CreateTempSubdirectory("xaml-lint-test-").FullName;
