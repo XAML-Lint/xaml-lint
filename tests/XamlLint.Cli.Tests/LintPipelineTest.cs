@@ -1,5 +1,6 @@
 using XamlLint.Cli;
 using XamlLint.Cli.Commands;
+using XamlLint.Core;
 
 namespace XamlLint.Cli.Tests;
 
@@ -85,6 +86,95 @@ public sealed class LintPipelineTest
         var (exit, _) = Run(tmp, new[] { Path.Combine(tmp.Path, "a.xaml") });
 
         exit.Should().Be(2);
+    }
+
+    [Fact]
+    public void Cli_rule_override_turns_a_rule_on_when_preset_has_it_off()
+    {
+        // LX702 is DefaultEnabled=false → absent from :recommended. Force it on via --rule.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "a.xaml");
+        File.WriteAllText(file, """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+              <TextBox />
+            </Grid>
+            """);
+
+        var (exit, stdout) = RunWith(tmp, new[] { file }, opts => opts with
+        {
+            Dialect = "wpf",
+            Overrides = new CliOverrides(
+                PresetOverride: null,
+                RuleSeverities: new Dictionary<string, Severity?> { ["LX702"] = Severity.Warning },
+                NoInlineConfig: false),
+        });
+
+        stdout.Should().Contain("LX702");
+        exit.Should().Be(0); // warning doesn't bump exit code
+    }
+
+    [Fact]
+    public void Cli_rule_override_turns_a_rule_off_when_preset_has_it_on()
+    {
+        // LX001 is enabled at error under :recommended; --rule LX001:off should silence it
+        // even on a malformed file.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "bad.xaml");
+        File.WriteAllText(file, "<Grid>");
+
+        var (exit, stdout) = RunWith(tmp, new[] { file }, opts => opts with
+        {
+            Overrides = new CliOverrides(
+                PresetOverride: null,
+                RuleSeverities: new Dictionary<string, Severity?> { ["LX001"] = null },
+                NoInlineConfig: false),
+        });
+
+        stdout.Should().NotContain("LX001");
+        exit.Should().Be(0);
+    }
+
+    [Fact]
+    public void No_inline_config_ignores_disable_pragmas()
+    {
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "a.xaml");
+        File.WriteAllText(file, """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+              <!-- xaml-lint disable LX100 -->
+              <Button Grid.Row="5" />
+            </Grid>
+            """);
+
+        var (exit1, stdout1) = RunWith(tmp, new[] { file }, opts => opts with { Dialect = "wpf" });
+        var (exit2, stdout2) = RunWith(tmp, new[] { file }, opts => opts with
+        {
+            Dialect = "wpf",
+            Overrides = CliOverrides.Empty with { NoInlineConfig = true },
+        });
+
+        // Pragma honoured by default → no LX100.
+        stdout1.Should().NotContain("LX100");
+        // With --no-inline-config → LX100 fires.
+        stdout2.Should().Contain("LX100");
+    }
+
+    private static (int Exit, string Stdout) RunWith(TempDir tmp, string[] args, Func<LintOptions, LintOptions> customize)
+    {
+        var baseOpts = new LintOptions(
+            Paths: args.ToList(),
+            ReadFromStdin: false,
+            Format: OutputFormat.CompactJson,
+            OutputPath: null, ConfigPath: null, NoConfigLookup: false,
+            Dialect: null, Overrides: CliOverrides.Empty,
+            Include: Array.Empty<string>(), Exclude: Array.Empty<string>(),
+            Verbosity: Verbosity.Normal, Force: false);
+
+        using var stdout = new StringWriter();
+        using var stdin = new StringReader("");
+        var pipeline = new LintPipeline(stdout, stdin, tmp.Path);
+        var exit = pipeline.Run(customize(baseOpts));
+        return (exit, stdout.ToString());
     }
 
     private static (int Exit, string Stdout) Run(TempDir tmp, string[] args)

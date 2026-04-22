@@ -40,7 +40,13 @@ public sealed class LintPipeline
         if (loaded.Config is null)
             return FinalizeAndExit(opts, allDiagnostics, suppressedForSarif, toolFailure: true);
 
-        var severityMap = loaded.Config.RuleSeverities;
+        // Apply CLI rule overlay to the base severity map once, upstream of everything that
+        // reads it — tool-level diagnostics (LX001/LX004/LX005) and the per-file overlay
+        // used by the dispatcher both see it.
+        var config = opts.Overrides.RuleSeverities.Count > 0
+            ? loaded.Config with { RuleSeverities = ApplyRuleOverlay(loaded.Config.RuleSeverities, opts.Overrides.RuleSeverities) }
+            : loaded.Config;
+        var severityMap = config.RuleSeverities;
 
         // 2. File enumeration (stdin only if "-" in positional)
         var stdinPaths = opts.ReadFromStdin
@@ -106,24 +112,15 @@ public sealed class LintPipeline
                 continue;
             }
 
-            var effective = ConfigLoader.ApplyOverridesForFile(loaded.Config, ef.AbsolutePath, _workingDirectory);
-            if (opts.Overrides.RuleSeverities.Count > 0)
-            {
-                var combined = new Dictionary<string, Severity>(effective, StringComparer.Ordinal);
-                foreach (var kv in opts.Overrides.RuleSeverities)
-                {
-                    if (kv.Value is null) combined.Remove(kv.Key);
-                    else combined[kv.Key] = kv.Value.Value;
-                }
-                effective = combined;
-            }
+            // ApplyOverridesForFile reads config.RuleSeverities (already CLI-overlaid above).
+            var effective = ConfigLoader.ApplyOverridesForFile(config, ef.AbsolutePath, _workingDirectory);
 
             var pragma = opts.Overrides.NoInlineConfig
                 ? new PragmaParser.PragmaParseResult(new SuppressionMap(), Array.Empty<Diagnostic>())
                 : PragmaParser.Parse(doc);
             allDiagnostics.AddRange(pragma.Diagnostics);
 
-            var frameworkMajorVersion = ResolveFrameworkMajorVersion(loaded.Config, ef.AbsolutePath, _workingDirectory);
+            var frameworkMajorVersion = ResolveFrameworkMajorVersion(config, ef.AbsolutePath, _workingDirectory);
             var raw = dispatcher.Dispatch(doc, pragma.Map, effective, frameworkMajorVersion);
 
             foreach (var d in raw)
@@ -198,6 +195,19 @@ public sealed class LintPipeline
             if (line.Length > 0) lines.Add(line);
         }
         return lines;
+    }
+
+    private static IReadOnlyDictionary<string, Severity> ApplyRuleOverlay(
+        IReadOnlyDictionary<string, Severity> baseMap,
+        IReadOnlyDictionary<string, Severity?> overlay)
+    {
+        var combined = new Dictionary<string, Severity>(baseMap, StringComparer.Ordinal);
+        foreach (var kv in overlay)
+        {
+            if (kv.Value is null) combined.Remove(kv.Key);
+            else combined[kv.Key] = kv.Value.Value;
+        }
+        return combined;
     }
 
     private static Dialect? ParseCliDialect(string? raw) => raw?.ToLowerInvariant() switch
