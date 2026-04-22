@@ -43,7 +43,7 @@ public sealed class LX201_PreferXBindTest
     [Fact]
     public void Binding_on_Wpf_is_not_flagged()
     {
-        // LX201 targets UWP/WinUI 3 only; the dispatcher's Dialects-mask gate filters WPF out
+        // LX201 targets UWP/WinUI 3/Uno only; the dispatcher's Dialects-mask gate filters WPF out
         // before the rule even runs, so no diagnostic is emitted.
         XamlDiagnosticVerifier<LX201_PreferXBind>.Analyze(
             """
@@ -51,6 +51,30 @@ public sealed class LX201_PreferXBindTest
                     Content="{Binding Label}" />
             """,
             Dialect.Wpf);
+    }
+
+    [Fact]
+    public void Binding_on_Maui_is_not_flagged()
+    {
+        // MAUI has no {x:Bind}; the rule is deliberately scoped away from it.
+        XamlDiagnosticVerifier<LX201_PreferXBind>.Analyze(
+            """
+            <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    Content="{Binding Label}" />
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Binding_on_Avalonia_is_not_flagged()
+    {
+        // Avalonia has no {x:Bind}; the rule is deliberately scoped away from it.
+        XamlDiagnosticVerifier<LX201_PreferXBind>.Analyze(
+            """
+            <Button xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    Content="{Binding Label}" />
+            """,
+            Dialect.Avalonia);
     }
 
     [Fact]
