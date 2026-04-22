@@ -10,39 +10,32 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ### Added
 
-- CLI `--rule <ID>:<severity>` flag for ad-hoc rule-severity overrides. Severity values: `off` / `info` / `warning` / `error`. Repeatable and CSV-stackable on the short form (`--rule LX100:warning,LX200:off`); object form `--rule '{"ID":"severity",...}'` mirrors the `xaml-lint.config.json` `rules:` schema for forward-compatibility with future rule options. Applied on top of config-resolved severities, below inline pragmas.
-- CLI `--preset <recommended|strict|none>` flag. Overrides any `extends:` in the config file. `none` disables every rule; combine with `--rule` to build an isolated rule set for one invocation.
-- CLI `--no-inline-config` flag. Ignores `<!-- xaml-lint disable ... -->` pragmas inside source files — useful for CI audit passes that want to see the unvarnished diagnostic set.
-- CLI `-c` short alias for `--config`.
-- [LX702](docs/rules/LX702.md) — TextBox lacks accessibility description. Covers WPF, WinUI 3, UWP, Avalonia, and Uno (MAUI is covered by LX703). Port of upstream RXT601. Off by default in `:recommended`.
-- [LX703](docs/rules/LX703.md) — Entry lacks accessibility description. MAUI-original sibling to LX702. Off by default in `:recommended`.
-- [LX800](docs/rules/LX800.md) — Uno platform XML namespace must be `mc:Ignorable`. Port of upstream RXT700; opens the Platform category (LX800–LX899). On in `:recommended` at `warning`.
-- Scope-aware `XamlNameIndex` infrastructure backing `{x:Reference}` validation. Templates (`ControlTemplate`/`DataTemplate`/`ItemsPanelTemplate`/`HierarchicalDataTemplate`) isolate names from the outer scope — cross-template references are rejected, matching XAML runtime semantics.
+- `--rule ID:severity` CLI flag for ad-hoc rule-severity overrides; repeatable, CSV-stackable, and also accepts an `--rule '{"ID":"severity"}'` object form mirroring the config's `rules:` schema
+- `--preset recommended|strict|none` CLI flag to override the config's `extends:` per invocation
+- `--no-inline-config` CLI flag to ignore `<!-- xaml-lint disable ... -->` pragmas
+- `-c` short alias for `--config`
+- [LX702](docs/rules/LX702.md) — TextBox lacks accessibility description (WPF/WinUI 3/UWP/Avalonia/Uno; off by default)
+- [LX703](docs/rules/LX703.md) — Entry lacks accessibility description (MAUI; off by default)
+- [LX800](docs/rules/LX800.md) — Uno platform XML namespace must be `mc:Ignorable`; opens the Platform category
+- Scope-aware `XamlNameIndex` for `{x:Reference}` validation; templates isolate names from the outer scope, matching the XAML runtime
 
 ### Changed
 
-- CLI `--only` is now a shorthand for `--preset none --no-config-lookup --rule ID:<severity>...` rather than a pure output filter. Bare IDs use the rule's `DefaultSeverity`; explicit severities (`--only LX700:warning`) override. Mutually exclusive with `--preset` / `--rule` / `--config` / `--no-config-lookup`. The old filter-only `--only` is gone — prior usage that relied on it respecting `xaml-lint.config.json`'s on/off switch will see different behaviour.
-- CLI `--no-config` renamed to `--no-config-lookup` (matches eslint). **Breaking.**
-- Dialect coverage corrections, verified against official documentation (`unoplatform/uno` docs and `AvaloniaUI/Avalonia` source):
-  - [LX201](docs/rules/LX201.md) (Prefer x:Bind over Binding) now applies to Uno Platform in addition to UWP and WinUI 3 — Uno supports `{x:Bind}` via its WinUI-compatible compiler.
-  - [LX301](docs/rules/LX301.md) (x:Uid casing) now applies to Uno Platform — Uno uses UWP-style `x:Uid` + `.resw` localization.
-  - [LX500](docs/rules/LX500.md) (TextBox lacks InputScope) now applies to Uno Platform — `Windows.Input.InputScopeNameValue` is fully implemented across all Uno platform heads.
-  - [LX501](docs/rules/LX501.md) (Slider Min > Max) now applies to Avalonia — Avalonia's `RangeBase.CoerceMaximum` silently clamps Max up to Min via `Math.Max`, so an inconsistent pair authored in XAML quietly loses the stated range at runtime.
-  - [LX600](docs/rules/LX600.md) (MediaElement deprecated) now applies to Uno Platform — Uno inherits the UWP/WinUI deprecation and also ships `MediaPlayerElement` as the preferred control.
-  - [LX601](docs/rules/LX601.md) (Line.Fill has no effect) now applies to all dialects — a line's geometry has zero interior area, so `Fill` is a universal no-op across WPF, WinUI 3, UWP, MAUI, Avalonia, and Uno. Previously MAUI-only, which missed the same bug on every other dialect.
-  - [LX700](docs/rules/LX700.md) (Image lacks accessibility description) now applies to all dialects — `AutomationProperties.Name`/`HelpText`/`LabeledBy` exist across WPF, WinUI 3, UWP, MAUI, Avalonia, and Uno.
-- [LX700](docs/rules/LX700.md) and [LX701](docs/rules/LX701.md) — `AutomationProperties.LabeledBy="{x:Reference <name>}"` now suppresses the rule only when the referenced name is declared in the same XAML name scope as the image. Dangling references (typo'd targets, deleted elements, cross-template references) now fire. Behaviour is unchanged for non-reference literals and for `{Binding …}` / other markup extensions.
-- [LX700](docs/rules/LX700.md), [LX701](docs/rules/LX701.md), and [LX702](docs/rules/LX702.md) — `AutomationProperties.LabeledBy="{Binding ElementName=<name>}"` is now recognised as an element reference on the same footing as `{x:Reference}` and scope-validated the same way. The `{Binding ElementName=…}` form is the dominant WPF element-reference idiom (predates `x:Reference`) and was previously swept under the permissive "any other markup extension suppresses" branch — dangling `ElementName` targets wrongly suppressed. `{Binding Path=…}` without `ElementName` still suppresses permissively since it can't be statically resolved to an element.
-- [LX702](docs/rules/LX702.md) — reverse-direction WPF labeling via `<Label Target="{x:Reference <name>}">` or `<Label Target="{Binding ElementName=<name>}">` now suppresses the diagnostic on the referenced `TextBox`. Matches the XAML runtime semantics where `Label.Target` wires the automation peer so screen readers announce the Label's content as the input's name. Scope isolation applies: a `Label` inside a `ControlTemplate` / `DataTemplate` only suppresses TextBoxes declared in the same template scope.
+- `--only` is now shorthand for `--preset none --no-config-lookup --rule ID:<severity>...` instead of a filter; bare IDs use the rule's `DefaultSeverity`. **Breaking.**
+- `--no-config` renamed to `--no-config-lookup` to match eslint. **Breaking.**
+- Dialect scope widened on seven rules per official-doc verification: [LX201](docs/rules/LX201.md), [LX301](docs/rules/LX301.md), [LX500](docs/rules/LX500.md), and [LX600](docs/rules/LX600.md) now apply to Uno; [LX501](docs/rules/LX501.md) now applies to Avalonia; [LX601](docs/rules/LX601.md) and [LX700](docs/rules/LX700.md) now apply to all dialects
+- [LX700](docs/rules/LX700.md) / [LX701](docs/rules/LX701.md) — `AutomationProperties.LabeledBy="{x:Reference <name>}"` suppresses only when the target exists in the same XAML name scope; dangling or cross-template references now fire
+- [LX700](docs/rules/LX700.md) / [LX701](docs/rules/LX701.md) / [LX702](docs/rules/LX702.md) — `{Binding ElementName=<name>}` is scope-validated the same way as `{x:Reference}`; dangling `ElementName` targets now fire
+- [LX702](docs/rules/LX702.md) — reverse-direction WPF labeling via `<Label Target="{x:Reference <name>}">` or `<Label Target="{Binding ElementName=<name>}">` suppresses the diagnostic on the referenced `TextBox`, with template-scope isolation
 
 ### Fixed
 
-- [LX700](docs/rules/LX700.md) and [LX701](docs/rules/LX701.md) — MAUI's `SemanticProperties.Description` and `SemanticProperties.Hint` now suppress the rule. The idiomatic MAUI accessibility markup was previously flagged as missing even though `SemanticProperties.*` is the canonical way to attach an AT name/hint on MAUI. Matches LX703's existing behaviour.
-- [LX301](docs/rules/LX301.md) — no longer false-positives on UWP/WinUI `x:Uid` values in the `/ResourceFile/Key` resw namespace-scope form. The casing convention now applies to the resource key (the segment after the final `/`) instead of the leading `/` character; `x:Uid="/resources/Description"` is compliant, `x:Uid="/resources/description"` still fires.
-- Avalonia `.axaml` files are now linted as first-class XAML. Previously every `.axaml` path emitted [LX005](docs/rules/LX005.md) ("Skipping non-XAML file") and the rule pipeline never ran against it — even under `--force`. Both the CLI (positional paths, directory recursion) and the Claude Code hook now accept `.axaml` alongside `.xaml`.
-- [LX400](docs/rules/LX400.md) — values whose non-whitespace characters contain no letters and no digits are now treated as non-localisable chrome and skipped. Covers both icon-font glyphs in the Unicode Private Use Area (Segoe MDL2 Assets, Segoe Fluent Icons, Material Icons, FontAwesome, and similar) and UI-chrome punctuation like `"+"`, `"-"`, `":"`, `"&lt;&lt;"`. Single letters (`"X"`), digits (`"1"` localises to `"١"` in Arabic), and mixed values (`"+ Add"`) still fire.
-- `xaml-lint hook` no longer emits an `LX005` diagnostic for every non-XAML file Claude edits. The hook now short-circuits on any `tool_input.file_path` that doesn't end in `.xaml` (case-insensitive) before config discovery or the rule catalog load, writing an empty envelope to stdout. The `lint` subcommand's LX005 behavior is unchanged.
-- Hook empty-envelope response now reports the actual tool version instead of a hardcoded `"dev"` literal. Both empty-payload and non-XAML code paths go through `CompactJsonFormatter`, so the shape matches every other hook response.
+- [LX700](docs/rules/LX700.md) / [LX701](docs/rules/LX701.md) — MAUI's `SemanticProperties.Description` and `SemanticProperties.Hint` now suppress the rule, matching LX703
+- [LX301](docs/rules/LX301.md) — no longer flags UWP/WinUI `x:Uid` values in the `/ResourceFile/Key` resw namespace-scope form; only the trailing key segment is cased-checked
+- Avalonia `.axaml` files are now linted as first-class XAML instead of always emitting [LX005](docs/rules/LX005.md) ("Skipping non-XAML file")
+- [LX400](docs/rules/LX400.md) — values with no letters and no digits (Unicode PUA icon glyphs, UI-chrome punctuation like `"+"`/`":"`) are treated as non-localisable chrome and skipped
+- `xaml-lint hook` no longer emits LX005 for every non-XAML file Claude edits; non-XAML paths short-circuit to an empty envelope before config/catalog load
+- `xaml-lint hook` empty-envelope response now reports the actual tool version instead of the hardcoded `"dev"` literal
 
 ## [1.0.0] - 2026-04-19
 
