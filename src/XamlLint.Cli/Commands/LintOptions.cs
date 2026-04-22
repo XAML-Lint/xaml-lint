@@ -10,9 +10,9 @@ public sealed record LintOptions(
     OutputFormat? Format,        // null = TTY-sensitive default
     string? OutputPath,          // null = stdout
     string? ConfigPath,
-    bool NoConfig,
+    bool NoConfigLookup,
     string? Dialect,
-    IReadOnlyList<string>? OnlyRules,
+    CliOverrides Overrides,
     IReadOnlyList<string> Include,
     IReadOnlyList<string> Exclude,
     Verbosity Verbosity,

@@ -18,16 +18,16 @@ public sealed class ConfigLoader
 
     public sealed record LoadResult(ResolvedConfig? Config, IReadOnlyList<Diagnostic> Diagnostics);
 
-    public LoadResult Discover(string startDirectory, IReadOnlyList<string> catalogRuleIds)
+    public LoadResult Discover(string startDirectory, IReadOnlyList<string> catalogRuleIds, string? cliPresetOverride = null)
     {
         var configPath = WalkUp(startDirectory);
         if (configPath is null)
-            return LoadFallback(catalogRuleIds);
+            return LoadFallback(catalogRuleIds, cliPresetOverride);
 
-        return Load(configPath, catalogRuleIds);
+        return Load(configPath, catalogRuleIds, cliPresetOverride);
     }
 
-    public LoadResult Load(string configPath, IReadOnlyList<string> catalogRuleIds)
+    public LoadResult Load(string configPath, IReadOnlyList<string> catalogRuleIds, string? cliPresetOverride = null)
     {
         var diags = new List<Diagnostic>();
         ConfigDocument doc;
@@ -58,7 +58,7 @@ public sealed class ConfigLoader
             return new LoadResult(null, diags);
         }
 
-        var effective = ResolveSeverities(doc, catalogRuleIds, configPath, diags);
+        var effective = ResolveSeverities(doc, catalogRuleIds, configPath, diags, cliPresetOverride);
         var overrides = ResolveOverrides(doc.Overrides ?? Array.Empty<OverrideEntry>(), catalogRuleIds, configPath, diags);
 
         if (diags.Any(d => d.Severity == Severity.Error))
@@ -69,17 +69,18 @@ public sealed class ConfigLoader
             diags);
     }
 
-    public LoadResult LoadFallback(IReadOnlyList<string> catalogRuleIds)
+    public LoadResult LoadFallback(IReadOnlyList<string> catalogRuleIds, string? cliPresetOverride = null)
     {
         // 1) Try the user-global config (spec §5.1).
         var userGlobal = UserGlobalConfigPath();
         if (userGlobal is not null && File.Exists(userGlobal))
-            return Load(userGlobal, catalogRuleIds);
+            return Load(userGlobal, catalogRuleIds, cliPresetOverride);
 
-        // 2) Otherwise use the bundled "recommended" preset as final fallback.
-        var recommended = PresetProfiles.Load("xaml-lint:recommended");
+        // 2) Otherwise use the configured or bundled "recommended" preset as final fallback.
+        var fallbackPreset = cliPresetOverride ?? "xaml-lint:recommended";
+        var recommended = PresetProfiles.Load(fallbackPreset);
         var diags = new List<Diagnostic>();
-        var severities = ResolveSeverities(recommended, catalogRuleIds, "xaml-lint:recommended", diags);
+        var severities = ResolveSeverities(recommended, catalogRuleIds, fallbackPreset, diags, cliPresetOverride: null);
         return new LoadResult(new ResolvedConfig(severities, Dialect.Wpf, Array.Empty<ResolvedOverride>(), null), diags);
     }
 
@@ -159,10 +160,11 @@ public sealed class ConfigLoader
         ConfigDocument doc,
         IReadOnlyList<string> catalogIds,
         string sourcePath,
-        List<Diagnostic> diags)
+        List<Diagnostic> diags,
+        string? cliPresetOverride = null)
     {
-        // Step 1: seed from extends preset (if any). Default extends = "xaml-lint:recommended".
-        var presetName = doc.Extends ?? "xaml-lint:recommended";
+        // Step 1: seed from extends preset (if any). CLI override > doc.extends > default.
+        var presetName = cliPresetOverride ?? doc.Extends ?? "xaml-lint:recommended";
         var effective = new Dictionary<string, Severity>();
 
         if (PresetProfiles.KnownNames.Contains(presetName))
