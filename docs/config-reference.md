@@ -52,10 +52,12 @@ For a given `(file, rule)`:
 
 ## Dialect detection cascade
 
-Per file:
+Per file, earliest rule wins:
 
-1. CLI `--dialect <name>` flag — always wins.
-2. First matching `overrides[].files` glob — its `dialect` applies.
-3. Config-level `defaultDialect`.
-4. Xmlns sniff — MAUI (`http://schemas.microsoft.com/dotnet/2021/maui`) and Avalonia (`https://github.com/avaloniaui`) are detected from the root element's default namespace. WPF and UWP/WinUI 3 share the `winfx/2006/xaml/presentation` URL and cannot be distinguished from xmlns alone.
+1. **Definitive xmlns sniff** — the root element's default namespace identifies the document unambiguously. MAUI (`http://schemas.microsoft.com/dotnet/2021/maui`) and Avalonia (`https://github.com/avaloniaui`) are detected here. A file that *is* a MAUI or Avalonia document is treated as such regardless of the invocation flag or config glob — the xmlns is ground truth, the CLI/config values are hints for disambiguating files whose xmlns is shared. Uno's MAUI-embedding feature produces MAUI-namespace files in an Uno repo; this rule keeps them from being linted as Uno.
+2. CLI `--dialect <name>` flag.
+3. First matching `overrides[].files` glob — its `dialect` applies.
+4. Config-level `defaultDialect`.
 5. Fallback: `wpf`.
+
+WPF and UWP/WinUI 3 share `http://schemas.microsoft.com/winfx/2006/xaml/presentation` and cannot be distinguished from xmlns alone — files using that URL fall through to step 2 and rely on the invocation hint.

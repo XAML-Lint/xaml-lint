@@ -135,6 +135,62 @@ public sealed class LintPipelineTest
     }
 
     [Fact]
+    public void Maui_root_xmlns_beats_cli_dialect_uno_so_LX201_is_skipped()
+    {
+        // A file whose root default xmlns is the MAUI namespace IS a MAUI document
+        // regardless of where it's stored or how the linter is invoked. The CLI --dialect
+        // flag is a hint for files whose xmlns is ambiguous (the shared WPF/WinUI/UWP
+        // presentation URL); it must not override a ground-truth signal. LX201 scope is
+        // Uwp|WinUI3|Uno, so when the document resolves to Maui the rule is skipped.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "a.xaml");
+        File.WriteAllText(file, """
+            <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+              <Entry Text="{Binding Search}" />
+            </ContentView>
+            """);
+
+        var (_, stdout) = RunWith(tmp, new[] { file }, opts => opts with { Dialect = "uno" });
+
+        stdout.Should().NotContain("LX201");
+    }
+
+    [Fact]
+    public void Avalonia_root_xmlns_beats_cli_dialect_uno_so_LX201_is_skipped()
+    {
+        // Same principle for Avalonia's definitive namespace.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "a.axaml");
+        File.WriteAllText(file, """
+            <UserControl xmlns="https://github.com/avaloniaui">
+              <TextBox Text="{Binding Search}" />
+            </UserControl>
+            """);
+
+        var (_, stdout) = RunWith(tmp, new[] { file }, opts => opts with { Dialect = "uno" });
+
+        stdout.Should().NotContain("LX201");
+    }
+
+    [Fact]
+    public void Ambiguous_shared_xmlns_still_takes_cli_dialect_so_LX201_fires()
+    {
+        // The WPF/UWP/WinUI 3 presentation URL is shared — the sniff returns null and
+        // the CLI flag (or config) resolves the ambiguity. --dialect uno → LX201 fires.
+        using var tmp = new TempDir();
+        var file = Path.Combine(tmp.Path, "a.xaml");
+        File.WriteAllText(file, """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+              <TextBox Text="{Binding Search}" />
+            </Grid>
+            """);
+
+        var (_, stdout) = RunWith(tmp, new[] { file }, opts => opts with { Dialect = "uno" });
+
+        stdout.Should().Contain("LX201");
+    }
+
+    [Fact]
     public void No_inline_config_ignores_disable_pragmas()
     {
         using var tmp = new TempDir();

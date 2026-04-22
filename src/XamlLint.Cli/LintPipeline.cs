@@ -92,9 +92,14 @@ public sealed class LintPipeline
                 continue;
             }
 
-            var dialect = forceDialect
+            // Definitive root xmlns wins over CLI/config hints: a file whose root element
+            // declares the MAUI or Avalonia namespace *is* that dialect's document regardless
+            // of where it's stored or how the linter is invoked. --dialect and config entries
+            // disambiguate only the shared WPF/WinUI/UWP presentation URL, for which Sniff
+            // returns null. See docs/config-reference.md §"Dialect detection cascade".
+            var dialect = DialectDetector.Sniff(source)
+                ?? forceDialect
                 ?? ResolveDialect(loaded.Config, ef.AbsolutePath, _workingDirectory)
-                ?? DialectDetector.Sniff(source)
                 ?? DialectDetector.Fallback;
 
             var doc = XamlDocument.FromString(source, ef.AbsolutePath, dialect);
