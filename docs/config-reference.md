@@ -44,11 +44,11 @@ For a given `(file, rule)`:
 
 1. If the rule's declared `Dialects` doesn't include the detected dialect, the rule is **skipped** (not reported, not counted).
 2. Start with the rule's `DefaultSeverity` (from its `[XamlRule]` attribute).
-3. Apply the preset's `rules[ruleId]` from `extends`.
+3. Apply the preset's `rules[ruleId]` — from `--preset <name>` if given, else from the config's `extends`, else the bundled `xaml-lint:recommended`.
 4. Apply the config's top-level `rules[ruleId]`.
 5. Apply the first matching `overrides[].rules[ruleId]`.
-
-CLI flags (`--only`, etc.) are applied last; their precedence will be documented when severity-promotion flags land in a later release.
+6. Apply CLI `--rule ID:<severity>` overrides (also the expansion of `--only`).
+7. Inline `<!-- xaml-lint disable ... -->` pragmas can suppress diagnostics at the file/range level, unless `--no-inline-config` is set.
 
 ## Dialect detection cascade
 
