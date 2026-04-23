@@ -133,6 +133,22 @@ public sealed class LX700_ImageWithoutAccessibleDescriptionTest
     }
 
     [Fact]
+    public void Image_with_AutomationId_is_not_flagged()
+    {
+        // Upstream Rapid XAML Toolkit RXT350 treats AutomationId as a presence-only suppressor.
+        // It's the canonical test-automation hook on UI Automation and MAUI's IElement; any
+        // value signals the author wired the image into automation, so screen readers will
+        // also have something to announce via platform UIA/AccessibilityServices.
+        XamlDiagnosticVerifier<LX700_ImageWithoutAccessibleDescription>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Image Source="icon.png" AutomationId="MainLogo" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void Image_on_Wpf_is_flagged()
     {
         // AutomationProperties.Name / HelpText / LabeledBy exist across WPF, WinUI 3, UWP,
