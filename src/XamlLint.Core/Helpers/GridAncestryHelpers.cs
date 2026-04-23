@@ -82,9 +82,8 @@ public static class GridAncestryHelpers
         string definitionElementName,
         bool shorthandSupported)
     {
-        // Element syntax wins over the shorthand attribute when both are declared. Matches
-        // upstream Rapid XAML Toolkit (GridProcessor.cs:158) and reflects how XAML parsers
-        // treat the property-element form as authoritative.
+        // Element syntax wins over the shorthand attribute when both are declared; reflects
+        // how XAML parsers treat the property-element form as authoritative.
         var propertyElement = grid.Elements().FirstOrDefault(
             e => e.Name.LocalName == propertyElementName);
 

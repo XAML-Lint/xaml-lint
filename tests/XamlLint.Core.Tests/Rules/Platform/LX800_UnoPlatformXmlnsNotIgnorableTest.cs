@@ -107,9 +107,8 @@ public sealed class LX800_UnoPlatformXmlnsNotIgnorableTest
     [Fact]
     public void Uno_not_win_xmlns_without_mc_Ignorable_is_flagged()
     {
-        // not_win is the "any non-Windows platform" selector in Uno; matches upstream
-        // Rapid XAML Toolkit RXT700 URI list and must behave the same as the per-platform
-        // prefixes (android, ios, ...).
+        // not_win is the "any non-Windows platform" selector in Uno; must behave the same
+        // as the per-platform prefixes (android, ios, ...).
         XamlDiagnosticVerifier<LX800_UnoPlatformXmlnsNotIgnorable>.Analyze(
             $"""
             <Page xmlns="{WinUI}"

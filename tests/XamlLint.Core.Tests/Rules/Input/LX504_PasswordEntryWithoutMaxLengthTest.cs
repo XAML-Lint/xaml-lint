@@ -111,9 +111,9 @@ public sealed class LX504_PasswordEntryWithoutMaxLengthTest
     [Fact]
     public void Password_entry_with_IsPassword_property_element_and_no_MaxLength_is_flagged()
     {
-        // Upstream Rapid XAML Toolkit RXT301 treats attribute and property-element syntax
-        // as equivalent via RapidXamlElement.HasAttribute; the diagnostic span falls on the
-        // <Entry.IsPassword> opening-tag name since that is where the trigger lives.
+        // Property-element syntax must trigger the rule just like the attribute form; the
+        // diagnostic span falls on the <Entry.IsPassword> opening-tag name, where the
+        // trigger lives.
         XamlDiagnosticVerifier<LX504_PasswordEntryWithoutMaxLength>.Analyze(
             $"""
             <StackLayout xmlns="{MauiXmlns}">

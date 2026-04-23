@@ -30,8 +30,8 @@ public static class XamlNamespaces
     /// Additional URIs documented by Uno but not yet covered:
     /// <c>http://uno.ui/androidskia</c>, <c>http://uno.ui/iosskia</c>,
     /// <c>http://uno.ui/wasmskia</c>, and <c>http://uno.ui/netstdref</c>. These are
-    /// Skia-rendering / cross-target combinations that went unnoticed during the initial
-    /// LX800 port; adding them is a separate enhancement beyond upstream-parity scope.
+    /// Skia-rendering / cross-target combinations; adding them is a separate enhancement.
+    /// <c>http://uno.ui/xamarin</c> was retired in Uno 5.x and is intentionally omitted.
     /// </remarks>
     public static readonly IReadOnlyDictionary<string, string> UnoPlatformUris =
         new Dictionary<string, string>(StringComparer.Ordinal)
@@ -41,9 +41,6 @@ public static class XamlNamespaces
             ["http://uno.ui/wasm"]    = "WebAssembly",
             ["http://uno.ui/macos"]   = "macOS",
             ["http://uno.ui/skia"]    = "Skia",
-            // Upstream Rapid XAML Toolkit RXT700 covers "not_win"; adding it matches upstream
-            // parity. http://uno.ui/xamarin is intentionally omitted — retired in Uno 5.x and
-            // not present in current Uno 6.0 documentation.
             ["http://uno.ui/not_win"] = "NonWindows",
         };
 

@@ -59,8 +59,8 @@ public sealed class LX503_EntryWithoutKeyboardTest
     [Fact]
     public void Entry_with_Keyboard_property_element_syntax_is_not_flagged()
     {
-        // Upstream Rapid XAML Toolkit RXT300 flattens attribute and property-element syntax
-        // via RapidXamlElement.HasAttribute; our detector does the same.
+        // Property-element syntax is semantically equivalent to the attribute form; the rule
+        // must suppress on both.
         XamlDiagnosticVerifier<LX503_EntryWithoutKeyboard>.Analyze(
             $"""
             <StackLayout xmlns="{MauiXmlns}">

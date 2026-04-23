@@ -32,8 +32,8 @@ public sealed partial class LX103_GridColumnSpanExceedsColumns : IXamlRule
                 context.Dialect, context.FrameworkMajorVersion);
             var columnCount = GridAncestryHelpers.CountColumnDefinitions(grid, shorthandSupported);
             var spanValue = read.Value.Value;
-            // RXT104 parity: flag only when span alone exceeds total columns. Span == columnCount
-            // is legal (element spans the whole Grid); column + span overflow is out of scope.
+            // Flag only when span alone exceeds total columns. Span == columnCount is legal
+            // (element spans the whole Grid); column + span overflow is out of scope.
             if (spanValue <= columnCount) continue;
 
             var span = read.Value.Source switch
