@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using XamlLint.Core.NameResolution;
 
 namespace XamlLint.Core.Helpers;
 
@@ -37,42 +38,12 @@ public static class LabelTargetEscapeHelper
             var targetAttr = label.Attribute(TargetAttribute);
             if (targetAttr is null) continue;
 
-            var targetName = ExtractElementReferenceName(targetAttr.Value);
-            if (string.IsNullOrWhiteSpace(targetName)) continue;
+            if (!ElementReference.TryParse(targetAttr.Value, out var reference)) continue;
 
-            var resolved = context.Names.ResolveInScopeOf(label, targetName!);
+            var resolved = context.Names.ResolveInScopeOf(label, reference.TargetName);
             if (ReferenceEquals(resolved, element)) return true;
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Extracts the target element name from a <c>{x:Reference Foo}</c>,
-    /// <c>{Reference Foo}</c>, or <c>{Binding ElementName=Foo}</c> markup-extension value.
-    /// Returns null for literals, non-reference extensions, or bindings without
-    /// <c>ElementName</c>.
-    /// </summary>
-    private static string? ExtractElementReferenceName(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return null;
-        if (!MarkupExtensionHelpers.IsMarkupExtension(value)) return null;
-        if (!MarkupExtensionHelpers.TryParseExtension(value, out var info)) return null;
-
-        if (string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
-            || string.Equals(info.Name, "Reference", StringComparison.Ordinal))
-        {
-            return ReferenceTargetNameHelper.Extract(value);
-        }
-
-        if (string.Equals(info.Name, "Binding", StringComparison.Ordinal))
-        {
-            return info.NamedArguments.TryGetValue("ElementName", out var elementName)
-                && !string.IsNullOrWhiteSpace(elementName)
-                ? elementName
-                : null;
-        }
-
-        return null;
     }
 }
