@@ -55,4 +55,32 @@ public static class PropertyElementHelpers
         }
         return null;
     }
+
+    /// <summary>
+    /// Value carrier for <see cref="TryGetValueAndSource"/>. <paramref name="Source"/> is
+    /// either an <see cref="XAttribute"/> (attribute syntax) or an <see cref="XElement"/>
+    /// (property-element syntax); rule code uses it to pick the correct location helper
+    /// overload when emitting a diagnostic.
+    /// </summary>
+    public readonly record struct ValueAndSource(string Value, XObject Source);
+
+    /// <summary>
+    /// Reads <paramref name="propertyName"/> in attribute or property-element form and returns
+    /// the raw string value paired with the source <see cref="XObject"/>. Attribute form wins
+    /// when both are present, matching <see cref="GetAttributeOrPropertyElementValue"/>.
+    /// Returns <c>null</c> when the property is absent.
+    /// </summary>
+    public static ValueAndSource? TryGetValueAndSource(XElement element, string propertyName)
+    {
+        var attr = element.Attribute(propertyName);
+        if (attr is not null) return new ValueAndSource(attr.Value, attr);
+
+        var suffix = "." + propertyName;
+        foreach (var child in element.Elements())
+        {
+            if (child.Name.LocalName.EndsWith(suffix, StringComparison.Ordinal))
+                return new ValueAndSource(child.Value, child);
+        }
+        return null;
+    }
 }
