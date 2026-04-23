@@ -18,7 +18,7 @@ public sealed partial class LX505_PinWithoutLabel : IXamlRule
         foreach (var element in document.Root.DescendantsAndSelf())
         {
             if (element.Name.LocalName != "Pin") continue;
-            if (element.Attribute("Label") is not null) continue;
+            if (PropertyElementHelpers.HasAttributeOrPropertyElement(element, "Label")) continue;
 
             var span = LocationHelpers.GetElementNameSpan(element);
             yield return new Diagnostic(

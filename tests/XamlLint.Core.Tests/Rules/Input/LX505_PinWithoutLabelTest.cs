@@ -56,6 +56,22 @@ public sealed class LX505_PinWithoutLabelTest
     }
 
     [Fact]
+    public void Pin_with_Label_property_element_syntax_is_not_flagged()
+    {
+        // Upstream Rapid XAML Toolkit RXT325 treats attribute and property-element forms as
+        // equivalent. A <Pin.Label> satisfies the runtime ArgumentException guardrail.
+        XamlDiagnosticVerifier<LX505_PinWithoutLabel>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Pin>
+                    <Pin.Label>Home</Pin.Label>
+                </Pin>
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void Non_Pin_element_is_not_flagged()
     {
         XamlDiagnosticVerifier<LX505_PinWithoutLabel>.Analyze(
