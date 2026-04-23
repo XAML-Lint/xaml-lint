@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using XamlLint.Core.NameResolution;
 
 namespace XamlLint.Core.Helpers;
 
@@ -36,32 +37,14 @@ public static class LabeledByEscapeHelper
         // Non-extension literal — honour the author's stated intent.
         if (!MarkupExtensionHelpers.IsMarkupExtension(value)) return true;
 
-        // Malformed extension — don't second-guess.
-        if (!MarkupExtensionHelpers.TryParseExtension(value, out var info)) return true;
-
-        // {x:Reference} / {Reference} — XAML 2009 element-reference primitive.
-        if (string.Equals(info.Name, "x:Reference", StringComparison.Ordinal)
-            || string.Equals(info.Name, "Reference", StringComparison.Ordinal))
+        // {x:Reference}, {Reference}, or {Binding ElementName=…} — validate the target in scope.
+        if (ElementReference.TryParse(value, out var reference))
         {
-            var targetName = ReferenceTargetNameHelper.Extract(value);
-            if (string.IsNullOrWhiteSpace(targetName)) return true; // empty/malformed — don't second-guess
-            return context.Names.IsDefinedInScopeOf(element, targetName!);
+            return context.Names.IsDefinedInScopeOf(element, reference.TargetName);
         }
 
-        // {Binding ElementName=…} — classic WPF element-reference idiom, statically
-        // resolvable just like {x:Reference}. Binding without ElementName is a pure
-        // data binding and is treated as permissively suppressing (unchanged behaviour).
-        if (string.Equals(info.Name, "Binding", StringComparison.Ordinal))
-        {
-            if (info.NamedArguments.TryGetValue("ElementName", out var elementName)
-                && !string.IsNullOrWhiteSpace(elementName))
-            {
-                return context.Names.IsDefinedInScopeOf(element, elementName);
-            }
-            return true;
-        }
-
-        // Some other extension (StaticResource, etc.) — can't evaluate statically.
+        // Any other case — malformed extension, {Binding} without ElementName, StaticResource
+        // and friends — can't evaluate statically; treat as "author has stated intent".
         return true;
     }
 }
