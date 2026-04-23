@@ -1,4 +1,4 @@
-# Layout (LX100–LX199)
+# Layout (LX0100–LX0199)
 
 Rules that check layout containers — Grid, StackPanel, DockPanel, Canvas, and similar —
 for attached-property values that disagree with the container's declared shape. Today's
@@ -7,8 +7,8 @@ StackPanel and DockPanel rules will be added as real-world false negatives surfa
 
 | ID | Title | Default |
 |---|---|---|
-| [LX100](LX100.md) | Grid.Row without matching RowDefinition | warning |
-| [LX101](LX101.md) | Grid.Column without matching ColumnDefinition | warning |
-| [LX102](LX102.md) | Grid.RowSpan exceeds available rows | warning |
-| [LX103](LX103.md) | Grid.ColumnSpan exceeds available columns | warning |
-| [LX104](LX104.md) | Grid definition shorthand not supported by target framework | warning |
+| [LX0100](LX0100.md) | Grid.Row without matching RowDefinition | warning |
+| [LX0101](LX0101.md) | Grid.Column without matching ColumnDefinition | warning |
+| [LX0102](LX0102.md) | Grid.RowSpan exceeds available rows | warning |
+| [LX0103](LX0103.md) | Grid.ColumnSpan exceeds available columns | warning |
+| [LX0104](LX0104.md) | Grid definition shorthand not supported by target framework | warning |

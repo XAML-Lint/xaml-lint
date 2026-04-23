@@ -1,4 +1,4 @@
-# Accessibility (LX700–LX799)
+# Accessibility (LX0700–LX0799)
 
 Rules that check whether XAML is perceivable and operable by assistive technologies —
 screen readers, keyboard navigation, and similar. These rules are frequently off by
@@ -8,7 +8,7 @@ accessibility from the start. See each rule's doc for details.
 
 | ID | Title | Default |
 |---|---|---|
-| [LX700](LX700.md) | Image lacks accessibility description | info (off in :recommended) |
-| [LX701](LX701.md) | ImageButton lacks accessibility description | info (off in :recommended) |
-| [LX702](LX702.md) | TextBox lacks accessibility description | info (off in :recommended) |
-| [LX703](LX703.md) | Entry lacks accessibility description | info (off in :recommended) |
+| [LX0700](LX0700.md) | Image lacks accessibility description | info (off in :recommended) |
+| [LX0701](LX0701.md) | ImageButton lacks accessibility description | info (off in :recommended) |
+| [LX0702](LX0702.md) | TextBox lacks accessibility description | info (off in :recommended) |
+| [LX0703](LX0703.md) | Entry lacks accessibility description | info (off in :recommended) |

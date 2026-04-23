@@ -1,4 +1,4 @@
-# Input / controls (LX500–LX599)
+# Input / controls (LX0500–LX0599)
 
 Rules that check input controls for missing hints (keyboard layout, IME behavior) and
 semantically inconsistent attribute pairs (out-of-order `Minimum`/`Maximum`). These rules
@@ -7,10 +7,10 @@ parses fine but fails silently at runtime.
 
 | ID | Title | Default |
 |---|---|---|
-| [LX500](LX500.md) | TextBox lacks InputScope | info |
-| [LX501](LX501.md) | Slider Minimum is greater than Maximum | warning |
-| [LX502](LX502.md) | Stepper Minimum is greater than Maximum | warning |
-| [LX503](LX503.md) | Entry lacks Keyboard | info |
-| [LX504](LX504.md) | Password Entry lacks MaxLength | warning |
-| [LX505](LX505.md) | Pin lacks Label | warning |
-| [LX506](LX506.md) | Slider sets both ThumbColor and ThumbImageSource | info |
+| [LX0500](LX0500.md) | TextBox lacks InputScope | info |
+| [LX0501](LX0501.md) | Slider Minimum is greater than Maximum | warning |
+| [LX0502](LX0502.md) | Stepper Minimum is greater than Maximum | warning |
+| [LX0503](LX0503.md) | Entry lacks Keyboard | info |
+| [LX0504](LX0504.md) | Password Entry lacks MaxLength | warning |
+| [LX0505](LX0505.md) | Pin lacks Label | warning |
+| [LX0506](LX0506.md) | Slider sets both ThumbColor and ThumbImageSource | info |
