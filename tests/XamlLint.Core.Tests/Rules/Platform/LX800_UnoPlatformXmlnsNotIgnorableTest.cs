@@ -105,6 +105,35 @@ public sealed class LX800_UnoPlatformXmlnsNotIgnorableTest
     }
 
     [Fact]
+    public void Uno_not_win_xmlns_without_mc_Ignorable_is_flagged()
+    {
+        // not_win is the "any non-Windows platform" selector in Uno; matches upstream
+        // Rapid XAML Toolkit RXT700 URI list and must behave the same as the per-platform
+        // prefixes (android, ios, ...).
+        XamlDiagnosticVerifier<LX800_UnoPlatformXmlnsNotIgnorable>.Analyze(
+            $"""
+            <Page xmlns="{WinUI}"
+                  [|xmlns:notwin="http://uno.ui/not_win"|]>
+            </Page>
+            """,
+            Dialect.Uno);
+    }
+
+    [Fact]
+    public void Uno_not_win_xmlns_listed_in_mc_Ignorable_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX800_UnoPlatformXmlnsNotIgnorable>.Analyze(
+            $"""
+            <Page xmlns="{WinUI}"
+                  xmlns:notwin="http://uno.ui/not_win"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  mc:Ignorable="notwin">
+            </Page>
+            """,
+            Dialect.Uno);
+    }
+
+    [Fact]
     public void Suppression_with_pragma_disables_the_rule()
     {
         XamlDiagnosticVerifier<LX800_UnoPlatformXmlnsNotIgnorable>.Analyze(
