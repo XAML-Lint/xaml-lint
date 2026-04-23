@@ -23,7 +23,7 @@ Some rules are gated to specific XAML dialects (WPF, WinUI 3, UWP, MAUI, Avaloni
 2. `dialect="..."` pragma at the top of the XAML file — honored per-file.
 3. Tool default — WPF.
 
-If the target project isn't WPF and no config is set, pass `--dialect <name>` explicitly (`winui3`, `uwp`, `maui`, `avalonia`, `uno`). Otherwise the user's dialect-specific rules (e.g. `LX201` for `x:Bind`, `LX301` for `x:Uid` casing) won't fire.
+If the target project isn't WPF and no config is set, pass `--dialect <name>` explicitly (`winui3`, `uwp`, `maui`, `avalonia`, `uno`). Otherwise the user's dialect-specific rules (e.g. `LX0201` for `x:Bind`, `LX0301` for `x:Uid` casing) won't fire.
 
 ## Interpreting output
 
@@ -50,12 +50,12 @@ Empty `results` means clean. For each diagnostic, read `ruleId`, `message`, `fil
 If the diagnostic is a false positive in this specific spot, suppress with a XAML comment immediately before the offending element:
 
 ```xml
-<!-- xaml-lint disable once LX300 -->
+<!-- xaml-lint disable once LX0300 -->
 <Button x:Name="myButton" />
 ```
 
 For broader suppression, edit `xaml-lint.config.json`:
 
 ```json
-{ "rules": { "LX300": "off" } }
+{ "rules": { "LX0300": "off" } }
 ```

@@ -13,12 +13,12 @@
   "overrides": [
     { "files": "src/legacy/**/*.xaml", "frameworkVersion": "9" },
     { "files": "src/winui/**/*.xaml", "dialect": "winui3" },
-    { "files": "**/*.Designer.xaml", "rules": { "LX400": "off" } }
+    { "files": "**/*.Designer.xaml", "rules": { "LX0400": "off" } }
   ],
   "rules": {
-    "LX300": "off",
-    "LX400": "warning",
-    "LX100": "error"
+    "LX0300": "off",
+    "LX0400": "warning",
+    "LX0100": "error"
   }
 }
 ```
@@ -35,7 +35,7 @@
   - `frameworkVersion` (optional) — overrides root `frameworkVersion` for matching files.
   - `rules` (optional) — overrides severities for matching files.
 - `rules` — map from rule ID to severity:
-  - Shorthand: `"LX100": "error"` — values are `off`, `info`, `warning`, `error`.
+  - Shorthand: `"LX0100": "error"` — values are `off`, `info`, `warning`, `error`.
   - `"*": "off"` — resets every rule to the given severity (wildcard).
 
 ## Severity resolution order
