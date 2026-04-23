@@ -131,4 +131,42 @@ public sealed class PropertyElementHelpersTest
 
         PropertyElementHelpers.GetAttributeOrPropertyElementValue(textBox, "InputScope").Should().Be("Number");
     }
+
+    [Fact]
+    public void TryGetValueAndSource_returns_attribute_source_for_attribute_form()
+    {
+        var textBox = Root($"""
+            <TextBox xmlns="{WpfXmlns}" InputScope="Number" />
+            """);
+
+        var result = PropertyElementHelpers.TryGetValueAndSource(textBox, "InputScope");
+        result.Should().NotBeNull();
+        result!.Value.Value.Should().Be("Number");
+        result.Value.Source.Should().BeOfType<XAttribute>();
+    }
+
+    [Fact]
+    public void TryGetValueAndSource_returns_element_source_for_property_element_form()
+    {
+        var textBox = Root($"""
+            <TextBox xmlns="{WpfXmlns}">
+                <TextBox.InputScope>Number</TextBox.InputScope>
+            </TextBox>
+            """);
+
+        var result = PropertyElementHelpers.TryGetValueAndSource(textBox, "InputScope");
+        result.Should().NotBeNull();
+        result!.Value.Value.Should().Be("Number");
+        result.Value.Source.Should().BeOfType<XElement>();
+    }
+
+    [Fact]
+    public void TryGetValueAndSource_returns_null_when_property_is_absent()
+    {
+        var textBox = Root($"""
+            <TextBox xmlns="{WpfXmlns}" />
+            """);
+
+        PropertyElementHelpers.TryGetValueAndSource(textBox, "InputScope").Should().BeNull();
+    }
 }

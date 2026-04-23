@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using XamlLint.Core.Helpers;
 
 namespace XamlLint.Core.Rules.Input;
@@ -19,16 +20,23 @@ public sealed partial class LX504_PasswordEntryWithoutMaxLength : IXamlRule
         {
             if (element.Name.LocalName != "Entry") continue;
 
-            var isPasswordAttr = element.Attribute("IsPassword");
-            if (isPasswordAttr is null) continue;
+            var isPassword = PropertyElementHelpers.TryGetValueAndSource(element, "IsPassword");
+            if (isPassword is null) continue;
 
-            var value = isPasswordAttr.Value;
+            var value = isPassword.Value.Value;
             if (MarkupExtensionHelpers.IsMarkupExtension(value)) continue;
             if (!string.Equals(value.Trim(), "True", StringComparison.OrdinalIgnoreCase)) continue;
 
-            if (element.Attribute("MaxLength") is not null) continue;
+            if (PropertyElementHelpers.HasAttributeOrPropertyElement(element, "MaxLength")) continue;
 
-            var span = LocationHelpers.GetAttributeSpan(isPasswordAttr, context.Source);
+            var span = isPassword.Value.Source switch
+            {
+                XAttribute attr => LocationHelpers.GetAttributeSpan(attr, context.Source),
+                XElement elem => LocationHelpers.GetElementNameSpan(elem),
+                _ => throw new InvalidOperationException(
+                    "TryGetValueAndSource must return an XAttribute or XElement source."),
+            };
+
             yield return new Diagnostic(
                 RuleId: Metadata.Id,
                 Severity: Metadata.DefaultSeverity,
