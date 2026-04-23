@@ -312,6 +312,57 @@ public sealed class GridAncestryHelpersTest
     }
 
     [Fact]
+    public void CountRowDefinitions_element_syntax_wins_over_shorthand_when_both_declared()
+    {
+        // Matches upstream Rapid XAML Toolkit GridProcessor.cs:158 — the element-syntax form
+        // is authoritative and the shorthand attribute is consulted only when element syntax
+        // is absent or empty. A Grid declaring both is legal but unusual; this test pins the
+        // precedence so a future refactor does not silently re-invert it.
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" RowDefinitions="Auto,*">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+            </Grid>
+            """);
+
+        GridAncestryHelpers.CountRowDefinitions(doc.Root!).Should().Be(3);
+    }
+
+    [Fact]
+    public void CountRowDefinitions_empty_element_syntax_falls_through_to_shorthand()
+    {
+        // Empty <Grid.RowDefinitions /> is parity with absence; the shorthand attribute takes
+        // over. This matches upstream's "count > 0 → use element syntax; otherwise fall back"
+        // pattern.
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" RowDefinitions="Auto,*">
+                <Grid.RowDefinitions />
+            </Grid>
+            """);
+
+        GridAncestryHelpers.CountRowDefinitions(doc.Root!).Should().Be(2);
+    }
+
+    [Fact]
+    public void CountColumnDefinitions_element_syntax_wins_over_shorthand_when_both_declared()
+    {
+        var doc = Doc($"""
+            <Grid xmlns="{WpfXmlns}" ColumnDefinitions="Auto,*">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+            </Grid>
+            """);
+
+        GridAncestryHelpers.CountColumnDefinitions(doc.Root!).Should().Be(3);
+    }
+
+    [Fact]
     public void CountColumnDefinitions_default_overload_still_supports_shorthand()
     {
         // Existing call sites (no second arg) keep their behavior.
