@@ -28,10 +28,15 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 - [LX700](docs/rules/LX700.md) / [LX701](docs/rules/LX701.md) — `AutomationProperties.LabeledBy="{x:Reference <name>}"` suppresses only when the target exists in the same XAML name scope; dangling or cross-template references now fire
 - [LX700](docs/rules/LX700.md) / [LX701](docs/rules/LX701.md) / [LX702](docs/rules/LX702.md) — `{Binding ElementName=<name>}` is scope-validated the same way as `{x:Reference}`; dangling `ElementName` targets now fire
 - [LX702](docs/rules/LX702.md) — reverse-direction WPF labeling via `<Label Target="{x:Reference <name>}">` or `<Label Target="{Binding ElementName=<name>}">` suppresses the diagnostic on the referenced `TextBox`, with template-scope isolation
+- [LX501](docs/rules/LX501.md) / [LX502](docs/rules/LX502.md) — default severity promoted from `warning` to `error` to match upstream Rapid XAML Toolkit (RXT330/RXT335); an empty Min/Max range throws at runtime on UWP/WinUI and misbehaves on every other dialect. Pin to `"warning"` via the `rules` config to restore prior behavior
+- [LX100](docs/rules/LX100.md)–[LX103](docs/rules/LX103.md) — `<Grid.RowDefinitions>` / `<Grid.ColumnDefinitions>` element syntax now takes precedence over the `RowDefinitions="..."` / `ColumnDefinitions="..."` shorthand attribute when a Grid declares both, matching upstream Rapid XAML Toolkit; Grids declaring only one form are unaffected
 
 ### Fixed
 
 - [LX700](docs/rules/LX700.md) / [LX701](docs/rules/LX701.md) — MAUI's `SemanticProperties.Description` and `SemanticProperties.Hint` now suppress the rule, matching LX703
+- [LX500](docs/rules/LX500.md), [LX503](docs/rules/LX503.md), [LX504](docs/rules/LX504.md), [LX505](docs/rules/LX505.md), [LX506](docs/rules/LX506.md) — recognise property-element syntax (`<TextBox.InputScope>`, `<Entry.Keyboard>`, `<Entry.IsPassword>`/`<Entry.MaxLength>`, `<Pin.Label>`, `<Slider.ThumbColor>`/`<Slider.ThumbImageSource>`), eliminating false positives on files that prefer the element form over attribute form
+- [LX700](docs/rules/LX700.md) / [LX701](docs/rules/LX701.md) — `AutomationId` now suppresses the rule (matches upstream Rapid XAML Toolkit RXT350/RXT351); an image wired only through `AutomationId` no longer fires
+- [LX800](docs/rules/LX800.md) — `http://uno.ui/not_win` added to the Uno platform-URI allowlist, matching upstream Rapid XAML Toolkit RXT700
 - [LX301](docs/rules/LX301.md) — no longer flags UWP/WinUI `x:Uid` values in the `/ResourceFile/Key` resw namespace-scope form; only the trailing key segment is cased-checked
 - Avalonia `.axaml` files are now linted as first-class XAML instead of always emitting [LX005](docs/rules/LX005.md) ("Skipping non-XAML file")
 - [LX400](docs/rules/LX400.md) — values with no letters and no digits (Unicode PUA icon glyphs, UI-chrome punctuation like `"+"`/`":"`) are treated as non-localisable chrome and skipped
