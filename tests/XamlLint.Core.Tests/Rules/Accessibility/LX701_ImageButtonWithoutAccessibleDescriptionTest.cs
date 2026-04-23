@@ -133,6 +133,21 @@ public sealed class LX701_ImageButtonWithoutAccessibleDescriptionTest
     }
 
     [Fact]
+    public void ImageButton_with_AutomationId_is_not_flagged()
+    {
+        // Upstream Rapid XAML Toolkit RXT351 treats AutomationId as a presence-only suppressor,
+        // matching the same rationale as LX700: AutomationId is the canonical test-automation
+        // and UIA hook.
+        XamlDiagnosticVerifier<LX701_ImageButtonWithoutAccessibleDescription>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <ImageButton Source="icon.png" AutomationId="DeleteBtn" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void ImageButton_on_Wpf_dialect_is_not_flagged()
     {
         // The rule is MAUI-only. Dialect gating excludes WPF.

@@ -18,12 +18,17 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
     // deliberate statement of "I've thought about this"). LabeledBy is value-dependent now:
     // a dangling {x:Reference} no longer suppresses. IsInAccessibleTree is boolean and only
     // False (or a bound value) means "decorative — skip in AT."
+    //
+    // AutomationId is the test-automation hook on UI Automation (Windows) and MAUI's
+    // Microsoft.Maui.IElement.AutomationId; upstream Rapid XAML Toolkit RXT351 treats its
+    // presence as an "author thought about this" signal, so we match that.
     private static readonly string[] PresenceEscapeAttributes =
     {
         "AutomationProperties.Name",
         "AutomationProperties.HelpText",
         "SemanticProperties.Description",
         "SemanticProperties.Hint",
+        "AutomationId",
     };
 
     private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
