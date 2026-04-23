@@ -1,0 +1,110 @@
+using XamlLint.Core.Rules.Deprecated;
+using XamlLint.Core.Tests.TestInfrastructure;
+
+namespace XamlLint.Core.Tests.Rules.Deprecated;
+
+public sealed class LX0601_LineFillNoEffectTest
+{
+    private const string MauiXmlns = "http://schemas.microsoft.com/dotnet/2021/maui";
+
+    [Fact]
+    public void Line_with_Fill_literal_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Line [|Fill="Red"|] />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Line_with_Fill_binding_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            """
+            <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+                <Line [|Fill="{Binding Tint}"|] />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Line_without_Fill_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Line X1="0" Y1="0" X2="100" Y2="0" Stroke="Black" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Non_Line_element_with_Fill_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Rectangle Fill="Red" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Line_with_Fill_on_Wpf_is_flagged()
+    {
+        // A Line is a 1D geometry (LineGeometry) inheriting Fill from Shape. Fill paints the
+        // shape's interior, but a line has zero interior area — true in WPF, WinUI, UWP,
+        // MAUI, Avalonia, and Uno. Universal geometric fact, not dialect-specific.
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            """
+            <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <Line [|Fill="Red"|] />
+            </Window>
+            """,
+            Dialect.Wpf);
+    }
+
+    [Fact]
+    public void Line_with_Fill_on_Avalonia_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            """
+            <Window xmlns="https://github.com/avaloniaui">
+                <Line [|Fill="Red"|] />
+            </Window>
+            """,
+            Dialect.Avalonia);
+    }
+
+    [Fact]
+    public void Suppression_with_pragma_disables_the_rule()
+    {
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <!-- xaml-lint disable once LX0601 -->
+                <Line Fill="Red" />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Multiple_offending_lines_each_emit_a_diagnostic()
+    {
+        XamlDiagnosticVerifier<LX0601_LineFillNoEffect>.Analyze(
+            $"""
+            <ContentPage xmlns="{MauiXmlns}">
+                <Line [|Fill="Red"|] />
+                <Line [|Fill="Blue"|] />
+            </ContentPage>
+            """,
+            Dialect.Maui);
+    }
+}

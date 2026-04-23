@@ -39,9 +39,9 @@ public sealed class SarifFormatterTest
     {
         var diags = new[]
         {
-            new Diagnostic("LX001", Severity.Error, "e", "f.xaml", 1, 1, 1, 1, null),
-            new Diagnostic("LX002", Severity.Warning, "w", "f.xaml", 1, 1, 1, 1, null),
-            new Diagnostic("LX003", Severity.Info, "i", "f.xaml", 1, 1, 1, 1, null),
+            new Diagnostic("LX0001", Severity.Error, "e", "f.xaml", 1, 1, 1, 1, null),
+            new Diagnostic("LX0002", Severity.Warning, "w", "f.xaml", 1, 1, 1, 1, null),
+            new Diagnostic("LX0003", Severity.Info, "i", "f.xaml", 1, 1, 1, 1, null),
         };
         var sw = new StringWriter();
         new SarifFormatter().Write(sw, diags, "0.1.0");
@@ -58,7 +58,7 @@ public sealed class SarifFormatterTest
     [Fact]
     public void Result_locations_use_one_based_lines_and_columns()
     {
-        var d = new Diagnostic("LX100", Severity.Warning, "m", "Views/A.xaml", 5, 7, 5, 12, null);
+        var d = new Diagnostic("LX0100", Severity.Warning, "m", "Views/A.xaml", 5, 7, 5, 12, null);
         var sw = new StringWriter();
         new SarifFormatter().Write(sw, new[] { d }, "0.1.0");
 
@@ -79,7 +79,7 @@ public sealed class SarifFormatterTest
     [Fact]
     public void Rules_entry_has_title_and_helpUri_from_catalog()
     {
-        var d = new Diagnostic("LX001", Severity.Error, "m", "f.xaml", 1, 1, 1, 1, HelpUri: null);
+        var d = new Diagnostic("LX0001", Severity.Error, "m", "f.xaml", 1, 1, 1, 1, HelpUri: null);
         var sw = new StringWriter();
         new SarifFormatter().Write(sw, new[] { d }, "0.1.0");
 
@@ -90,16 +90,16 @@ public sealed class SarifFormatterTest
             .GetProperty("rules");
 
         rules.GetArrayLength().Should().Be(1);
-        rules[0].GetProperty("id").GetString().Should().Be("LX001");
+        rules[0].GetProperty("id").GetString().Should().Be("LX0001");
         rules[0].GetProperty("name").GetString().Should().Be("Malformed XAML");
         rules[0].GetProperty("shortDescription").GetProperty("text").GetString().Should().Be("Malformed XAML");
-        rules[0].GetProperty("helpUri").GetString().Should().Contain("LX001");
+        rules[0].GetProperty("helpUri").GetString().Should().Contain("LX0001");
     }
 
     [Fact]
     public void Rules_entry_falls_back_to_id_for_unknown_rule()
     {
-        var d = new Diagnostic("LX999", Severity.Warning, "m", "f.xaml", 1, 1, 1, 1, null);
+        var d = new Diagnostic("LX0999", Severity.Warning, "m", "f.xaml", 1, 1, 1, 1, null);
         var sw = new StringWriter();
         new SarifFormatter().Write(sw, new[] { d }, "0.1.0");
 
@@ -109,14 +109,14 @@ public sealed class SarifFormatterTest
             .GetProperty("driver")
             .GetProperty("rules")[0];
 
-        rule.GetProperty("name").GetString().Should().Be("LX999");
+        rule.GetProperty("name").GetString().Should().Be("LX0999");
         rule.TryGetProperty("helpUri", out _).Should().BeFalse();
     }
 
     [Fact]
     public void Suppressions_array_emits_when_provided()
     {
-        var d = new Diagnostic("LX100", Severity.Warning, "m", "A.xaml", 1, 1, 1, 1, null);
+        var d = new Diagnostic("LX0100", Severity.Warning, "m", "A.xaml", 1, 1, 1, 1, null);
         var sw = new StringWriter();
         new SarifFormatter().Write(sw, Array.Empty<Diagnostic>(), "0.1.0", suppressed: new[] { d });
 

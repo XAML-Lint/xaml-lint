@@ -12,7 +12,7 @@ public sealed class PresetProfilesTest
     {
         var doc = PresetProfiles.Load(name);
         doc.Rules.Should().NotBeNull();
-        foreach (var id in new[] { "LX001", "LX002", "LX003", "LX004", "LX005", "LX006" })
+        foreach (var id in new[] { "LX0001", "LX0002", "LX0003", "LX0004", "LX0005", "LX0006" })
         {
             doc.Rules!.ContainsKey(id).Should().BeTrue($"preset {name} must include {id}");
         }
@@ -25,18 +25,18 @@ public sealed class PresetProfilesTest
         act.Should().Throw<ArgumentException>();
     }
 
-    // Severity / enablement matrix for the MAUI rule batch (LX402, LX503-LX506, LX601, LX700-LX701).
+    // Severity / enablement matrix for the MAUI rule batch (LX0402, LX0503-LX0506, LX0601, LX0700-LX0701).
     // :recommended reflects DefaultSeverity when DefaultEnabled=true, else "off".
     // :strict auto-bumps one level (Info→warning, Warning→error).
     [Theory]
-    [InlineData("LX402", "warning", "error")]   // Resources, DefaultSeverity=Warning, DefaultEnabled=true
-    [InlineData("LX503", "info",    "warning")] // Input, Info
-    [InlineData("LX504", "warning", "error")]   // Input, Warning
-    [InlineData("LX505", "warning", "error")]   // Input, Warning
-    [InlineData("LX506", "info",    "warning")] // Input, Info
-    [InlineData("LX601", "info",    "warning")] // Deprecated, Info
-    [InlineData("LX700", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false → off in recommended
-    [InlineData("LX701", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false → off in recommended
+    [InlineData("LX0402", "warning", "error")]   // Resources, DefaultSeverity=Warning, DefaultEnabled=true
+    [InlineData("LX0503", "info",    "warning")] // Input, Info
+    [InlineData("LX0504", "warning", "error")]   // Input, Warning
+    [InlineData("LX0505", "warning", "error")]   // Input, Warning
+    [InlineData("LX0506", "info",    "warning")] // Input, Info
+    [InlineData("LX0601", "info",    "warning")] // Deprecated, Info
+    [InlineData("LX0700", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false → off in recommended
+    [InlineData("LX0701", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false → off in recommended
     public void Maui_batch_rules_match_preset_matrix(string ruleId, string recommended, string strict)
     {
         var off = PresetProfiles.Load("xaml-lint:off").Rules!;
@@ -48,14 +48,14 @@ public sealed class PresetProfilesTest
         str[ruleId].GetString().Should().Be(strict, $"{ruleId} must be '{strict}' in xaml-lint:strict");
     }
 
-    // Severity / enablement matrix for LX702, LX703, LX800.
+    // Severity / enablement matrix for LX0702, LX0703, LX0800.
     // :recommended reflects DefaultSeverity when DefaultEnabled=true, else "off".
     // :strict auto-bumps one level (Info→warning, Warning→error).
     [Theory]
-    [InlineData("LX702", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false
-    [InlineData("LX703", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false
-    [InlineData("LX800", "warning", "error")]   // Platform, Warning, DefaultEnabled=true
-    public void LX702_LX703_LX800_match_preset_matrix(string ruleId, string recommended, string strict)
+    [InlineData("LX0702", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false
+    [InlineData("LX0703", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false
+    [InlineData("LX0800", "warning", "error")]   // Platform, Warning, DefaultEnabled=true
+    public void LX0702_LX0703_LX0800_match_preset_matrix(string ruleId, string recommended, string strict)
     {
         var off = PresetProfiles.Load("xaml-lint:off").Rules!;
         var rec = PresetProfiles.Load("xaml-lint:recommended").Rules!;

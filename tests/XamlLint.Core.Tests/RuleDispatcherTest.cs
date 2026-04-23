@@ -10,7 +10,7 @@ public sealed class RuleDispatcherTest
     public void Rule_not_matching_dialect_is_skipped()
     {
         var doc = WpfDoc("<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />");
-        var rule = new FakeRule("LX100", Dialect.Maui, _ => new[] { Sample("LX100", 1) });
+        var rule = new FakeRule("LX0100", Dialect.Maui, _ => new[] { Sample("LX0100", 1) });
         var dispatcher = new RuleDispatcher(new IXamlRule[] { rule });
 
         var diags = dispatcher.Dispatch(doc, new SuppressionMap(), BuildSeverityMap(rule));
@@ -22,22 +22,22 @@ public sealed class RuleDispatcherTest
     public void Matching_dialect_runs_rule_and_emits_diagnostic()
     {
         var doc = WpfDoc("<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />");
-        var rule = new FakeRule("LX100", Dialect.All, _ => new[] { Sample("LX100", 1) });
+        var rule = new FakeRule("LX0100", Dialect.All, _ => new[] { Sample("LX0100", 1) });
         var dispatcher = new RuleDispatcher(new IXamlRule[] { rule });
 
         var diags = dispatcher.Dispatch(doc, new SuppressionMap(), BuildSeverityMap(rule));
 
-        diags.Should().ContainSingle(d => d.RuleId == "LX100");
+        diags.Should().ContainSingle(d => d.RuleId == "LX0100");
     }
 
     [Fact]
     public void Effective_severity_overrides_default()
     {
         var doc = WpfDoc("<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />");
-        var rule = new FakeRule("LX100", Dialect.All, _ => new[] { Sample("LX100", 1, Severity.Warning) });
+        var rule = new FakeRule("LX0100", Dialect.All, _ => new[] { Sample("LX0100", 1, Severity.Warning) });
         var dispatcher = new RuleDispatcher(new IXamlRule[] { rule });
 
-        var severities = new Dictionary<string, Severity> { ["LX100"] = Severity.Error };
+        var severities = new Dictionary<string, Severity> { ["LX0100"] = Severity.Error };
         var diags = dispatcher.Dispatch(doc, new SuppressionMap(), severities);
 
         diags.Single().Severity.Should().Be(Severity.Error);
@@ -48,7 +48,7 @@ public sealed class RuleDispatcherTest
     {
         var ran = false;
         var doc = WpfDoc("<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />");
-        var rule = new FakeRule("LX100", Dialect.All, _ => { ran = true; return new[] { Sample("LX100", 1) }; });
+        var rule = new FakeRule("LX0100", Dialect.All, _ => { ran = true; return new[] { Sample("LX0100", 1) }; });
         var dispatcher = new RuleDispatcher(new IXamlRule[] { rule });
 
         var severities = new Dictionary<string, Severity>(); // empty => "off"
@@ -62,11 +62,11 @@ public sealed class RuleDispatcherTest
     public void Suppressed_diagnostics_are_dropped()
     {
         var doc = WpfDoc("<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />");
-        var rule = new FakeRule("LX100", Dialect.All, _ => new[] { Sample("LX100", 5) });
+        var rule = new FakeRule("LX0100", Dialect.All, _ => new[] { Sample("LX0100", 5) });
         var map = new SuppressionMap();
         typeof(SuppressionMap)
             .GetMethod("AddRange", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .Invoke(map, new object[] { "LX100", 1, 10 });
+            .Invoke(map, new object[] { "LX0100", 1, 10 });
 
         var dispatcher = new RuleDispatcher(new IXamlRule[] { rule });
         var diags = dispatcher.Dispatch(doc, map, BuildSeverityMap(rule));
@@ -75,23 +75,23 @@ public sealed class RuleDispatcherTest
     }
 
     [Fact]
-    public void Throwing_rule_yields_LX006_and_continues()
+    public void Throwing_rule_yields_LX0006_and_continues()
     {
         var doc = WpfDoc("<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />");
-        var bad = new FakeRule("LX100", Dialect.All, _ => throw new InvalidOperationException("boom"));
-        var good = new FakeRule("LX101", Dialect.All, _ => new[] { Sample("LX101", 1) });
+        var bad = new FakeRule("LX0100", Dialect.All, _ => throw new InvalidOperationException("boom"));
+        var good = new FakeRule("LX0101", Dialect.All, _ => new[] { Sample("LX0101", 1) });
         var dispatcher = new RuleDispatcher(new IXamlRule[] { bad, good });
         var severities = new Dictionary<string, Severity>
         {
-            ["LX100"] = Severity.Warning,
-            ["LX101"] = Severity.Warning,
-            ["LX006"] = Severity.Error,
+            ["LX0100"] = Severity.Warning,
+            ["LX0101"] = Severity.Warning,
+            ["LX0006"] = Severity.Error,
         };
 
         var diags = dispatcher.Dispatch(doc, new SuppressionMap(), severities);
 
-        diags.Should().Contain(d => d.RuleId == "LX006" && d.Message.Contains("LX100"));
-        diags.Should().Contain(d => d.RuleId == "LX101");
+        diags.Should().Contain(d => d.RuleId == "LX0006" && d.Message.Contains("LX0100"));
+        diags.Should().Contain(d => d.RuleId == "LX0101");
     }
 
     [Fact]
@@ -99,9 +99,9 @@ public sealed class RuleDispatcherTest
     {
         var doc = WpfDoc("<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" />");
         var ran = false;
-        var toolRule = new FakeToolRule("LX001", _ => { ran = true; return Array.Empty<Diagnostic>(); });
+        var toolRule = new FakeToolRule("LX0001", _ => { ran = true; return Array.Empty<Diagnostic>(); });
         var dispatcher = new RuleDispatcher(new IXamlRule[] { toolRule });
-        var severities = new Dictionary<string, Severity> { ["LX001"] = Severity.Error };
+        var severities = new Dictionary<string, Severity> { ["LX0001"] = Severity.Error };
 
         dispatcher.Dispatch(doc, new SuppressionMap(), severities);
 

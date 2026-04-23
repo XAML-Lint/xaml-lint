@@ -26,6 +26,6 @@ public sealed class GeneratorOutputTest
     {
         var rules = XamlLint.Core.GeneratedRuleCatalog.Rules;
         rules.Select(r => r.Metadata.Id).Should().Contain(
-            new[] { "LX001", "LX002", "LX003", "LX004", "LX005", "LX006" });
+            new[] { "LX0001", "LX0002", "LX0003", "LX0004", "LX0005", "LX0006" });
     }
 }

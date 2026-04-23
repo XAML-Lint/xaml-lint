@@ -7,7 +7,7 @@ public sealed class ConfigLoaderTest
 {
     private static readonly IReadOnlyList<string> CatalogIds = new[]
     {
-        "LX001", "LX002", "LX003", "LX004", "LX005", "LX006"
+        "LX0001", "LX0002", "LX0003", "LX0004", "LX0005", "LX0006"
     };
 
     [Fact]
@@ -18,8 +18,8 @@ public sealed class ConfigLoaderTest
         var result = loader.Discover(tmp.Path, CatalogIds);
 
         result.Config.Should().NotBeNull();
-        result.Config!.RuleSeverities["LX001"].Should().Be(Severity.Error);
-        result.Config.RuleSeverities["LX005"].Should().Be(Severity.Info);
+        result.Config!.RuleSeverities["LX0001"].Should().Be(Severity.Error);
+        result.Config.RuleSeverities["LX0005"].Should().Be(Severity.Info);
     }
 
     [Fact]
@@ -27,32 +27,32 @@ public sealed class ConfigLoaderTest
     {
         using var tmp = new TempDir();
         File.WriteAllText(Path.Combine(tmp.Path, "xaml-lint.config.json"), """
-            { "extends": "xaml-lint:recommended", "defaultDialect": "wpf", "rules": { "LX001": "warning" } }
+            { "extends": "xaml-lint:recommended", "defaultDialect": "wpf", "rules": { "LX0001": "warning" } }
             """);
 
         var loader = new ConfigLoader();
         var result = loader.Discover(tmp.Path, CatalogIds);
 
-        result.Config!.RuleSeverities["LX001"].Should().Be(Severity.Warning);
+        result.Config!.RuleSeverities["LX0001"].Should().Be(Severity.Warning);
     }
 
     [Fact]
-    public void Unknown_rule_id_emits_LX003_warning_but_does_not_fail_load()
+    public void Unknown_rule_id_emits_LX0003_warning_but_does_not_fail_load()
     {
         using var tmp = new TempDir();
         File.WriteAllText(Path.Combine(tmp.Path, "xaml-lint.config.json"), """
-            { "defaultDialect": "wpf", "rules": { "LX999": "error" } }
+            { "defaultDialect": "wpf", "rules": { "LX0999": "error" } }
             """);
 
         var loader = new ConfigLoader();
         var result = loader.Discover(tmp.Path, CatalogIds);
 
         result.Config.Should().NotBeNull();
-        result.Diagnostics.Should().Contain(d => d.RuleId == "LX003" && d.Severity == Severity.Warning);
+        result.Diagnostics.Should().Contain(d => d.RuleId == "LX0003" && d.Severity == Severity.Warning);
     }
 
     [Fact]
-    public void Malformed_json_returns_null_config_and_LX003_error()
+    public void Malformed_json_returns_null_config_and_LX0003_error()
     {
         using var tmp = new TempDir();
         File.WriteAllText(Path.Combine(tmp.Path, "xaml-lint.config.json"), "{ not valid");
@@ -61,7 +61,7 @@ public sealed class ConfigLoaderTest
         var result = loader.Discover(tmp.Path, CatalogIds);
 
         result.Config.Should().BeNull();
-        result.Diagnostics.Should().Contain(d => d.RuleId == "LX003" && d.Severity == Severity.Error);
+        result.Diagnostics.Should().Contain(d => d.RuleId == "LX0003" && d.Severity == Severity.Error);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class ConfigLoaderTest
             {
               "defaultDialect": "wpf",
               "overrides": [
-                { "files": "**/*.Designer.xaml", "rules": { "LX001": "off" } }
+                { "files": "**/*.Designer.xaml", "rules": { "LX0001": "off" } }
               ]
             }
             """);
@@ -108,10 +108,10 @@ public sealed class ConfigLoaderTest
         var result = loader.Discover(tmp.Path, CatalogIds);
 
         var matched = ConfigLoader.ApplyOverridesForFile(result.Config!, Path.Combine(tmp.Path, "Foo.Designer.xaml"), tmp.Path);
-        matched.ContainsKey("LX001").Should().BeFalse();
+        matched.ContainsKey("LX0001").Should().BeFalse();
 
         var unmatched = ConfigLoader.ApplyOverridesForFile(result.Config!, Path.Combine(tmp.Path, "Foo.xaml"), tmp.Path);
-        unmatched["LX001"].Should().Be(Severity.Error);
+        unmatched["LX0001"].Should().Be(Severity.Error);
     }
 
     [Fact]
@@ -126,9 +126,9 @@ public sealed class ConfigLoaderTest
         var recommended = loader.Discover(tmp.Path, CatalogIds);
         var forcedOff   = loader.Discover(tmp.Path, CatalogIds, cliPresetOverride: "xaml-lint:off");
 
-        // recommended ships LX001 at Error; the :off preset drops it entirely.
-        recommended.Config!.RuleSeverities.Should().ContainKey("LX001");
-        forcedOff.Config!.RuleSeverities.Should().NotContainKey("LX001");
+        // recommended ships LX0001 at Error; the :off preset drops it entirely.
+        recommended.Config!.RuleSeverities.Should().ContainKey("LX0001");
+        forcedOff.Config!.RuleSeverities.Should().NotContainKey("LX0001");
     }
 
     [Fact]
@@ -140,8 +140,8 @@ public sealed class ConfigLoaderTest
         var fallback = loader.Discover(tmp.Path, CatalogIds);
         var forcedOff = loader.Discover(tmp.Path, CatalogIds, cliPresetOverride: "xaml-lint:off");
 
-        fallback.Config!.RuleSeverities.Should().ContainKey("LX001");
-        forcedOff.Config!.RuleSeverities.Should().NotContainKey("LX001");
+        fallback.Config!.RuleSeverities.Should().ContainKey("LX0001");
+        forcedOff.Config!.RuleSeverities.Should().NotContainKey("LX0001");
     }
 
     private sealed class TempDir : IDisposable

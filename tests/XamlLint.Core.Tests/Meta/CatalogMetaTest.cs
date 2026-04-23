@@ -24,7 +24,7 @@ public sealed class CatalogMetaTest
     [Fact]
     public void Every_rule_has_help_uri_matching_pattern()
     {
-        var pattern = new Regex(@"^https://github\.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX\d{3}\.md$");
+        var pattern = new Regex(@"^https://github\.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX\d{4}\.md$");
         foreach (var m in Rules)
             pattern.IsMatch(m.HelpUri).Should().BeTrue($"{m.Id} HelpUri must match expected pattern; got '{m.HelpUri}'");
     }
@@ -88,10 +88,10 @@ public sealed class CatalogMetaTest
         var unshipped = File.ReadAllText(Path.Combine(repoRoot, "AnalyzerReleases.Unshipped.md"));
         var combined = shipped + "\n" + unshipped;
 
-        // Match rows like:   LX300   | Naming   | Warning  | Description
+        // Match rows like:   LX0300   | Naming   | Warning  | Description
         // The first two pipe-delimited cells are the ID and the category.
         var row = new System.Text.RegularExpressions.Regex(
-            @"^(?<id>LX\d{3})\s*\|\s*(?<category>\w+)\s*\|",
+            @"^(?<id>LX\d{4})\s*\|\s*(?<category>\w+)\s*\|",
             System.Text.RegularExpressions.RegexOptions.Multiline);
 
         foreach (System.Text.RegularExpressions.Match m in row.Matches(combined))

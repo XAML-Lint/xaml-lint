@@ -46,7 +46,7 @@ public sealed class HookCommandTest
         exit.Should().Be(0);
         var root = JsonDocument.Parse(stdout.ToString()).RootElement;
         root.GetProperty("results").GetArrayLength().Should().Be(0);
-        stdout.ToString().Should().NotContain("LX005");
+        stdout.ToString().Should().NotContain("LX0005");
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public sealed class HookCommandTest
     {
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "View.XAML");
-        File.WriteAllText(file, "<Grid>"); // malformed → LX001
+        File.WriteAllText(file, "<Grid>"); // malformed → LX0001
 
         var payload = new
         {
@@ -70,7 +70,7 @@ public sealed class HookCommandTest
         var exit = HookCommand.Handle(stdin, stdout, stderr, tmp.Path);
 
         exit.Should().Be(1);
-        stdout.ToString().Should().Contain("LX001");
+        stdout.ToString().Should().Contain("LX0001");
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class HookCommandTest
         // "not a XAML file" short-circuit that would emit an empty envelope.
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "View.axaml");
-        File.WriteAllText(file, "<UserControl>"); // malformed → LX001
+        File.WriteAllText(file, "<UserControl>"); // malformed → LX0001
 
         var payload = new
         {
@@ -96,7 +96,7 @@ public sealed class HookCommandTest
         var exit = HookCommand.Handle(stdin, stdout, stderr, tmp.Path);
 
         exit.Should().Be(1);
-        stdout.ToString().Should().Contain("LX001");
+        stdout.ToString().Should().Contain("LX0001");
     }
 
     [Fact]
@@ -119,8 +119,8 @@ public sealed class HookCommandTest
 
         var exit = HookCommand.Handle(stdin, stdout, stderr, tmp.Path);
 
-        exit.Should().Be(1); // LX001 is error
-        stdout.ToString().Should().Contain("LX001");
+        exit.Should().Be(1); // LX0001 is error
+        stdout.ToString().Should().Contain("LX0001");
     }
 
     [Fact]

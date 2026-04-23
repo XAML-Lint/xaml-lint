@@ -4,7 +4,7 @@ using System.Xml.Linq;
 namespace XamlLint.Core.Helpers;
 
 /// <summary>
-/// Grid-layout introspection for LX100–LX103. Walks the XML tree to find the nearest
+/// Grid-layout introspection for LX0100–LX0103. Walks the XML tree to find the nearest
 /// <c>&lt;Grid&gt;</c> ancestor, counts its declared rows/columns (both element-syntax and
 /// the WinUI/UWP <c>RowDefinitions="Auto,*,..."</c> shorthand), and reads integer attached
 /// properties like <c>Grid.Row</c> in either attribute or element syntax.
@@ -37,7 +37,7 @@ public static class GridAncestryHelpers
     /// <c>&lt;DataTemplate&gt;</c> or <c>&lt;ControlTemplate&gt;</c> whose root is itself
     /// inside a <c>&lt;Grid&gt;</c> will claim the outer Grid as its nearest ancestor, even
     /// though at runtime the control is instantiated inside the template — the outer Grid is
-    /// not its real parent. Today's rules (LX100–LX103) rarely hit this edge in practice; a
+    /// not its real parent. Today's rules (LX0100–LX0103) rarely hit this edge in practice; a
     /// future grid-aware rule that consults the ancestor's layout state should add its own
     /// template-boundary filter or wait for this helper to grow one.
     /// </remarks>

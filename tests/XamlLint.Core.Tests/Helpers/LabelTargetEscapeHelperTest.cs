@@ -7,7 +7,7 @@ namespace XamlLint.Core.Tests.Helpers;
 
 /// <summary>
 /// Unit tests for <see cref="LabelTargetEscapeHelper"/>. These drive the reverse-labeling
-/// logic directly, bypassing LX702's name-escape so the semantics of the helper can be
+/// logic directly, bypassing LX0702's name-escape so the semantics of the helper can be
 /// verified without interference.
 /// </summary>
 public sealed class LabelTargetEscapeHelperTest

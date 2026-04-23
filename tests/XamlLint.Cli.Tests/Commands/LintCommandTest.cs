@@ -49,7 +49,7 @@ public sealed class LintCommandTest
     public void Rule_short_form_parses_cleanly()
     {
         var cmd = LintCommand.Build();
-        var r = cmd.Parse(new[] { "--rule", "LX100:warning", "foo.xaml" });
+        var r = cmd.Parse(new[] { "--rule", "LX0100:warning", "foo.xaml" });
         r.Errors.Should().BeEmpty();
     }
 
@@ -75,7 +75,7 @@ public sealed class LintCommandTest
     public void Only_is_mutually_exclusive_with_preset()
     {
         var cmd = LintCommand.Build();
-        var r = cmd.Parse(new[] { "--only", "LX100", "--preset", "strict", "foo.xaml" });
+        var r = cmd.Parse(new[] { "--only", "LX0100", "--preset", "strict", "foo.xaml" });
         r.Errors.Should().NotBeEmpty();
         r.Errors.Select(e => e.Message).Should().Contain(m => m.Contains("--only") && m.Contains("--preset"));
     }
@@ -84,7 +84,7 @@ public sealed class LintCommandTest
     public void Only_is_mutually_exclusive_with_rule()
     {
         var cmd = LintCommand.Build();
-        var r = cmd.Parse(new[] { "--only", "LX100", "--rule", "LX200:warning", "foo.xaml" });
+        var r = cmd.Parse(new[] { "--only", "LX0100", "--rule", "LX0200:warning", "foo.xaml" });
         r.Errors.Should().NotBeEmpty();
         r.Errors.Select(e => e.Message).Should().Contain(m => m.Contains("--only") && m.Contains("--rule"));
     }

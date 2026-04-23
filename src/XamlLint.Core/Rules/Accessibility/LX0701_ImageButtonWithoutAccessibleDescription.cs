@@ -1,0 +1,78 @@
+using System.Xml.Linq;
+using XamlLint.Core.Helpers;
+
+namespace XamlLint.Core.Rules.Accessibility;
+
+[XamlRule(
+    Id = "LX0701",
+    UpstreamId = "RXT351",
+    Title = "ImageButton lacks accessibility description",
+    DefaultSeverity = Severity.Info,
+    DefaultEnabled = false,
+    Dialects = Dialect.Maui,
+    HelpUri = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX0701.md")]
+public sealed partial class LX0701_ImageButtonWithoutAccessibleDescription : IXamlRule
+{
+    // Name / HelpText suppress the rule regardless of value — any value the author supplied
+    // is something an AT can read out (even a bound path that resolves at runtime is a
+    // deliberate statement of "I've thought about this"). LabeledBy is value-dependent now:
+    // a dangling {x:Reference} no longer suppresses. IsInAccessibleTree is boolean and only
+    // False (or a bound value) means "decorative — skip in AT."
+    //
+    // AutomationId is the test-automation hook on UI Automation (Windows) and MAUI's
+    // Microsoft.Maui.IElement.AutomationId; its presence signals the author wired the button
+    // into automation, so an AT will have something to announce via UIA/AccessibilityServices.
+    private static readonly string[] PresenceEscapeAttributes =
+    {
+        "AutomationProperties.Name",
+        "AutomationProperties.HelpText",
+        "SemanticProperties.Description",
+        "SemanticProperties.Hint",
+        "AutomationId",
+    };
+
+    private const string IsInAccessibleTreeAttribute = "AutomationProperties.IsInAccessibleTree";
+
+    public IEnumerable<Diagnostic> Analyze(XamlDocument document, RuleContext context)
+    {
+        if (document.Root is null) yield break;
+
+        foreach (var element in document.Root.DescendantsAndSelf())
+        {
+            if (element.Name.LocalName != "ImageButton") continue;
+            if (HasAnyEscape(element, context)) continue;
+
+            var span = LocationHelpers.GetElementNameSpan(element);
+            yield return new Diagnostic(
+                RuleId: Metadata.Id,
+                Severity: Metadata.DefaultSeverity,
+                Message: "ImageButton has no accessibility description; screen readers cannot convey its function. Set AutomationProperties.Name or AutomationProperties.IsInAccessibleTree=\"False\" to mark it decorative.",
+                File: document.FilePath,
+                StartLine: span.StartLine,
+                StartCol: span.StartCol,
+                EndLine: span.EndLine,
+                EndCol: span.EndCol,
+                HelpUri: Metadata.HelpUri);
+        }
+    }
+
+    private static bool HasAnyEscape(XElement element, RuleContext context)
+    {
+        foreach (var name in PresenceEscapeAttributes)
+        {
+            if (element.Attribute(name) is not null) return true;
+        }
+
+        if (LabeledByEscapeHelper.Suppresses(element, context)) return true;
+
+        var treeAttr = element.Attribute(IsInAccessibleTreeAttribute);
+        if (treeAttr is not null)
+        {
+            var value = treeAttr.Value;
+            if (MarkupExtensionHelpers.IsMarkupExtension(value)) return true;
+            if (string.Equals(value.Trim(), "False", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
+}

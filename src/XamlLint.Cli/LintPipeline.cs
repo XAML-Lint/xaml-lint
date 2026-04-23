@@ -41,7 +41,7 @@ public sealed class LintPipeline
             return FinalizeAndExit(opts, allDiagnostics, suppressedForSarif, toolFailure: true);
 
         // Apply CLI rule overlay to the base severity map once, upstream of everything that
-        // reads it — tool-level diagnostics (LX001/LX004/LX005) and the per-file overlay
+        // reads it — tool-level diagnostics (LX0001/LX0004/LX0005) and the per-file overlay
         // used by the dispatcher both see it.
         var config = opts.Overrides.RuleSeverities.Count > 0
             ? loaded.Config with { RuleSeverities = ApplyRuleOverlay(loaded.Config.RuleSeverities, opts.Overrides.RuleSeverities) }
@@ -69,11 +69,11 @@ public sealed class LintPipeline
         {
             if (!ef.IsXamlExtension)
             {
-                if (severityMap.TryGetValue("LX005", out var s5))
+                if (severityMap.TryGetValue("LX0005", out var s5))
                     allDiagnostics.Add(new Diagnostic(
-                        "LX005", s5, $"Skipping non-XAML file '{ef.AbsolutePath}'.",
+                        "LX0005", s5, $"Skipping non-XAML file '{ef.AbsolutePath}'.",
                         ef.AbsolutePath, 1, 1, 1, 1,
-                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX005.md"));
+                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX0005.md"));
                 continue;
             }
 
@@ -84,11 +84,11 @@ public sealed class LintPipeline
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                if (severityMap.TryGetValue("LX004", out var s4))
+                if (severityMap.TryGetValue("LX0004", out var s4))
                     allDiagnostics.Add(new Diagnostic(
-                        "LX004", s4, $"Cannot read file '{ef.AbsolutePath}': {ex.Message}",
+                        "LX0004", s4, $"Cannot read file '{ef.AbsolutePath}': {ex.Message}",
                         ef.AbsolutePath, 1, 1, 1, 1,
-                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX004.md"));
+                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX0004.md"));
                 continue;
             }
 
@@ -106,14 +106,14 @@ public sealed class LintPipeline
 
             if (doc.ParseError is not null)
             {
-                if (severityMap.TryGetValue("LX001", out var s1))
+                if (severityMap.TryGetValue("LX0001", out var s1))
                     allDiagnostics.Add(new Diagnostic(
-                        "LX001", s1,
+                        "LX0001", s1,
                         $"Malformed XAML: {doc.ParseError.Message}",
                         ef.AbsolutePath,
                         doc.ParseError.Line, doc.ParseError.Column,
                         doc.ParseError.Line, doc.ParseError.Column,
-                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX001.md"));
+                        "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX0001.md"));
                 continue;
             }
 

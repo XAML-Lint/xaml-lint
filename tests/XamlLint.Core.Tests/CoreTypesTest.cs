@@ -25,8 +25,8 @@ public sealed class CoreTypesTest
     [Fact]
     public void Diagnostic_stores_all_fields_via_record_equality()
     {
-        var a = new Diagnostic("LX001", Severity.Error, "msg", "file.xaml", 1, 2, 3, 4, "https://example.com");
-        var b = new Diagnostic("LX001", Severity.Error, "msg", "file.xaml", 1, 2, 3, 4, "https://example.com");
+        var a = new Diagnostic("LX0001", Severity.Error, "msg", "file.xaml", 1, 2, 3, 4, "https://example.com");
+        var b = new Diagnostic("LX0001", Severity.Error, "msg", "file.xaml", 1, 2, 3, 4, "https://example.com");
         a.Should().Be(b);
     }
 
@@ -34,7 +34,7 @@ public sealed class CoreTypesTest
     public void RuleMetadata_records_id_title_severity_dialects()
     {
         var m = new RuleMetadata(
-            Id: "LX100",
+            Id: "LX0100",
             UpstreamId: "RXT101",
             Title: "example",
             DefaultSeverity: Severity.Warning,
@@ -43,26 +43,26 @@ public sealed class CoreTypesTest
             Deprecated: false,
             ReplacedBy: null);
 
-        m.Id.Should().Be("LX100");
+        m.Id.Should().Be("LX0100");
         m.Dialects.Should().Be(Dialect.All);
     }
 
     [Fact]
     public void XamlLintCategory_for_id_maps_by_hundreds_digit()
     {
-        XamlLintCategoryExtensions.ForId("LX001").Should().Be(XamlLintCategory.Tool);
-        XamlLintCategoryExtensions.ForId("LX100").Should().Be(XamlLintCategory.Layout);
-        XamlLintCategoryExtensions.ForId("LX250").Should().Be(XamlLintCategory.Bindings);
-        XamlLintCategoryExtensions.ForId("LX300").Should().Be(XamlLintCategory.Naming);
-        XamlLintCategoryExtensions.ForId("LX499").Should().Be(XamlLintCategory.Resources);
-        XamlLintCategoryExtensions.ForId("LX500").Should().Be(XamlLintCategory.Input);
-        XamlLintCategoryExtensions.ForId("LX600").Should().Be(XamlLintCategory.Deprecated);
+        XamlLintCategoryExtensions.ForId("LX0001").Should().Be(XamlLintCategory.Tool);
+        XamlLintCategoryExtensions.ForId("LX0100").Should().Be(XamlLintCategory.Layout);
+        XamlLintCategoryExtensions.ForId("LX0250").Should().Be(XamlLintCategory.Bindings);
+        XamlLintCategoryExtensions.ForId("LX0300").Should().Be(XamlLintCategory.Naming);
+        XamlLintCategoryExtensions.ForId("LX0499").Should().Be(XamlLintCategory.Resources);
+        XamlLintCategoryExtensions.ForId("LX0500").Should().Be(XamlLintCategory.Input);
+        XamlLintCategoryExtensions.ForId("LX0600").Should().Be(XamlLintCategory.Deprecated);
     }
 
     [Theory]
     [InlineData("LX")]        // no digits
     [InlineData("LX0")]       // too few digits
-    [InlineData("LX1000")]    // too many digits
+    [InlineData("LX01000")]    // too many digits
     [InlineData("XX100")]     // wrong prefix
     [InlineData("")]
     public void XamlLintCategory_for_id_rejects_malformed_ids(string id)

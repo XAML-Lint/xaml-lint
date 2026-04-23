@@ -6,7 +6,7 @@ namespace XamlLint.Core;
 /// <summary>
 /// A parsed XAML file plus the raw source it came from. Production code loads via
 /// <see cref="FromFileAsync"/>; tests use <see cref="FromString"/>. Never throws from loading —
-/// parse errors land in <see cref="ParseError"/> and callers emit LX001.
+/// parse errors land in <see cref="ParseError"/> and callers emit LX0001.
 /// </summary>
 public sealed class XamlDocument
 {

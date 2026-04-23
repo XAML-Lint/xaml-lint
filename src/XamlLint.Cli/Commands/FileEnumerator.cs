@@ -5,7 +5,7 @@ namespace XamlLint.Cli.Commands;
 /// <summary>
 /// Expands positional path/glob arguments into concrete file paths, honoring <c>--include</c>
 /// and <c>--exclude</c> filters. When <c>--force</c> is not set, files whose extension is
-/// neither <c>.xaml</c> nor <c>.axaml</c> are returned with a flag so the caller can emit LX005.
+/// neither <c>.xaml</c> nor <c>.axaml</c> are returned with a flag so the caller can emit LX0005.
 /// </summary>
 public static class FileEnumerator
 {

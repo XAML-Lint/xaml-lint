@@ -4,7 +4,7 @@ namespace XamlLint.Core.Helpers;
 
 /// <summary>
 /// Shared <c>AutomationProperties.LabeledBy</c> suppressor logic used by the accessibility
-/// rules LX700/LX701/LX702. A <c>LabeledBy</c> value suppresses the diagnostic when:
+/// rules LX0700/LX0701/LX0702. A <c>LabeledBy</c> value suppresses the diagnostic when:
 /// <list type="bullet">
 ///   <item>It's a non-extension literal (author-supplied name, honour the intent).</item>
 ///   <item>It's <c>{x:Reference &lt;name&gt;}</c> / <c>{Reference &lt;name&gt;}</c> OR

@@ -20,7 +20,7 @@ public sealed class LintPipelineTest
     }
 
     [Fact]
-    public void Malformed_xaml_emits_LX001_and_exit_one()
+    public void Malformed_xaml_emits_LX0001_and_exit_one()
     {
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "bad.xaml");
@@ -29,14 +29,14 @@ public sealed class LintPipelineTest
         var (exit, stdout) = Run(tmp, new[] { file });
 
         exit.Should().Be(1);
-        stdout.Should().Contain("LX001");
+        stdout.Should().Contain("LX0001");
     }
 
     [Fact]
-    public void Clean_axaml_is_linted_not_skipped_with_LX005()
+    public void Clean_axaml_is_linted_not_skipped_with_LX0005()
     {
         // Avalonia .axaml is a first-class XAML extension — the pipeline must
-        // actually parse and analyse the file rather than emit LX005.
+        // actually parse and analyse the file rather than emit LX0005.
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "a.axaml");
         File.WriteAllText(file, "<UserControl xmlns=\"https://github.com/avaloniaui\" />");
@@ -44,14 +44,14 @@ public sealed class LintPipelineTest
         var (exit, stdout) = Run(tmp, new[] { file });
 
         exit.Should().Be(0);
-        stdout.Should().NotContain("LX005");
+        stdout.Should().NotContain("LX0005");
         stdout.Should().Contain("\"results\": []");
     }
 
     [Fact]
-    public void Malformed_axaml_emits_LX001_not_LX005()
+    public void Malformed_axaml_emits_LX0001_not_LX0005()
     {
-        // Real proof the file hits the parser: a broken .axaml surfaces LX001.
+        // Real proof the file hits the parser: a broken .axaml surfaces LX0001.
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "bad.axaml");
         File.WriteAllText(file, "<UserControl>");
@@ -59,12 +59,12 @@ public sealed class LintPipelineTest
         var (exit, stdout) = Run(tmp, new[] { file });
 
         exit.Should().Be(1);
-        stdout.Should().Contain("LX001");
-        stdout.Should().NotContain("LX005");
+        stdout.Should().Contain("LX0001");
+        stdout.Should().NotContain("LX0005");
     }
 
     [Fact]
-    public void Non_xaml_without_force_emits_LX005_info()
+    public void Non_xaml_without_force_emits_LX0005_info()
     {
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "a.txt");
@@ -73,7 +73,7 @@ public sealed class LintPipelineTest
         var (exit, stdout) = Run(tmp, new[] { file });
 
         exit.Should().Be(0); // info doesn't bump exit code
-        stdout.Should().Contain("LX005");
+        stdout.Should().Contain("LX0005");
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class LintPipelineTest
     [Fact]
     public void Cli_rule_override_turns_a_rule_on_when_preset_has_it_off()
     {
-        // LX702 is DefaultEnabled=false → absent from :recommended. Force it on via --rule.
+        // LX0702 is DefaultEnabled=false → absent from :recommended. Force it on via --rule.
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "a.xaml");
         File.WriteAllText(file, """
@@ -105,18 +105,18 @@ public sealed class LintPipelineTest
             Dialect = "wpf",
             Overrides = new CliOverrides(
                 PresetOverride: null,
-                RuleSeverities: new Dictionary<string, Severity?> { ["LX702"] = Severity.Warning },
+                RuleSeverities: new Dictionary<string, Severity?> { ["LX0702"] = Severity.Warning },
                 NoInlineConfig: false),
         });
 
-        stdout.Should().Contain("LX702");
+        stdout.Should().Contain("LX0702");
         exit.Should().Be(0); // warning doesn't bump exit code
     }
 
     [Fact]
     public void Cli_rule_override_turns_a_rule_off_when_preset_has_it_on()
     {
-        // LX001 is enabled at error under :recommended; --rule LX001:off should silence it
+        // LX0001 is enabled at error under :recommended; --rule LX0001:off should silence it
         // even on a malformed file.
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "bad.xaml");
@@ -126,21 +126,21 @@ public sealed class LintPipelineTest
         {
             Overrides = new CliOverrides(
                 PresetOverride: null,
-                RuleSeverities: new Dictionary<string, Severity?> { ["LX001"] = null },
+                RuleSeverities: new Dictionary<string, Severity?> { ["LX0001"] = null },
                 NoInlineConfig: false),
         });
 
-        stdout.Should().NotContain("LX001");
+        stdout.Should().NotContain("LX0001");
         exit.Should().Be(0);
     }
 
     [Fact]
-    public void Maui_root_xmlns_beats_cli_dialect_uno_so_LX201_is_skipped()
+    public void Maui_root_xmlns_beats_cli_dialect_uno_so_LX0201_is_skipped()
     {
         // A file whose root default xmlns is the MAUI namespace IS a MAUI document
         // regardless of where it's stored or how the linter is invoked. The CLI --dialect
         // flag is a hint for files whose xmlns is ambiguous (the shared WPF/WinUI/UWP
-        // presentation URL); it must not override a ground-truth signal. LX201 scope is
+        // presentation URL); it must not override a ground-truth signal. LX0201 scope is
         // Uwp|WinUI3|Uno, so when the document resolves to Maui the rule is skipped.
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "a.xaml");
@@ -152,11 +152,11 @@ public sealed class LintPipelineTest
 
         var (_, stdout) = RunWith(tmp, new[] { file }, opts => opts with { Dialect = "uno" });
 
-        stdout.Should().NotContain("LX201");
+        stdout.Should().NotContain("LX0201");
     }
 
     [Fact]
-    public void Avalonia_root_xmlns_beats_cli_dialect_uno_so_LX201_is_skipped()
+    public void Avalonia_root_xmlns_beats_cli_dialect_uno_so_LX0201_is_skipped()
     {
         // Same principle for Avalonia's definitive namespace.
         using var tmp = new TempDir();
@@ -169,14 +169,14 @@ public sealed class LintPipelineTest
 
         var (_, stdout) = RunWith(tmp, new[] { file }, opts => opts with { Dialect = "uno" });
 
-        stdout.Should().NotContain("LX201");
+        stdout.Should().NotContain("LX0201");
     }
 
     [Fact]
-    public void Ambiguous_shared_xmlns_still_takes_cli_dialect_so_LX201_fires()
+    public void Ambiguous_shared_xmlns_still_takes_cli_dialect_so_LX0201_fires()
     {
         // The WPF/UWP/WinUI 3 presentation URL is shared — the sniff returns null and
-        // the CLI flag (or config) resolves the ambiguity. --dialect uno → LX201 fires.
+        // the CLI flag (or config) resolves the ambiguity. --dialect uno → LX0201 fires.
         using var tmp = new TempDir();
         var file = Path.Combine(tmp.Path, "a.xaml");
         File.WriteAllText(file, """
@@ -187,7 +187,7 @@ public sealed class LintPipelineTest
 
         var (_, stdout) = RunWith(tmp, new[] { file }, opts => opts with { Dialect = "uno" });
 
-        stdout.Should().Contain("LX201");
+        stdout.Should().Contain("LX0201");
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public sealed class LintPipelineTest
         var file = Path.Combine(tmp.Path, "a.xaml");
         File.WriteAllText(file, """
             <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-              <!-- xaml-lint disable LX100 -->
+              <!-- xaml-lint disable LX0100 -->
               <Button Grid.Row="5" />
             </Grid>
             """);
@@ -209,10 +209,10 @@ public sealed class LintPipelineTest
             Overrides = CliOverrides.Empty with { NoInlineConfig = true },
         });
 
-        // Pragma honoured by default → no LX100.
-        stdout1.Should().NotContain("LX100");
-        // With --no-inline-config → LX100 fires.
-        stdout2.Should().Contain("LX100");
+        // Pragma honoured by default → no LX0100.
+        stdout1.Should().NotContain("LX0100");
+        // With --no-inline-config → LX0100 fires.
+        stdout2.Should().Contain("LX0100");
     }
 
     private static (int Exit, string Stdout) RunWith(TempDir tmp, string[] args, Func<LintOptions, LintOptions> customize)

@@ -34,8 +34,8 @@ public sealed class DocStubWriterTest
         using var tmp = new TempRepo();
         var docsDir = Path.Combine(tmp.Path, "docs", "rules");
         Directory.CreateDirectory(docsDir);
-        var orphan = Path.Combine(docsDir, "LX998.md");
-        File.WriteAllText(orphan, $"# LX998\n{DocStubWriter.StubSentinel} -->");
+        var orphan = Path.Combine(docsDir, "LX0998.md");
+        File.WriteAllText(orphan, $"# LX0998\n{DocStubWriter.StubSentinel} -->");
 
         DocStubWriter.Run(tmp.Path, checkOnly: false);
 

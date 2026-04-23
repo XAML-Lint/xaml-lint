@@ -5,33 +5,33 @@ namespace XamlLint.Core;
 /// </summary>
 public enum XamlLintCategory
 {
-    Tool,          // LX001-LX099
-    Layout,        // LX100-LX199
-    Bindings,      // LX200-LX299
-    Naming,        // LX300-LX399
-    Resources,     // LX400-LX499
-    Input,         // LX500-LX599
-    Deprecated,    // LX600-LX699
-    Accessibility, // LX700-LX799
-    Platform,      // LX800-LX899
+    Tool,          // LX0001-LX0099
+    Layout,        // LX0100-LX0199
+    Bindings,      // LX0200-LX0299
+    Naming,        // LX0300-LX0399
+    Resources,     // LX0400-LX0499
+    Input,         // LX0500-LX0599
+    Deprecated,    // LX0600-LX0699
+    Accessibility, // LX0700-LX0799
+    Platform,      // LX0800-LX0899
 }
 
 public static class XamlLintCategoryExtensions
 {
     /// <summary>
-    /// Maps a rule ID like <c>LX100</c> to its category by looking at the hundreds digit.
+    /// Maps a rule ID like <c>LX0100</c> to its category by looking at the hundreds digit.
     /// Throws <see cref="ArgumentException"/> for malformed IDs.
     /// </summary>
     public static XamlLintCategory ForId(string ruleId)
     {
-        if (string.IsNullOrEmpty(ruleId) || !ruleId.StartsWith("LX", StringComparison.Ordinal) || ruleId.Length != 5)
+        if (string.IsNullOrEmpty(ruleId) || !ruleId.StartsWith("LX", StringComparison.Ordinal) || ruleId.Length != 6)
         {
-            throw new ArgumentException($"Rule ID must match the pattern 'LX###' (3 digits); got '{ruleId}'.", nameof(ruleId));
+            throw new ArgumentException($"Rule ID must match the pattern 'LX####' (4 digits); got '{ruleId}'.", nameof(ruleId));
         }
 
         if (!int.TryParse(ruleId.AsSpan(2), out var number))
         {
-            throw new ArgumentException($"Rule ID '{ruleId}' must have 3 digits after 'LX'.", nameof(ruleId));
+            throw new ArgumentException($"Rule ID '{ruleId}' must have 4 digits after 'LX'.", nameof(ruleId));
         }
 
         return (number / 100) switch
@@ -45,7 +45,7 @@ public static class XamlLintCategoryExtensions
             6 => XamlLintCategory.Deprecated,
             7 => XamlLintCategory.Accessibility,
             8 => XamlLintCategory.Platform,
-            _ => throw new ArgumentException($"Rule ID '{ruleId}' is outside the LX001-LX899 range currently defined.", nameof(ruleId)),
+            _ => throw new ArgumentException($"Rule ID '{ruleId}' is outside the LX0001-LX0899 range currently defined.", nameof(ruleId)),
         };
     }
 }

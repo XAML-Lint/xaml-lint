@@ -9,7 +9,7 @@ internal sealed record RuleOverrideParseResult(
 
 /// <summary>
 /// Parses a sequence of <c>--rule</c> argument values. Each value is either:
-///   * short form  "ID:severity" (optionally CSV-stacked, e.g. "LX100:warning,LX200:off")
+///   * short form  "ID:severity" (optionally CSV-stacked, e.g. "LX0100:warning,LX0200:off")
 ///   * object form '{ "ID": "severity", ... }' discriminated by a leading '{'
 /// Later values overwrite earlier ones. Unknown rule IDs and malformed tokens produce
 /// human-readable error strings; the caller surfaces them via System.CommandLine.

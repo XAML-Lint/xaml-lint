@@ -6,13 +6,13 @@ namespace XamlLint.Core.Suppressions;
 
 /// <summary>
 /// Parses <c>&lt;!-- xaml-lint ... --&gt;</c> directives into a <see cref="SuppressionMap"/>.
-/// Emits LX002 for malformed directives whose body starts with the <c>xaml-lint</c> token.
+/// Emits LX0002 for malformed directives whose body starts with the <c>xaml-lint</c> token.
 /// Grammar: spec §3.4.
 /// </summary>
 public static class PragmaParser
 {
-    private const string LX002 = "LX002";
-    private const string HelpUriLX002 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX002.md";
+    private const string LX0002 = "LX0002";
+    private const string HelpUriLX0002 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX0002.md";
 
     private static readonly Regex RuleIdPattern = new(@"^[A-Z]+\d+$", RegexOptions.Compiled);
 
@@ -55,11 +55,11 @@ public static class PragmaParser
             if (!TryParseDirective(body, out var directive, out var isOnce, out var targets))
             {
                 diags.Add(new Diagnostic(
-                    LX002, Severity.Warning,
+                    LX0002, Severity.Warning,
                     Message: $"Malformed xaml-lint pragma: '{body}'.",
                     File: document.FilePath,
                     StartLine: line, StartCol: col, EndLine: line, EndCol: col + body.Length + 7,
-                    HelpUri: HelpUriLX002));
+                    HelpUri: HelpUriLX0002));
                 continue;
             }
 

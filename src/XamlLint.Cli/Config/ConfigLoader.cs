@@ -6,15 +6,15 @@ namespace XamlLint.Cli.Config;
 
 /// <summary>
 /// Discovers and resolves <c>xaml-lint.config.json</c>. Walks up from the given starting
-/// directory looking for the file; stops at <c>.git</c> or filesystem root. Emits LX003
+/// directory looking for the file; stops at <c>.git</c> or filesystem root. Emits LX0003
 /// diagnostics for malformed configs (not exceptions — the CLI's exit code handler acts on
 /// them).
 /// </summary>
 public sealed class ConfigLoader
 {
     private const string ConfigFileName = "xaml-lint.config.json";
-    private const string LX003 = "LX003";
-    private const string HelpUriLX003 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX003.md";
+    private const string LX0003 = "LX0003";
+    private const string HelpUriLX0003 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX0003.md";
 
     public sealed record LoadResult(ResolvedConfig? Config, IReadOnlyList<Diagnostic> Diagnostics);
 
@@ -121,7 +121,7 @@ public sealed class ConfigLoader
     /// Parses a framework-version string like <c>"10"</c>, <c>"10.0"</c>, or <c>"net10.0"</c>
     /// into a major-version integer. Returns <c>null</c> when input is null or empty; throws
     /// <see cref="FormatException"/> when input is non-empty but not parseable (caller turns
-    /// this into an LX003 malformed-config diagnostic).
+    /// this into an LX0003 malformed-config diagnostic).
     /// </summary>
     public static int? ParseFrameworkMajorVersion(string? value)
     {
@@ -198,10 +198,10 @@ public sealed class ConfigLoader
             if (kv.Key != "*" && !catalogIds.Contains(kv.Key))
             {
                 diags.Add(new Diagnostic(
-                    RuleId: LX003, Severity: Severity.Warning,
+                    RuleId: LX0003, Severity: Severity.Warning,
                     Message: $"Unknown rule ID '{kv.Key}' in {origin} '{sourcePath}'.",
                     File: sourcePath, StartLine: 1, StartCol: 1, EndLine: 1, EndCol: 1,
-                    HelpUri: HelpUriLX003));
+                    HelpUri: HelpUriLX0003));
                 continue;
             }
 
@@ -308,10 +308,10 @@ public sealed class ConfigLoader
             if (kv.Key != "*" && !catalogIds.Contains(kv.Key))
             {
                 diags.Add(new Diagnostic(
-                    RuleId: LX003, Severity: Severity.Warning,
+                    RuleId: LX0003, Severity: Severity.Warning,
                     Message: $"Unknown rule ID '{kv.Key}' in override '{sourcePath}'.",
                     File: sourcePath, StartLine: 1, StartCol: 1, EndLine: 1, EndCol: 1,
-                    HelpUri: HelpUriLX003));
+                    HelpUri: HelpUriLX0003));
                 continue;
             }
 
@@ -360,7 +360,7 @@ public sealed class ConfigLoader
     }
 
     private static Diagnostic Fail(string file, string msg) => new(
-        RuleId: LX003, Severity: Severity.Error,
+        RuleId: LX0003, Severity: Severity.Error,
         Message: msg, File: file, StartLine: 1, StartCol: 1, EndLine: 1, EndCol: 1,
-        HelpUri: HelpUriLX003);
+        HelpUri: HelpUriLX0003);
 }

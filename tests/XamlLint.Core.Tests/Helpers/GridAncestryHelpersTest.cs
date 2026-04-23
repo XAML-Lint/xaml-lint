@@ -234,7 +234,7 @@ public sealed class GridAncestryHelpersTest
     {
         // Negative indexes have no runtime meaning — the helper treats them the same as
         // unparseable values so the rule consumers do not see an `int` they cannot reason
-        // about (LX100's `rowValue < rowCount` guard would otherwise silently accept -1).
+        // about (LX0100's `rowValue < rowCount` guard would otherwise silently accept -1).
         var doc = Doc($"""
             <Grid xmlns="{WpfXmlns}">
                 <Button Grid.Row="-1" />

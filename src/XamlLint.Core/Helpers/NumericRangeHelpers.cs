@@ -4,7 +4,7 @@ using System.Xml.Linq;
 namespace XamlLint.Core.Helpers;
 
 /// <summary>
-/// Small utilities for the <c>Minimum</c>/<c>Maximum</c> range rules (LX501, LX502).
+/// Small utilities for the <c>Minimum</c>/<c>Maximum</c> range rules (LX0501, LX0502).
 /// Only literal, invariant-culture-parseable values compare; anything else (a markup
 /// extension, an empty string, a non-numeric literal) returns <c>null</c> so the rule
 /// skips the pair rather than producing a false positive.

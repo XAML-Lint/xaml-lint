@@ -22,7 +22,7 @@ public sealed class PragmaParserTest
     {
         const string src = """
             <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <!-- xaml-lint disable LX100 -->
+                <!-- xaml-lint disable LX0100 -->
                 <Button />
             </Root>
             """;
@@ -30,9 +30,9 @@ public sealed class PragmaParserTest
         var result = PragmaParser.Parse(doc);
 
         result.Diagnostics.Should().BeEmpty();
-        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();
-        result.Map.IsSuppressed("LX100", line: 4).Should().BeTrue();
-        result.Map.IsSuppressed("LX101", line: 3).Should().BeFalse();
+        result.Map.IsSuppressed("LX0100", line: 3).Should().BeTrue();
+        result.Map.IsSuppressed("LX0100", line: 4).Should().BeTrue();
+        result.Map.IsSuppressed("LX0101", line: 3).Should().BeFalse();
     }
 
     [Fact]
@@ -40,17 +40,17 @@ public sealed class PragmaParserTest
     {
         const string src = """
             <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <!-- xaml-lint disable LX100 -->
+                <!-- xaml-lint disable LX0100 -->
                 <A />
-                <!-- xaml-lint restore LX100 -->
+                <!-- xaml-lint restore LX0100 -->
                 <B />
             </Root>
             """;
         var doc = Parse(src);
         var result = PragmaParser.Parse(doc);
 
-        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();
-        result.Map.IsSuppressed("LX100", line: 5).Should().BeFalse();
+        result.Map.IsSuppressed("LX0100", line: 3).Should().BeTrue();
+        result.Map.IsSuppressed("LX0100", line: 5).Should().BeFalse();
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public sealed class PragmaParserTest
     {
         const string src = """
             <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <!-- xaml-lint disable once LX100 -->
+                <!-- xaml-lint disable once LX0100 -->
                 <A />
                 <B />
             </Root>
@@ -66,8 +66,8 @@ public sealed class PragmaParserTest
         var doc = Parse(src);
         var result = PragmaParser.Parse(doc);
 
-        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();  // <A />
-        result.Map.IsSuppressed("LX100", line: 4).Should().BeFalse(); // <B />
+        result.Map.IsSuppressed("LX0100", line: 3).Should().BeTrue();  // <A />
+        result.Map.IsSuppressed("LX0100", line: 4).Should().BeFalse(); // <B />
     }
 
     [Fact]
@@ -82,8 +82,8 @@ public sealed class PragmaParserTest
         var doc = Parse(src);
         var result = PragmaParser.Parse(doc);
 
-        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();
-        result.Map.IsSuppressed("LX999", line: 3).Should().BeTrue();
+        result.Map.IsSuppressed("LX0100", line: 3).Should().BeTrue();
+        result.Map.IsSuppressed("LX0999", line: 3).Should().BeTrue();
     }
 
     [Fact]
@@ -91,31 +91,31 @@ public sealed class PragmaParserTest
     {
         const string src = """
             <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <!-- xaml-lint disable LX100 LX200 -->
+                <!-- xaml-lint disable LX0100 LX0200 -->
                 <A />
             </Root>
             """;
         var doc = Parse(src);
         var result = PragmaParser.Parse(doc);
 
-        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();
-        result.Map.IsSuppressed("LX200", line: 3).Should().BeTrue();
-        result.Map.IsSuppressed("LX300", line: 3).Should().BeFalse();
+        result.Map.IsSuppressed("LX0100", line: 3).Should().BeTrue();
+        result.Map.IsSuppressed("LX0200", line: 3).Should().BeTrue();
+        result.Map.IsSuppressed("LX0300", line: 3).Should().BeFalse();
     }
 
     [Fact]
-    public void Malformed_pragma_emits_LX002_at_comment_line()
+    public void Malformed_pragma_emits_LX0002_at_comment_line()
     {
         const string src = """
             <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <!-- xaml-lint disableonce LX100 -->
+                <!-- xaml-lint disableonce LX0100 -->
                 <A />
             </Root>
             """;
         var doc = Parse(src);
         var result = PragmaParser.Parse(doc);
 
-        result.Diagnostics.Should().ContainSingle(d => d.RuleId == "LX002");
+        result.Diagnostics.Should().ContainSingle(d => d.RuleId == "LX0002");
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class PragmaParserTest
     {
         const string src = """
             <Root xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-                <!-- xaml-lint disable once LX100 -->
+                <!-- xaml-lint disable once LX0100 -->
                 <A>
                     <B />
                 </A>
@@ -149,24 +149,24 @@ public sealed class PragmaParserTest
         var doc = Parse(src);
         var result = PragmaParser.Parse(doc);
 
-        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();  // <A>
-        result.Map.IsSuppressed("LX100", line: 4).Should().BeTrue();  // <B />
-        result.Map.IsSuppressed("LX100", line: 5).Should().BeTrue();  // </A>
-        result.Map.IsSuppressed("LX100", line: 6).Should().BeFalse(); // <C />
+        result.Map.IsSuppressed("LX0100", line: 3).Should().BeTrue();  // <A>
+        result.Map.IsSuppressed("LX0100", line: 4).Should().BeTrue();  // <B />
+        result.Map.IsSuppressed("LX0100", line: 5).Should().BeTrue();  // </A>
+        result.Map.IsSuppressed("LX0100", line: 6).Should().BeFalse(); // <C />
     }
 
     [Fact]
     public void Tabs_between_tokens_are_accepted()
     {
         const string src = "<Root xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">\n" +
-                           "\t<!--\txaml-lint\tdisable\tLX100\t-->\n" +
+                           "\t<!--\txaml-lint\tdisable\tLX0100\t-->\n" +
                            "\t<A />\n" +
                            "</Root>";
         var doc = Parse(src);
         var result = PragmaParser.Parse(doc);
 
         result.Diagnostics.Should().BeEmpty();
-        result.Map.IsSuppressed("LX100", line: 3).Should().BeTrue();
+        result.Map.IsSuppressed("LX0100", line: 3).Should().BeTrue();
     }
 
     [Fact]

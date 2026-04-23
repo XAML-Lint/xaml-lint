@@ -6,12 +6,12 @@ namespace XamlLint.Core;
 /// <summary>
 /// Takes a parsed document and invokes every applicable rule. Tool rules (IToolRule) are
 /// skipped — they register with the catalog but emit diagnostics from their pipeline sites.
-/// Each rule runs in a try/catch; exceptions become LX006 diagnostics, never propagate.
+/// Each rule runs in a try/catch; exceptions become LX0006 diagnostics, never propagate.
 /// </summary>
 public sealed class RuleDispatcher
 {
-    public const string LX006 = "LX006";
-    public const string HelpUriLX006 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX006.md";
+    public const string LX0006 = "LX0006";
+    public const string HelpUriLX0006 = "https://github.com/XAML-Lint/xaml-lint/blob/main/docs/rules/LX0006.md";
 
     private readonly IReadOnlyList<IXamlRule> _rules;
 
@@ -55,14 +55,14 @@ public sealed class RuleDispatcher
             }
             catch (Exception ex)
             {
-                var lx006Severity = severityMap.TryGetValue(LX006, out var s) ? s : Severity.Error;
+                var lx006Severity = severityMap.TryGetValue(LX0006, out var s) ? s : Severity.Error;
                 output.Add(new Diagnostic(
-                    RuleId: LX006,
+                    RuleId: LX0006,
                     Severity: lx006Severity,
                     Message: $"Rule '{meta.Id}' threw {ex.GetType().Name}: {ex.Message}",
                     File: document.FilePath,
                     StartLine: 1, StartCol: 1, EndLine: 1, EndCol: 1,
-                    HelpUri: HelpUriLX006));
+                    HelpUri: HelpUriLX0006));
                 continue;
             }
 
