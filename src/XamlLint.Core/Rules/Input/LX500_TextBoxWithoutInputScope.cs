@@ -18,7 +18,7 @@ public sealed partial class LX500_TextBoxWithoutInputScope : IXamlRule
         foreach (var element in document.Root.DescendantsAndSelf())
         {
             if (element.Name.LocalName != "TextBox") continue;
-            if (element.Attribute("InputScope") is not null) continue;
+            if (PropertyElementHelpers.HasAttributeOrPropertyElement(element, "InputScope")) continue;
 
             var span = LocationHelpers.GetElementNameSpan(element);
             yield return new Diagnostic(
