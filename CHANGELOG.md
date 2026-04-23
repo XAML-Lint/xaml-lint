@@ -8,6 +8,8 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-04-23
+
 ### Added
 
 - `--rule ID:severity` CLI flag for ad-hoc rule-severity overrides; repeatable, CSV-stackable, and also accepts an `--rule '{"ID":"severity"}'` object form mirroring the config's `rules:` schema
@@ -137,7 +139,8 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
-[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/XAML-Lint/xaml-lint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.5.0...v1.0.0
 [0.5.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.3.0...v0.4.0
