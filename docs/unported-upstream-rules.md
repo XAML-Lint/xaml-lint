@@ -19,11 +19,11 @@ breaks down as:
   upstream, not a rule.
 
 **v1.1 update:** RXT601 and RXT700 were ported in the remaining-upstream
-batch (as [LX702](rules/LX702.md) and [LX800](rules/LX800.md)), together
-with a MAUI-only accessibility sibling ([LX703](rules/LX703.md) — not
-an upstream port) and a retrofit of LX700/LX701 to validate
+batch (as [LX0702](rules/LX0702.md) and [LX0800](rules/LX0800.md)), together
+with a MAUI-only accessibility sibling ([LX0703](rules/LX0703.md) — not
+an upstream port) and a retrofit of LX0700/LX0701 to validate
 `AutomationProperties.LabeledBy` targets via the same `XamlNameIndex`
-infrastructure LX702 introduces. See
+infrastructure LX0702 introduces. See
 [`comparison-with-rapid-xaml-toolkit.md`](comparison-with-rapid-xaml-toolkit.md)
 for the current ported-rule mapping.
 

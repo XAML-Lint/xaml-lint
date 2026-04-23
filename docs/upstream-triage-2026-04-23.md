@@ -18,19 +18,19 @@ Ordered by implementation cost (low → medium). All four are single-file, deter
 
 | # | Upstream | Idea | Why it fits now |
 |---|----------|------|-----------------|
-| 1 | [#383](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/383) | Invalid `{Binding ElementName=Foo}` | Reuses `XamlNameIndex` from LX702. The scope-aware name resolver already validates `AutomationProperties.LabeledBy="{x:Reference …}"`. |
+| 1 | [#383](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/383) | Invalid `{Binding ElementName=Foo}` | Reuses `XamlNameIndex` from LX0702. The scope-aware name resolver already validates `AutomationProperties.LabeledBy="{x:Reference …}"`. |
 | 2 | [#502](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/502) | Invalid `{x:Reference}` anywhere | Same infrastructure as #383. Upstream specifically calls out the unhelpful `TargetInvocationException` produced at runtime when the target is missing. |
-| 3 | [#429](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/429) | `<RowDefinition Height="0"/>` / width < 1 | Literal-only check; slots next to LX100–LX104 in the Layout category. No new infrastructure. |
-| 4 | [#114](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/114) | `<Grid>` with single child and no `Row/ColumnDefinitions` | Structural single-file check. Likely noisy — would want `DefaultEnabled=false` and `off` in `:recommended` (same pattern as LX300/LX400/LX700/LX701). |
+| 3 | [#429](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/429) | `<RowDefinition Height="0"/>` / width < 1 | Literal-only check; slots next to LX0100–LX0104 in the Layout category. No new infrastructure. |
+| 4 | [#114](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/114) | `<Grid>` with single child and no `Row/ColumnDefinitions` | Structural single-file check. Likely noisy — would want `DefaultEnabled=false` and `off` in `:recommended` (same pattern as LX0300/LX0400/LX0700/LX0701). |
 
-**Recommendation.** Ship #383 + #502 as a paired "name-reference validation" sub-category. They're essentially free extensions of the LX702 work that just landed, they catch real runtime crashes, and they reuse our scope-aware name index so there's no new infrastructure debt.
+**Recommendation.** Ship #383 + #502 as a paired "name-reference validation" sub-category. They're essentially free extensions of the LX0702 work that just landed, they catch real runtime crashes, and they reuse our scope-aware name index so there's no new infrastructure debt.
 
 ## Candidates needing design work
 
 Reasonable ideas, but each wants a round of brainstorming before implementation.
 
 - [#321](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/321) — unused `x:Name`. A XAML-only mode (flag names not referenced from any other XAML in the same file) is tractable. A full check needs code-behind parsing, which is outside our current scope.
-- [#240](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/240) — MAUI Shell `Tab` needs `Title`/`Icon`. Structural mirror of LX700/LX701. Would open a Shell sub-category.
+- [#240](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/240) — MAUI Shell `Tab` needs `Title`/`Icon`. Structural mirror of LX0700/LX0701. Would open a Shell sub-category.
 - [#242](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/242) + [#137](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/137) — accessibility expansion. The Accessibility category currently covers four controls (Image/ImageButton/TextBox/Entry). Upstream's wishlist includes buttons-with-images, form elements without `IsRequiredForForm`, lists without `SizeOfSet`, missing heading levels. Good roadmap material for v1.2+.
 - [#510](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/510) — nested scrollable elements. Tractable as a structural check, but "scrollable" needs a per-dialect taxonomy (ScrollViewer, ScrollView, CollectionView, ListView, TreeView, …).
 
@@ -44,7 +44,7 @@ These share RXT500's cross-file-resolution blocker (see [`unported-upstream-rule
 - [#27](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/27) — inconsistent namespace aliases across files. Multi-file.
 - [#324](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/324) — margins/paddings that don't scale well. Subjective; hard bright line.
 - [#146](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/146), [#320](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/320) — meta "ideas wanted" boards; mine periodically.
-- [#179](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/179) — extend InputScope *suggested actions*. Upstream is about suggesting specific values in a code-fix surface; we don't emit fix hints yet (see the LX600/LX601 note in the comparison doc).
+- [#179](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/179) — extend InputScope *suggested actions*. Upstream is about suggesting specific values in a code-fix surface; we don't emit fix hints yet (see the LX0600/LX0601 note in the comparison doc).
 
 ## Out of scope
 

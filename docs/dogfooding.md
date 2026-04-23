@@ -47,7 +47,7 @@ conventions).
 | UWP        | [CommunityToolkit/MVVM-Samples](https://github.com/CommunityToolkit/MVVM-Samples) (`MvvmSampleUwp` subproject)   | Small MVVM demo; covers a second UWP surface.                                    |
 | MAUI       | [dotnet/maui-samples](https://github.com/dotnet/maui-samples)                                                    | .NET team's official MAUI samples across every platform head.                    |
 | MAUI       | [CommunityToolkit/Maui](https://github.com/CommunityToolkit/Maui)                                                | CT.Maui controls + samples; large real-world MAUI surface.                       |
-| MAUI       | [CommunityToolkit/MVVM-Samples](https://github.com/CommunityToolkit/MVVM-Samples) (`MvvmSampleMAUI` subproject)  | Small MVVM demo; first repo where LX402 fires.                                   |
+| MAUI       | [CommunityToolkit/MVVM-Samples](https://github.com/CommunityToolkit/MVVM-Samples) (`MvvmSampleMAUI` subproject)  | Small MVVM demo; first repo where LX0402 fires.                                   |
 | Avalonia   | [AvaloniaUI/Avalonia.Samples](https://github.com/AvaloniaUI/Avalonia.Samples)                                    | Official Avalonia sample set.                                                    |
 | Avalonia   | [WalletWasabi/WalletWasabi](https://github.com/WalletWasabi/WalletWasabi)                                        | Production Avalonia wallet app; large real-world surface.                        |
 | Uno        | [unoplatform/Uno.Samples](https://github.com/unoplatform/Uno.Samples)                                            | Uno team's sample set; exercises the WinUI-compatible XAML surface on every head. |
@@ -137,7 +137,7 @@ Notes:
 To zero in on one rule across the whole corpus:
 
 ```bash
-xaml-lint lint --dialect uwp --only LX600 --format pretty . | less
+xaml-lint lint --dialect uwp --only LX0600 --format pretty . | less
 ```
 
 ## Interpreting results
@@ -159,23 +159,23 @@ The workflow is a three-step diff:
    every delta; each one is either a bug your change caught, a bug your change
    introduced, or an intentional scope change you should be able to explain.
 
-For the "widening LX600 to Uno" change in PR #10, for example, step 2 on
-`Uno.Samples` was expected to produce new LX600 hits wherever that corpus uses
+For the "widening LX0600 to Uno" change in PR #10, for example, step 2 on
+`Uno.Samples` was expected to produce new LX0600 hits wherever that corpus uses
 `<MediaElement>`. If step 2 produced zero new hits, that would indicate the
 dialect gate wasn't wired up correctly.
 
 ## Known limitations
 
-- **LX100 / LX101 can't see runtime-registered layout managers.** MAUI lets
+- **LX0100 / LX0101 can't see runtime-registered layout managers.** MAUI lets
   callers replace `GridLayoutManager` at runtime via an `ILayoutManagerFactory`,
   and the replacement can auto-add rows or columns based on attached-property
   values from child views. A `<Grid>` with no `RowDefinitions` but children at
-  `Grid.Row="3"` is legitimate markup under such a factory, even though LX100
+  `Grid.Row="3"` is legitimate markup under such a factory, even though LX0100
   will flag it. The canonical example in the corpus is
   `dotnet/maui-samples/…/CustomizedGridPage.xaml`, which exists to demonstrate
   exactly that pattern. Static analysis can't see the runtime factory
   registration, so these stay as expected hits in the baseline; suppress
-  locally with `<!-- xaml-lint disable once LX100 -->` if your project uses a
+  locally with `<!-- xaml-lint disable once LX0100 -->` if your project uses a
   custom factory.
 - **Sample repos drift.** The upstream sample repos get new content all the
   time, so absolute diagnostic counts will move even when `xaml-lint` doesn't
@@ -188,30 +188,32 @@ dialect gate wasn't wired up correctly.
 Captured on 2026-04-21 from `xaml-lint` `main @ 8f128e3` against the commits
 listed. Numbers are total diagnostics per repo.
 
+The rule IDs in this table were mechanically updated from `LX###` to `LX####` during the v1.2 rename; per-repo counts and severities are unchanged from the 2026-04-21 capture (no fresh sweep performed).
+
 | Dialect  | Repo                                             | Commit       | Total | By severity              | Top rule(s)                                      |
 |----------|--------------------------------------------------|--------------|------:|--------------------------|--------------------------------------------------|
-| WPF      | microsoft/WPF-Samples                            | `a121d7d9`   |    26 | 1 error, 19 warn, 6 info | LX101 (14), LX200 (6), LX100 (2), LX001 (1)      |
-| WPF      | MaterialDesignInXAML/MaterialDesignInXamlToolkit | `70516d3b`   |    39 | 3 warn, 36 info          | LX200 (36), LX102 (2), LX100 (1)                 |
-| WinUI 3  | microsoft/WindowsAppSDK-Samples                  | `9f033250`   |   221 | 20 warn, 201 info        | LX201 (144), LX500 (57), LX100 (15)              |
-| WinUI 3  | files-community/Files                            | `fbc0a0b36`  |   225 | 19 warn, 206 info        | LX201 (166), LX500 (40), LX100 (11)              |
-| WinUI 3  | CommunityToolkit/Windows                         | `b1d8231`    |   215 | 18 warn, 197 info        | LX201 (162), LX500 (35), LX100 (7)               |
-| UWP      | microsoft/Windows-universal-samples              | `082195895`  |  1166 | 129 warn, 1037 info      | LX500 (534), LX201 (501), LX600 (47), LX100 (48) |
-| UWP      | CommunityToolkit/MVVM-Samples/MvvmSampleUwp      | `7d67102`    |     4 | 1 warn, 3 info           | LX500 (2), LX103 (1), LX201 (1)                  |
-| MAUI     | dotnet/maui-samples                              | `8b53f57a`   |   272 | 42 warn, 230 info        | LX503 (204), LX200 (26), LX101 (14), LX504 (12)  |
-| MAUI     | CommunityToolkit/Maui                            | `bfc511e5`   |    81 | 29 warn, 52 info         | LX503 (43), LX101 (14), LX100 (13), LX200 (9)    |
-| MAUI     | CommunityToolkit/MVVM-Samples/MvvmSampleMAUI     | `7d67102`    |     2 | 1 warn, 1 info           | LX402 (1), LX503 (1)                             |
-| Avalonia | AvaloniaUI/Avalonia.Samples                      | `8956dbf`    |    11 | 1 error, 10 info         | LX200 (10), LX001 (1)                            |
-| Avalonia | WalletWasabi/WalletWasabi                        | `cc0e9c0291` |    15 | 1 warn, 14 info          | LX200 (14), LX100 (1)                            |
-| Uno      | unoplatform/Uno.Samples                          | `1d9ea60a`   |  1334 | 43 warn, 1291 info       | LX201 (1185), LX500 (101), LX100 (14)            |
-| Uno      | unoplatform/Uno.Gallery                          | `54a08b15`   |   613 | 1 warn, 612 info         | LX201 (540), LX500 (72), LX102 (1)               |
+| WPF      | microsoft/WPF-Samples                            | `a121d7d9`   |    26 | 1 error, 19 warn, 6 info | LX0101 (14), LX0200 (6), LX0100 (2), LX0001 (1)      |
+| WPF      | MaterialDesignInXAML/MaterialDesignInXamlToolkit | `70516d3b`   |    39 | 3 warn, 36 info          | LX0200 (36), LX0102 (2), LX0100 (1)                 |
+| WinUI 3  | microsoft/WindowsAppSDK-Samples                  | `9f033250`   |   221 | 20 warn, 201 info        | LX0201 (144), LX0500 (57), LX0100 (15)              |
+| WinUI 3  | files-community/Files                            | `fbc0a0b36`  |   225 | 19 warn, 206 info        | LX0201 (166), LX0500 (40), LX0100 (11)              |
+| WinUI 3  | CommunityToolkit/Windows                         | `b1d8231`    |   215 | 18 warn, 197 info        | LX0201 (162), LX0500 (35), LX0100 (7)               |
+| UWP      | microsoft/Windows-universal-samples              | `082195895`  |  1166 | 129 warn, 1037 info      | LX0500 (534), LX0201 (501), LX0600 (47), LX0100 (48) |
+| UWP      | CommunityToolkit/MVVM-Samples/MvvmSampleUwp      | `7d67102`    |     4 | 1 warn, 3 info           | LX0500 (2), LX0103 (1), LX0201 (1)                  |
+| MAUI     | dotnet/maui-samples                              | `8b53f57a`   |   272 | 42 warn, 230 info        | LX0503 (204), LX0200 (26), LX0101 (14), LX0504 (12)  |
+| MAUI     | CommunityToolkit/Maui                            | `bfc511e5`   |    81 | 29 warn, 52 info         | LX0503 (43), LX0101 (14), LX0100 (13), LX0200 (9)    |
+| MAUI     | CommunityToolkit/MVVM-Samples/MvvmSampleMAUI     | `7d67102`    |     2 | 1 warn, 1 info           | LX0402 (1), LX0503 (1)                             |
+| Avalonia | AvaloniaUI/Avalonia.Samples                      | `8956dbf`    |    11 | 1 error, 10 info         | LX0200 (10), LX0001 (1)                            |
+| Avalonia | WalletWasabi/WalletWasabi                        | `cc0e9c0291` |    15 | 1 warn, 14 info          | LX0200 (14), LX0100 (1)                            |
+| Uno      | unoplatform/Uno.Samples                          | `1d9ea60a`   |  1334 | 43 warn, 1291 info       | LX0201 (1185), LX0500 (101), LX0100 (14)            |
+| Uno      | unoplatform/Uno.Gallery                          | `54a08b15`   |   613 | 1 warn, 612 info         | LX0201 (540), LX0500 (72), LX0102 (1)               |
 
-The one `error` in WPF-Samples is an LX001 parse failure on
+The one `error` in WPF-Samples is an LX0001 parse failure on
 `Documents/Fixed Documents/DocumentStructure/content/fixedpage1_structure.xaml` —
 the file is a fragment with a leading `<` inside an attribute value, not a
 well-formed XAML document. Treat it as a known-bad file in the corpus, not a
-regression. The LX001 error on Avalonia.Samples is similar — the F# MusicStore
+regression. The LX0001 error on Avalonia.Samples is similar — the F# MusicStore
 sample's `Views/MainWindow.axaml` uses an undeclared `views:` prefix, a
-corpus bug rather than a lint failure. The single LX402 hit on the MAUI MVVM
+corpus bug rather than a lint failure. The single LX0402 hit on the MAUI MVVM
 sample is the first time that rule has fired against the corpus —
 `Source="headerBg"` in `FlyoutHeader.xaml:7` violates Android drawable naming
 (uppercase `B`), which the rule catches correctly.

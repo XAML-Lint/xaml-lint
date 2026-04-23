@@ -47,9 +47,9 @@ Sample output:
 
 ```
 src/Views/MainView.xaml
-     8:20  warning LX100  Grid.Row="5" but the enclosing Grid declares only 2 rows.
-     8:33  info    LX400  Hardcoded string on 'Text' should be moved to a resource.
-     9:18  warning LX300  x:Name 'userInput' should start with an uppercase letter.
+     8:20  warning LX0100  Grid.Row="5" but the enclosing Grid declares only 2 rows.
+     8:33  info    LX0400  Hardcoded string on 'Text' should be moved to a resource.
+     9:18  warning LX0300  x:Name 'userInput' should start with an uppercase letter.
 ```
 
 ## Configure
@@ -61,7 +61,7 @@ Create `xaml-lint.config.json` at your repo root:
   "$schema": "https://raw.githubusercontent.com/XAML-Lint/xaml-lint/main/schema/v1/config.json",
   "extends": "xaml-lint:recommended",
   "defaultDialect": "wpf",
-  "rules": { "LX005": "off" }
+  "rules": { "LX0005": "off" }
 }
 ```
 
@@ -84,7 +84,7 @@ See [docs/config-reference.md](docs/config-reference.md) for the full schema, an
 
 ## Attribution
 
-Many of the lint rules in this project are ports of checks from the [Rapid XAML Toolkit](https://github.com/mrlacey/Rapid-XAML-Toolkit) by Matt Lacey, used under the MIT License. Ported rules carry the upstream `RXT###` code via their `UpstreamId` field and a source-file header comment. Tool/engine diagnostics (LX001–LX006) and some lint rules (e.g., LX104) are original to xaml-lint — their `UpstreamId` is null. The VS extension, code generation, and IDE-specific pieces of the original project are not part of this fork's scope. See [docs/comparison-with-rapid-xaml-toolkit.md](docs/comparison-with-rapid-xaml-toolkit.md) for the per-rule mapping.
+Many of the lint rules in this project are ports of checks from the [Rapid XAML Toolkit](https://github.com/mrlacey/Rapid-XAML-Toolkit) by Matt Lacey, used under the MIT License. Ported rules carry the upstream `RXT###` code via their `UpstreamId` field and a source-file header comment. Tool/engine diagnostics (LX0001–LX0006) and some lint rules (e.g., LX0104) are original to xaml-lint — their `UpstreamId` is null. The VS extension, code generation, and IDE-specific pieces of the original project are not part of this fork's scope. See [docs/comparison-with-rapid-xaml-toolkit.md](docs/comparison-with-rapid-xaml-toolkit.md) for the per-rule mapping.
 
 ## Contributing
 
