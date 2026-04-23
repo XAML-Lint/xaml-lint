@@ -52,23 +52,25 @@ public static class GridAncestryHelpers
     }
 
     /// <summary>
-    /// Returns the number of rows the Grid declares. When <paramref name="shorthandSupported"/>
-    /// is <c>true</c> (the default) the WinUI/UWP/MAUI/Avalonia/Uno (and WPF on .NET 10+)
-    /// shorthand attribute <c>RowDefinitions="Auto,*,..."</c> takes precedence; otherwise the
-    /// shorthand attribute is ignored. Falls back to counting <c>&lt;RowDefinition&gt;</c>
-    /// children inside <c>&lt;Grid.RowDefinitions&gt;</c>. A Grid that declares neither has an
+    /// Returns the number of rows the Grid declares. Element syntax
+    /// (<c>&lt;Grid.RowDefinitions&gt;</c> with <c>&lt;RowDefinition&gt;</c> children) is the
+    /// primary source of truth; the <c>RowDefinitions="Auto,*,..."</c> shorthand attribute
+    /// is consulted only when element syntax is absent or empty. When
+    /// <paramref name="shorthandSupported"/> is <c>false</c> the shorthand attribute is
+    /// ignored entirely (legacy WPF pre-.NET 10). A Grid that declares neither has an
     /// implicit single row — returns 1.
     /// </summary>
     public static int CountRowDefinitions(XElement grid, bool shorthandSupported = true) =>
         CountDefinitions(grid, RowDefinitionsShorthandAttribute, RowDefinitionsPropertyElement, RowDefinitionElement, shorthandSupported);
 
     /// <summary>
-    /// Returns the number of columns the Grid declares. When <paramref name="shorthandSupported"/>
-    /// is <c>true</c> (the default) the WinUI/UWP/MAUI/Avalonia/Uno (and WPF on .NET 10+)
-    /// shorthand attribute <c>ColumnDefinitions="*,Auto,..."</c> takes precedence; otherwise the
-    /// shorthand attribute is ignored. Falls back to counting <c>&lt;ColumnDefinition&gt;</c>
-    /// children inside <c>&lt;Grid.ColumnDefinitions&gt;</c>. A Grid that declares neither has an
-    /// implicit single column — returns 1.
+    /// Returns the number of columns the Grid declares. Element syntax
+    /// (<c>&lt;Grid.ColumnDefinitions&gt;</c> with <c>&lt;ColumnDefinition&gt;</c> children)
+    /// is the primary source of truth; the <c>ColumnDefinitions="*,Auto,..."</c> shorthand
+    /// attribute is consulted only when element syntax is absent or empty. When
+    /// <paramref name="shorthandSupported"/> is <c>false</c> the shorthand attribute is
+    /// ignored entirely. A Grid that declares neither has an implicit single column —
+    /// returns 1.
     /// </summary>
     public static int CountColumnDefinitions(XElement grid, bool shorthandSupported = true) =>
         CountDefinitions(grid, ColumnDefinitionsShorthandAttribute, ColumnDefinitionsPropertyElement, ColumnDefinitionElement, shorthandSupported);
@@ -80,24 +82,32 @@ public static class GridAncestryHelpers
         string definitionElementName,
         bool shorthandSupported)
     {
+        // Element syntax wins over the shorthand attribute when both are declared. Matches
+        // upstream Rapid XAML Toolkit (GridProcessor.cs:158) and reflects how XAML parsers
+        // treat the property-element form as authoritative.
+        var propertyElement = grid.Elements().FirstOrDefault(
+            e => e.Name.LocalName == propertyElementName);
+
+        if (propertyElement is not null)
+        {
+            var count = propertyElement.Elements().Count(
+                e => e.Name.LocalName == definitionElementName);
+            if (count > 0) return count;
+            // Empty <Grid.RowDefinitions /> falls through to shorthand/implicit handling
+            // below — parity with an absent element.
+        }
+
         if (shorthandSupported)
         {
             var shorthand = grid.Attribute(shorthandAttributeName);
             if (shorthand is not null)
-                return CountCommaSeparated(shorthand.Value);
+            {
+                var shorthandCount = CountCommaSeparated(shorthand.Value);
+                if (shorthandCount > 0) return shorthandCount;
+            }
         }
 
-        var propertyElement = grid.Elements().FirstOrDefault(
-            e => e.Name.LocalName == propertyElementName);
-        if (propertyElement is null)
-            return 1;  // implicit single row/column
-
-        var count = propertyElement.Elements().Count(
-            e => e.Name.LocalName == definitionElementName);
-
-        // An empty <Grid.RowDefinitions /> collection behaves identically to an absent one — WPF,
-        // WinUI, and the rest of the target dialects fall back to a single implicit row.
-        return count == 0 ? 1 : count;
+        return 1;  // implicit single row/column
     }
 
     /// <summary>
