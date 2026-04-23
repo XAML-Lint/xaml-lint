@@ -69,10 +69,14 @@ Lint-rule mappings continue to accrue as new categories ship.
   `ms-appdata:`, `file://`). Upstream RXT310's documentation does not
   enumerate such a list; our behavior is deliberate — those schemes are
   not local files and do not flow through the Android drawable pipeline.
-- **LX501/LX502 vs RXT330/RXT335** — xaml-lint requires both attributes to be literal
-  numbers before firing. Upstream Rapid XAML Toolkit also flags the case when only one
-  attribute is literal and the other is bound; we defer that until the false-positive rate
-  on real projects is known.
+- **LX501/LX502 vs RXT330/RXT335** — both xaml-lint and upstream require `Minimum` and
+  `Maximum` to be literal parseable numbers; neither project fires when one value is bound.
+  Dialect coverage differs: upstream's `SliderAnalyzer`/`StepperAnalyzer` gate on
+  Xamarin.Forms/MAUI only, while xaml-lint also covers WPF and Avalonia (Avalonia silently
+  coerces Maximum up to Minimum — exactly the intent-vs-runtime mismatch the rule catches).
+  UWP/WinUI raise a runtime exception in this state, so upstream omits them as redundant.
+  Severity matches upstream: `Error` by default; downgrade to `warning` via `rules` config
+  if the runtime-throw cases on UWP/WinUI make the promotion too aggressive.
 - **LX506 vs RXT331** — xaml-lint fires on any combination of literal and bound values
   for `ThumbColor` and `ThumbImageSource`; presence of both attributes is the signal.
   Upstream documentation does not specify the literal/bound combination behavior; we
@@ -103,7 +107,72 @@ Lint-rule mappings continue to accrue as new categories ship.
   hypothetical `Dialect.Uno` gate; the rule is a structural no-op when
   no Uno URIs are present, so universal application has no cost. The
   Uno URI allowlist is hardcoded (no config knob) and matches Uno
-  Platform as of 2026-04.
+  Platform 6.0 as of 2026-04. Two additional differences:
+  - **URI matching.** xaml-lint matches Uno URIs by canonical namespace
+    URI. Upstream `UnoIgnorablesAnalyzer` compares against a literal
+    string with a one-slash typo (`http:/uno.ui/...`) and would only
+    fire when an author reproduces the same typo. Our behavior is
+    intentional.
+  - **Ignorable-token matching.** xaml-lint splits `mc:Ignorable` into
+    a whitespace-tokenized set and checks exact membership. Upstream
+    uses `ignorable.StringValue.Contains(alias)` — a substring check
+    that would suppress `android` when `mc:Ignorable="androidx"` is
+    present. Our set-membership check rejects those false positives.
+- **LX200 vs RXT160** — xaml-lint parses binding named arguments
+  (`Mode=TwoWay`) rather than searching for the literal substring
+  `"TwoWay"` anywhere in the value; we therefore do not get fooled by
+  values like `ConverterParameter=TwoWayMode`. We also restrict firing
+  to `{Binding}` and `{x:Bind}` extensions, whereas upstream fires on
+  any markup extension starting with `{`.
+- **LX301 vs RXT451** — xaml-lint case-checks only the final segment of
+  resw namespace-scope `/File/Key` references (so `x:Uid="/Strings/MyKey"`
+  passes here because `MyKey` starts uppercase). Upstream checks
+  `value[0]` unconditionally and would flag the leading `/`.
+- **LX400 symbol handling vs RXT200** — upstream gates on
+  `char.IsLetterOrDigit(value[0])` — a first-character test. xaml-lint
+  walks every rune looking for at least one localisable character, so
+  values like `"+ Add"` or `"$ 5.00"` fire here (the prose/digit segment
+  is localisable) but not upstream. Intentional: mixed symbol-plus-prose
+  strings still need translation.
+- **LX400 element/attribute model vs RXT200** — xaml-lint fires on any
+  element carrying a matching attribute name. Upstream is per-processor:
+  only specific (element, attribute) pairs fire (`TextBlock.Text`,
+  `AppBarButton.Label`, `ToggleSwitch.OnContent/OffContent`,
+  `MenuFlyoutItem.Text`, `ToolTipService.ToolTip`, etc.). Ours is
+  broader; the cost is offset by LX400 being `"off"` in `:recommended`.
+- **LX402 vs RXT310** — upstream's regex validates the full `Source`
+  string (rejecting uppercase anywhere in the path); xaml-lint extracts
+  the leaf filename and validates that only, because Android drawables
+  can't live in subdirectories anyway. Upstream permits leading digits
+  and leading underscores; xaml-lint rejects both to match aapt2's
+  resource-name rules. Upstream treats `\` as invalid; xaml-lint splits
+  on both `\` and `/` and validates the leaf segment, tolerating
+  author-written Windows paths.
+- **LX501/LX502 vs RXT330/RXT335 dialect scope** — see the LX501/LX502
+  entry above; xaml-lint's WPF and Avalonia coverage is an intentional
+  extension beyond upstream's Xamarin/MAUI gate.
+- **LX600 / LX601 fix hints** — upstream emits structured fix data
+  (`AnalysisActions.AndAddAttribute` for LX600's MediaElement →
+  MediaPlayerElement migration; `RemoveAttribute` for LX601's redundant
+  `Fill`). xaml-lint emits diagnostics only; a code-fix surface is out
+  of scope until the plugin-level actions protocol is designed.
+- **LX700 / LX701 `AutomationId`** — both rules treat `AutomationId`
+  as a presence-only suppressor (added in this release). Matches
+  upstream RXT350/RXT351; previously our rules would fire when an
+  image was wired only through `AutomationId`.
+- **LX701 vs RXT351 added checks** — xaml-lint adds
+  `AutomationProperties.IsInAccessibleTree` value-gating (mirrors LX700)
+  and `SemanticProperties.Description`/`Hint` as suppressors; upstream
+  RXT351 recognises neither. Both are deliberate strictness improvements.
+- **LX702 vs RXT601 dialect scope** — upstream RXT601 fires on UWP and
+  WinUI only. xaml-lint widens to WPF, Avalonia, and Uno, where the
+  same `AutomationProperties` surface is available; record the
+  narrower upstream scope here so the extension is explicit.
+- **Grid shorthand counting vs upstream** — our `CountCommaSeparated`
+  filters whitespace-only tokens, so `RowDefinitions=",,Auto,,"` yields
+  1 and `""` yields 0. Upstream uses `value.Split(',').Length` verbatim
+  (3 and 1 respectively). Empty tokens aren't real `RowDefinition`
+  entries, so the filtering is deliberate.
 
 For rules that remain unported from upstream and the rationale behind
 deferring them, see
