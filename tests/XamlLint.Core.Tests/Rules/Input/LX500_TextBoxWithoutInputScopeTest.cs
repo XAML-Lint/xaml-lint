@@ -122,6 +122,23 @@ public sealed class LX500_TextBoxWithoutInputScopeTest
     }
 
     [Fact]
+    public void TextBox_with_InputScope_property_element_syntax_is_not_flagged()
+    {
+        // Property-element syntax is semantically equivalent to the attribute form; the rule
+        // must suppress on both. Mirrors upstream Rapid XAML Toolkit RXT150 which flattens
+        // both via its RapidXamlElement.HasAttribute abstraction.
+        XamlDiagnosticVerifier<LX500_TextBoxWithoutInputScope>.Analyze(
+            """
+            <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+                <TextBox>
+                    <TextBox.InputScope>Number</TextBox.InputScope>
+                </TextBox>
+            </Grid>
+            """,
+            Dialect.WinUI3);
+    }
+
+    [Fact]
     public void TextBlock_is_not_flagged()
     {
         // TextBlock is not an input control.
