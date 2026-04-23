@@ -18,7 +18,7 @@ public sealed partial class LX503_EntryWithoutKeyboard : IXamlRule
         foreach (var element in document.Root.DescendantsAndSelf())
         {
             if (element.Name.LocalName != "Entry") continue;
-            if (element.Attribute("Keyboard") is not null) continue;
+            if (PropertyElementHelpers.HasAttributeOrPropertyElement(element, "Keyboard")) continue;
 
             var span = LocationHelpers.GetElementNameSpan(element);
             yield return new Diagnostic(

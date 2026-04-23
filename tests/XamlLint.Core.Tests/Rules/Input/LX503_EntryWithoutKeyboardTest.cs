@@ -57,6 +57,22 @@ public sealed class LX503_EntryWithoutKeyboardTest
     }
 
     [Fact]
+    public void Entry_with_Keyboard_property_element_syntax_is_not_flagged()
+    {
+        // Upstream Rapid XAML Toolkit RXT300 flattens attribute and property-element syntax
+        // via RapidXamlElement.HasAttribute; our detector does the same.
+        XamlDiagnosticVerifier<LX503_EntryWithoutKeyboard>.Analyze(
+            $"""
+            <StackLayout xmlns="{MauiXmlns}">
+                <Entry>
+                    <Entry.Keyboard>Numeric</Entry.Keyboard>
+                </Entry>
+            </StackLayout>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void Entry_on_Wpf_dialect_is_not_flagged()
     {
         // The rule is MAUI-only. A <Entry> in a WPF-namespaced doc doesn't exist as a
