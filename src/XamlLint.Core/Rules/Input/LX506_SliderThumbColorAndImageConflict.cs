@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using XamlLint.Core.Helpers;
 
 namespace XamlLint.Core.Rules.Input;
@@ -19,11 +20,18 @@ public sealed partial class LX506_SliderThumbColorAndImageConflict : IXamlRule
         {
             if (element.Name.LocalName != "Slider") continue;
 
-            var thumbColor = element.Attribute("ThumbColor");
-            var thumbImage = element.Attribute("ThumbImageSource");
-            if (thumbColor is null || thumbImage is null) continue;
+            var thumbColor = PropertyElementHelpers.TryGetValueAndSource(element, "ThumbColor");
+            if (thumbColor is null) continue;
+            if (!PropertyElementHelpers.HasAttributeOrPropertyElement(element, "ThumbImageSource")) continue;
 
-            var span = LocationHelpers.GetAttributeSpan(thumbColor, context.Source);
+            var span = thumbColor.Value.Source switch
+            {
+                XAttribute attr => LocationHelpers.GetAttributeSpan(attr, context.Source),
+                XElement elem => LocationHelpers.GetElementNameSpan(elem),
+                _ => throw new InvalidOperationException(
+                    "TryGetValueAndSource must return an XAttribute or XElement source."),
+            };
+
             yield return new Diagnostic(
                 RuleId: Metadata.Id,
                 Severity: Metadata.DefaultSeverity,

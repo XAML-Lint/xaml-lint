@@ -80,6 +80,39 @@ public sealed class LX506_SliderThumbColorAndImageConflictTest
     }
 
     [Fact]
+    public void Slider_with_ThumbColor_attribute_and_ThumbImageSource_property_element_is_flagged()
+    {
+        // Upstream Rapid XAML Toolkit RXT331 detects the conflict regardless of declaration
+        // form; a property-element ThumbImageSource still wins over an attribute ThumbColor.
+        XamlDiagnosticVerifier<LX506_SliderThumbColorAndImageConflict>.Analyze(
+            $"""
+            <StackLayout xmlns="{MauiXmlns}">
+                <Slider [|ThumbColor="Red"|]>
+                    <Slider.ThumbImageSource>thumb.png</Slider.ThumbImageSource>
+                </Slider>
+            </StackLayout>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
+    public void Slider_with_both_thumb_properties_as_property_elements_is_flagged()
+    {
+        // Span falls on the <Slider.ThumbColor> opening-tag name since ThumbColor is the
+        // trigger and carries the diagnostic under both forms.
+        XamlDiagnosticVerifier<LX506_SliderThumbColorAndImageConflict>.Analyze(
+            $"""
+            <StackLayout xmlns="{MauiXmlns}">
+                <Slider>
+                    <[|Slider.ThumbColor|]>Red</Slider.ThumbColor>
+                    <Slider.ThumbImageSource>thumb.png</Slider.ThumbImageSource>
+                </Slider>
+            </StackLayout>
+            """,
+            Dialect.Maui);
+    }
+
+    [Fact]
     public void Slider_on_Wpf_dialect_is_not_flagged()
     {
         // The rule is MAUI-only. Dialect gating excludes WPF.
