@@ -20,8 +20,8 @@ public sealed partial class LX701_ImageButtonWithoutAccessibleDescription : IXam
     // False (or a bound value) means "decorative — skip in AT."
     //
     // AutomationId is the test-automation hook on UI Automation (Windows) and MAUI's
-    // Microsoft.Maui.IElement.AutomationId; upstream Rapid XAML Toolkit RXT351 treats its
-    // presence as an "author thought about this" signal, so we match that.
+    // Microsoft.Maui.IElement.AutomationId; its presence signals the author wired the button
+    // into automation, so an AT will have something to announce via UIA/AccessibilityServices.
     private static readonly string[] PresenceEscapeAttributes =
     {
         "AutomationProperties.Name",

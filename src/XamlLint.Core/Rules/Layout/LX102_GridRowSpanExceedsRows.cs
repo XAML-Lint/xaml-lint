@@ -32,8 +32,8 @@ public sealed partial class LX102_GridRowSpanExceedsRows : IXamlRule
                 context.Dialect, context.FrameworkMajorVersion);
             var rowCount = GridAncestryHelpers.CountRowDefinitions(grid, shorthandSupported);
             var spanValue = read.Value.Value;
-            // RXT103 parity: flag only when span alone exceeds total rows. Span == rowCount
-            // is legal (element spans the whole Grid); row + span overflow is out of scope.
+            // Flag only when span alone exceeds total rows. Span == rowCount is legal
+            // (element spans the whole Grid); row + span overflow is out of scope.
             if (spanValue <= rowCount) continue;
 
             var span = read.Value.Source switch

@@ -7,8 +7,7 @@ namespace XamlLint.Core.Helpers;
 /// (<c>&lt;TextBox InputScope="Number"/&gt;</c>) or in property-element syntax
 /// (<c>&lt;TextBox&gt;&lt;TextBox.InputScope&gt;…&lt;/TextBox.InputScope&gt;&lt;/TextBox&gt;</c>).
 /// Rule consumers that only call <see cref="XElement.Attribute(string)"/> miss the second
-/// form and report false positives on files that use it — the upstream Rapid XAML Toolkit
-/// flattens both via its <c>RapidXamlElement.HasAttribute</c> abstraction.
+/// form and report false positives on files that use it.
 /// </summary>
 /// <remarks>
 /// Property-element names surface in XLinq as <c>TypeName.PropertyName</c>; the helper
