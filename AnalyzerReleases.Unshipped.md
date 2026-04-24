@@ -8,3 +8,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 LX0202   | Bindings | Warning  | Binding ElementName target does not exist
+LX0203   | Bindings | Warning  | x:Reference target does not exist

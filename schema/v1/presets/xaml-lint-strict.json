@@ -15,6 +15,7 @@
     "LX0200": "warning",
     "LX0201": "warning",
     "LX0202": "error",
+    "LX0203": "error",
     "LX0300": "error",
     "LX0301": "error",
     "LX0400": "warning",
