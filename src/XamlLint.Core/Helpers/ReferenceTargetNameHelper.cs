@@ -46,6 +46,15 @@ public static class ReferenceTargetNameHelper
         // Positional form: first token up to whitespace or comma.
         var end = 0;
         while (end < rest.Length && !char.IsWhiteSpace(rest[end]) && rest[end] != ',') end++;
-        return rest[..end].ToString();
+        var token = rest[..end].ToString();
+
+        // XAML argument-value quoting: {x:Reference 'Foo'} is equivalent to {x:Reference Foo}.
+        if (token.Length >= 2)
+        {
+            var first = token[0];
+            if ((first == '\'' || first == '"') && token[^1] == first)
+                return token.Substring(1, token.Length - 2);
+        }
+        return token;
     }
 }

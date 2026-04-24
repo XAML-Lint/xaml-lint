@@ -213,6 +213,32 @@ public sealed class LX0202_DanglingBindingElementNameTest
     }
 
     [Fact]
+    public void Quoted_ElementName_value_resolves_to_declared_target()
+    {
+        // Real-world idiom from microsoft/WPF-Samples: argument values wrapped in single
+        // quotes. Legal markup-extension syntax; the parser must unquote before lookup.
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" Content="Hello" />
+                <TextBox Text="{Binding ElementName='Header', Path='Content'}" />
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Quoted_ElementName_with_dangling_target_is_still_flagged()
+    {
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBox [|Text="{Binding ElementName='Ghost'}"|] />
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
     public void Diagnostic_span_covers_the_entire_attribute()
     {
         // Sanity check: the marker includes name, =, quotes, and value — exactly what

@@ -210,4 +210,29 @@ public sealed class LX0203_DanglingXReferenceTest
             </StackPanel>
             """);
     }
+
+    [Fact]
+    public void Quoted_positional_target_resolves_to_declared_element()
+    {
+        // Argument-value quoting: {x:Reference 'Foo'} is equivalent to {x:Reference Foo}.
+        XamlDiagnosticVerifier<LX0203_DanglingXReference>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBox DataContext="{x:Reference 'Header'}" />
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Quoted_named_target_resolves_to_declared_element()
+    {
+        XamlDiagnosticVerifier<LX0203_DanglingXReference>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBox DataContext="{x:Reference Name='Header'}" />
+            </StackPanel>
+            """);
+    }
 }

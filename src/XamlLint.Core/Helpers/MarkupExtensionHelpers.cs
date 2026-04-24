@@ -44,7 +44,7 @@ public static class MarkupExtensionHelpers
             var eq = IndexOfTopLevelEquals(arg);
             if (eq < 0) continue;  // positional, skip — M2 doesn't need them
             var key = arg[..eq].Trim().ToString();
-            var val = arg[(eq + 1)..].Trim().ToString();
+            var val = StripSurroundingQuotes(arg[(eq + 1)..].Trim().ToString());
             if (key.Length > 0) named[key] = val;
         }
 
@@ -73,6 +73,21 @@ public static class MarkupExtensionHelpers
         if (start < source.Length)
             results.Add(source[start..].ToString());
         return results;
+    }
+
+    /// <summary>
+    /// Strips a single surrounding pair of <c>'…'</c> or <c>"…"</c>. XAML markup-extension
+    /// argument values may be quoted to contain delimiter characters (comma, equals,
+    /// whitespace) without terminating the token — the quotes are syntactic, not part of
+    /// the value. No effect on nested markup extensions (values starting with <c>{</c>).
+    /// </summary>
+    private static string StripSurroundingQuotes(string value)
+    {
+        if (value.Length < 2) return value;
+        var first = value[0];
+        if (first != '\'' && first != '"') return value;
+        if (value[^1] != first) return value;
+        return value.Substring(1, value.Length - 2);
     }
 
     private static int IndexOfTopLevelEquals(string arg)

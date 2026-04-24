@@ -13,6 +13,10 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 - [LX0202](docs/rules/LX0202.md) — Binding ElementName target does not exist (all dialects; warning in `:recommended`, error in `:strict`)
 - [LX0203](docs/rules/LX0203.md) — x:Reference target does not exist (all dialects; warning in `:recommended`, error in `:strict`)
 
+### Fixed
+
+- Markup-extension parser now unquotes single- or double-quoted argument values (`{Binding ElementName='Foo'}`, `{x:Reference 'Foo'}`). Eliminates LX0202/LX0203 false positives against quoted-argument idioms; rules reading `NamedArguments` values (e.g. LX0200's `Mode=TwoWay` check) silently stop missing quoted forms too.
+
 ## [1.1.0] - 2026-04-23
 
 ### Added

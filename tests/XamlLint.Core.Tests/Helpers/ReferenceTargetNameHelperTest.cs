@@ -71,4 +71,13 @@ public sealed class ReferenceTargetNameHelperTest
     {
         ReferenceTargetNameHelper.Extract("{x:Reference   Foo  }").Should().Be("Foo");
     }
+
+    [Theory]
+    [InlineData("{x:Reference 'Foo'}", "Foo")]
+    [InlineData("{x:Reference \"Foo\"}", "Foo")]
+    [InlineData("{Reference 'Foo'}", "Foo")]
+    public void Surrounding_quotes_are_stripped_from_positional_target(string value, string expected)
+    {
+        ReferenceTargetNameHelper.Extract(value).Should().Be(expected);
+    }
 }

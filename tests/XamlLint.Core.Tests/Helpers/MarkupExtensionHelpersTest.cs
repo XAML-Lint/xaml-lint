@@ -73,4 +73,30 @@ public sealed class MarkupExtensionHelpersTest
         info.NamedArguments["Mode"].Should().Be("TwoWay");
         info.NamedArguments["Converter"].Should().Be("{StaticResource Bool}");
     }
+
+    [Theory]
+    [InlineData("{Binding ElementName='Foo'}", "Foo")]
+    [InlineData("{Binding ElementName=\"Foo\"}", "Foo")]
+    [InlineData("{Binding Path='Users.Count', Mode='TwoWay'}", "TwoWay")]
+    public void TryParseExtension_strips_surrounding_quotes_from_named_argument_values(string value, string expected)
+    {
+        // XAML markup-extension argument values may be wrapped in single or double quotes
+        // to contain delimiter characters (comma, equals, whitespace). The quotes are a
+        // syntactic wrapper, not part of the value — the parser must strip them.
+        MarkupExtensionHelpers.TryParseExtension(value, out var info).Should().BeTrue();
+        var key = value.Contains("Mode=") ? "Mode" : "ElementName";
+        info.NamedArguments.TryGetValue(key, out var actual).Should().BeTrue();
+        actual.Should().Be(expected);
+    }
+
+    [Fact]
+    public void TryParseExtension_preserves_nested_extension_value_with_no_outer_quotes()
+    {
+        // Guard against over-eager quote stripping — a Converter={StaticResource …} value
+        // starts with '{', not a quote, and must remain intact.
+        MarkupExtensionHelpers.TryParseExtension(
+            "{Binding Foo, Converter={StaticResource Bool}}",
+            out var info).Should().BeTrue();
+        info.NamedArguments["Converter"].Should().Be("{StaticResource Bool}");
+    }
 }
