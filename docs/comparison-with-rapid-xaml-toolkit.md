@@ -20,7 +20,7 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX0200 | RXT160 | SelectedItem binding should be TwoWay. Matches upstream; applies to all dialects where binding markup is used. |
 | LX0201 | RXT170 | Prefer x:Bind over Binding. Scoped to UWP, WinUI 3, and Uno Platform — on those dialects `{x:Bind}` compiles to generated code and validates paths at build time. |
 | LX0202 | RXT163 | Binding ElementName target does not exist. Applies to all dialects. Scope-aware — walks `ControlTemplate`/`DataTemplate`/`ItemsPanelTemplate`/`HierarchicalDataTemplate` boundaries the same way as LX0700–0702's LabeledBy validator. `DefaultEnabled=true`, `warning` in `:recommended`, `error` in `:strict`. |
-| LX0203 | —      | x:Reference target does not exist. Applies to all dialects. No upstream counterpart — upstream issue #502. Same scope semantics as LX0202. `DefaultEnabled=true`, `warning` in `:recommended`, `error` in `:strict`. |
+| LX0203 | — | x:Reference target does not exist. Applies to all dialects. No upstream counterpart — upstream issue #502. Same scope semantics as LX0202. `DefaultEnabled=true`, `warning` in `:recommended`, `error` in `:strict`. |
 | LX0300 | RXT452 | x:Name should start with uppercase. Matches upstream casing rule; unprefixed `Name` remains out of scope. |
 | LX0301 | RXT451 | x:Uid should start with uppercase. UWP, WinUI 3, and Uno Platform; `x:Uid` has no runtime meaning on WPF. Mirror of LX0300 for `x:Uid`. |
 | LX0400 | RXT200 | Hardcoded string. Our attribute-name list is deliberately conservative at v0.2; upstream's list is broader and will be matched as real-world false negatives surface. |
