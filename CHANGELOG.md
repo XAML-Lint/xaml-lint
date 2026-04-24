@@ -14,6 +14,7 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 - [LX0106](docs/rules/LX0106.md) — Single-child Grid without row or column definitions (all dialects; off in `:recommended`, error in `:strict`)
 - [LX0202](docs/rules/LX0202.md) — Binding ElementName target does not exist (all dialects; warning in `:recommended`, error in `:strict`)
 - [LX0203](docs/rules/LX0203.md) — x:Reference target does not exist (all dialects; warning in `:recommended`, error in `:strict`)
+- [LX0302](docs/rules/LX0302.md) — Unused x:Name (all dialects; off in `:recommended`, warning in `:strict`)
 
 ### Fixed
 

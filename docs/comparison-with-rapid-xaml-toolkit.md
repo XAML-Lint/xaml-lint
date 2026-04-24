@@ -25,6 +25,7 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX0203 | — | x:Reference target does not exist. Applies to all dialects. No upstream counterpart — upstream issue #502. Same scope semantics as LX0202. `DefaultEnabled=true`, `warning` in `:recommended`, `error` in `:strict`. |
 | LX0300 | RXT452 | x:Name should start with uppercase. Matches upstream casing rule; unprefixed `Name` remains out of scope. |
 | LX0301 | RXT451 | x:Uid should start with uppercase. UWP, WinUI 3, and Uno Platform; `x:Uid` has no runtime meaning on WPF. Mirror of LX0300 for `x:Uid`. |
+| LX0302 | — | Unused x:Name. xaml-lint-original; no upstream RXT equivalent. Same-file reference scan only — code-behind references are not parsed. `DefaultEnabled=false`, `off` in `:recommended`, `warning` in `:strict`. |
 | LX0400 | RXT200 | Hardcoded string. Our attribute-name list is deliberately conservative at v0.2; upstream's list is broader and will be matched as real-world false negatives surface. |
 | LX0402 | RXT310 | Image Source filename invalid on Android. MAUI-only. URI skip list (`http://`, `https://`, `ms-appx:`, `ms-appdata:`, `file://`) is xaml-lint-specific — see Behavior differences. |
 | LX0500 | RXT150 | TextBox lacks InputScope. UWP, WinUI 3, and Uno Platform — `InputScope` is a platform-specific hint that does not exist on WPF. Any literal or bound value suppresses the check. |

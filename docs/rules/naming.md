@@ -8,3 +8,4 @@ code-behind, resource dictionaries, and animation storyboards.
 |---|---|---|
 | [LX0300](LX0300.md) | x:Name should start with uppercase | warning |
 | [LX0301](LX0301.md) | x:Uid should start with uppercase | warning |
+| [LX0302](LX0302.md) | Unused x:Name | info (off in :recommended) |
