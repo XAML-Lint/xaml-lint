@@ -7,5 +7,6 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+LX0105   | Layout   | Warning  | Zero-sized RowDefinition / ColumnDefinition
 LX0202   | Bindings | Warning  | Binding ElementName target does not exist
 LX0203   | Bindings | Warning  | x:Reference target does not exist
