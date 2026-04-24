@@ -75,6 +75,49 @@ public static class GridAncestryHelpers
     public static int CountColumnDefinitions(XElement grid, bool shorthandSupported = true) =>
         CountDefinitions(grid, ColumnDefinitionsShorthandAttribute, ColumnDefinitionsPropertyElement, ColumnDefinitionElement, shorthandSupported);
 
+    /// <summary>
+    /// Returns <c>true</c> iff the Grid has at least one declared row definition — either
+    /// a non-empty <c>&lt;Grid.RowDefinitions&gt;</c> property-element child, or a
+    /// non-empty <c>RowDefinitions="…"</c> shorthand attribute. An empty
+    /// <c>&lt;Grid.RowDefinitions /&gt;</c> or absent attribute returns <c>false</c>, matching
+    /// <see cref="CountRowDefinitions"/>'s fall-through to the implicit-1 case. Dialect and
+    /// framework version are not consulted — presence of the syntax alone is the signal;
+    /// consumers that care about shorthand support should combine with
+    /// <see cref="DialectFeatures.SupportsGridDefinitionShorthand"/>.
+    /// </summary>
+    public static bool HasDeclaredRowDefinitions(XElement grid) =>
+        HasDeclaredDefinitions(grid, RowDefinitionsShorthandAttribute, RowDefinitionsPropertyElement, RowDefinitionElement);
+
+    /// <summary>
+    /// Column-side mirror of <see cref="HasDeclaredRowDefinitions"/>. Same semantics and
+    /// caveats apply.
+    /// </summary>
+    public static bool HasDeclaredColumnDefinitions(XElement grid) =>
+        HasDeclaredDefinitions(grid, ColumnDefinitionsShorthandAttribute, ColumnDefinitionsPropertyElement, ColumnDefinitionElement);
+
+    private static bool HasDeclaredDefinitions(
+        XElement grid,
+        string shorthandAttributeName,
+        string propertyElementName,
+        string definitionElementName)
+    {
+        var propertyElement = grid.Elements().FirstOrDefault(
+            e => e.Name.LocalName == propertyElementName);
+        if (propertyElement is not null &&
+            propertyElement.Elements().Any(e => e.Name.LocalName == definitionElementName))
+        {
+            return true;
+        }
+
+        var shorthand = grid.Attribute(shorthandAttributeName);
+        if (shorthand is not null && !string.IsNullOrWhiteSpace(shorthand.Value))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private static int CountDefinitions(
         XElement grid,
         string shorthandAttributeName,
