@@ -56,6 +56,12 @@ conventions).
 Clone each repo once, somewhere on your machine. The commands below assume you
 `cd` into each repo before invoking `xaml-lint`.
 
+On the maintainer's machines the corpus lives at `D:\GitHub\<org>\<repo-name>` —
+e.g. `D:\GitHub\microsoft\WPF-Samples`, `D:\GitHub\dotnet\maui-samples`,
+`D:\GitHub\unoplatform\Uno.Samples`. When an agent runs a sweep on one of those
+machines it can use those paths directly; other contributors substitute their
+own clone root.
+
 The `CommunityToolkit/MVVM-Samples` repo has sibling subprojects for MAUI, UWP,
 and Xamarin.Forms (`MvvmSampleXF`). Only the MAUI and UWP subprojects are
 linted — Xamarin.Forms is not a supported dialect.
