@@ -8,6 +8,11 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 ## [Unreleased]
 
+### Added
+
+- [LX0202](docs/rules/LX0202.md) — Binding ElementName target does not exist (all dialects; warning)
+- [LX0203](docs/rules/LX0203.md) — x:Reference target does not exist (all dialects; warning)
+
 ## [1.1.0] - 2026-04-23
 
 ### Added
