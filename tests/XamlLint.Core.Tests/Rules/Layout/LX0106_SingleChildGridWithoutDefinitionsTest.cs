@@ -125,32 +125,6 @@ public sealed class LX0106_SingleChildGridWithoutDefinitionsTest
     }
 
     [Fact]
-    public void Named_Grid_with_single_child_is_flagged()
-    {
-        // x:Name / Name on the Grid does not suppress — the Grid is still structurally
-        // redundant.
-        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
-            $$"""
-            <[|Grid|] xmlns="{{Wpf}}" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Root">
-                <Button Content="only" />
-            </Grid>
-            """);
-    }
-
-    [Fact]
-    public void Styled_Grid_with_single_child_is_flagged()
-    {
-        // LX0106 is local and structural; it cannot reason about whether a Style supplies
-        // definitions. Noise like this is exactly why the rule is off in :recommended.
-        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
-            $$"""
-            <[|Grid|] xmlns="{{Wpf}}" Style="{StaticResource FooGrid}">
-                <Button Content="only" />
-            </Grid>
-            """);
-    }
-
-    [Fact]
     public void Nested_redundant_Grid_is_flagged_once_per_grid()
     {
         // A redundant Grid nested inside another redundant Grid is two separate problems.
@@ -159,22 +133,6 @@ public sealed class LX0106_SingleChildGridWithoutDefinitionsTest
             <[|Grid|] xmlns="{{Wpf}}">
                 <[|Grid|]>
                     <Button Content="deep" />
-                </Grid>
-            </Grid>
-            """);
-    }
-
-    [Fact]
-    public void Grid_with_single_child_inside_Grid_with_definitions_is_flagged()
-    {
-        // Inner Grid is redundant even though outer Grid is fine. Only the inner Grid
-        // name span is marked — the outer carries RowDefinitions and is not flagged.
-        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
-            $$"""
-            <Grid xmlns="{{Wpf}}" RowDefinitions="Auto,*">
-                <Button Grid.Row="0" Content="header" />
-                <[|Grid|] Grid.Row="1">
-                    <TextBlock Text="body" />
                 </Grid>
             </Grid>
             """);
@@ -219,6 +177,101 @@ public sealed class LX0106_SingleChildGridWithoutDefinitionsTest
             $$"""
             <[|Grid|] xmlns="{{Wpf}}">
                 <Button Content="only" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_Visibility_attribute_is_not_flagged()
+    {
+        // The "lazy multibinding" pattern: outer Grid carries Visibility, child carries its own.
+        // Removing the wrapper would lose the outer Visibility hookup.
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <Grid xmlns="{{Wpf}}" Visibility="{Binding ShowOuter}">
+                <Border Visibility="{Binding ShowInner}" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_Background_attribute_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <Grid xmlns="{{Wpf}}" Background="White">
+                <ContentPresenter />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_Margin_attribute_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <Grid xmlns="{{Wpf}}" Margin="20">
+                <ContentPresenter />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_xName_attribute_is_not_flagged()
+    {
+        // x:Name suggests code-behind reach; we can't see C# so we trust the author.
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <Grid xmlns="{{Wpf}}" xmlns:x="{{Xaml2009}}" x:Name="MainContainer">
+                <Button Content="only" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_Style_attribute_is_not_flagged()
+    {
+        // A Style might set RowDefinitions or any other property; trust the author.
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <Grid xmlns="{{Wpf}}" Style="{StaticResource GridStyle}">
+                <Button Content="only" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_attached_property_assignment_is_not_flagged()
+    {
+        // Grid is positioned inside a parent Grid via Grid.Row attached. Removing it would
+        // need to copy Grid.Row onto the child.
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <Grid xmlns="{{Wpf}}" Grid.Row="0">
+                <Button Content="only" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_event_handler_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <Grid xmlns="{{Wpf}}" MouseDown="OnMouseDown">
+                <Button Content="only" />
+            </Grid>
+            """);
+    }
+
+    [Fact]
+    public void Grid_with_only_xmlns_declarations_is_flagged()
+    {
+        // Pure xmlns is the "bare Grid" case — still flagged.
+        XamlDiagnosticVerifier<LX0106_SingleChildGridWithoutDefinitions>.Analyze(
+            $$"""
+            <[|Grid|] xmlns="{{Wpf}}" xmlns:local="clr-namespace:Sample">
+                <local:CustomControl />
             </Grid>
             """);
     }

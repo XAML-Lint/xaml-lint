@@ -23,6 +23,14 @@ public sealed partial class LX0106_SingleChildGridWithoutDefinitions : IXamlRule
             if (GridAncestryHelpers.HasDeclaredRowDefinitions(element)) continue;
             if (GridAncestryHelpers.HasDeclaredColumnDefinitions(element)) continue;
 
+            // Bare-Grid heuristic: only flag Grids whose only attributes are xmlns declarations.
+            // Any other attribute means the Grid is contributing something the child wouldn't
+            // carry trivially — Visibility, Background, Margin, Style, x:Name (likely
+            // code-behind reach), event handlers, attached properties, attached behaviors.
+            // Suppressing these covers the realistic false-positive surface without per-property
+            // carve-outs.
+            if (element.Attributes().Any(a => !a.IsNamespaceDeclaration)) continue;
+
             var layoutChildCount = 0;
             foreach (var child in element.Elements())
             {
