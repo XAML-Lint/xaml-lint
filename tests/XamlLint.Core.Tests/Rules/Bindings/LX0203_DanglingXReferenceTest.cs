@@ -235,4 +235,77 @@ public sealed class LX0203_DanglingXReferenceTest
             </StackPanel>
             """);
     }
+
+    [Fact]
+    public void Element_form_xReference_with_missing_target_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX0203_DanglingXReference>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBox>
+                    <TextBox.DataContext>
+                        <x:Reference [|Name="Ghost"|] />
+                    </TextBox.DataContext>
+                </TextBox>
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Element_form_xReference_with_existing_target_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0203_DanglingXReference>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBox>
+                    <TextBox.DataContext>
+                        <x:Reference Name="Header" />
+                    </TextBox.DataContext>
+                </TextBox>
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Element_form_xReference_with_empty_Name_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0203_DanglingXReference>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <TextBox>
+                    <TextBox.DataContext>
+                        <x:Reference Name="" />
+                    </TextBox.DataContext>
+                </TextBox>
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Nested_xReference_inside_Binding_Source_is_flagged()
+    {
+        // The dominant cross-namescope idiom in MAUI: {Binding Source={x:Reference Foo}}.
+        // The inner reference must be checked.
+        XamlDiagnosticVerifier<LX0203_DanglingXReference>.Analyze(
+            $$$"""
+            <StackPanel xmlns="{{{Wpf}}}" xmlns:x="{{{Xaml2006}}}">
+                <Label x:Name="Header" />
+                <TextBox [|DataContext="{Binding Source={x:Reference Ghost}}"|] />
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Nested_xReference_inside_Binding_Source_resolves_when_target_exists()
+    {
+        XamlDiagnosticVerifier<LX0203_DanglingXReference>.Analyze(
+            $$$"""
+            <StackPanel xmlns="{{{Wpf}}}" xmlns:x="{{{Xaml2006}}}">
+                <Label x:Name="Header" />
+                <TextBox DataContext="{Binding Source={x:Reference Header}}" />
+            </StackPanel>
+            """);
+    }
 }

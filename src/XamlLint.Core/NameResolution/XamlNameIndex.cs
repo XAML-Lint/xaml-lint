@@ -118,6 +118,10 @@ public sealed class XamlNameIndex
 
     private static string? TryReadName(XElement element)
     {
+        // <x:Reference Name="…"/> is a reference target, not a name declaration.
+        // Skip it so the inner Name= isn't auto-registered as the element's own name.
+        if (element.Name.LocalName == "Reference") return null;
+
         // Prefer x:Name (XAML 2006 or 2009) when both are present.
         foreach (var attr in element.Attributes())
         {
