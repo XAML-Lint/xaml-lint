@@ -252,4 +252,113 @@ public sealed class LX0202_DanglingBindingElementNameTest
             </StackPanel>
             """);
     }
+
+    [Fact]
+    public void Element_form_Binding_with_missing_ElementName_target_inside_MultiBinding_is_flagged()
+    {
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0} - {1}">
+                            <Binding ElementName="Header" Path="Content" />
+                            <Binding [|ElementName="Ghost"|] Path="Content" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Element_form_Binding_with_existing_ElementName_target_inside_MultiBinding_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}">
+                            <Binding ElementName="Header" Path="Content" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Element_form_Binding_inside_Setter_Value_is_flagged_when_dangling()
+    {
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <Style xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}" TargetType="TextBox">
+                <Setter Property="Text">
+                    <Setter.Value>
+                        <Binding [|ElementName="Ghost"|] Path="Content" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            """);
+    }
+
+    [Fact]
+    public void Element_form_Binding_with_empty_ElementName_is_not_flagged()
+    {
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}">
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}">
+                            <Binding ElementName="" Path="Content" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Nested_Binding_ElementName_inside_outer_Binding_Source_is_flagged()
+    {
+        // Pathological but legal: {Binding Source={Binding ElementName=Ghost}}.
+        // Inner ElementName must be checked.
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Label x:Name="Header" />
+                <TextBox [|Text="{Binding Source={Binding ElementName=Ghost}, Path=Content}"|] />
+            </StackPanel>
+            """);
+    }
+
+    [Fact]
+    public void Element_form_Binding_outside_template_does_not_resolve_inner_template_name()
+    {
+        // Scope check: an outer-scope element-form Binding cannot see a name declared inside a
+        // ControlTemplate.
+        XamlDiagnosticVerifier<LX0202_DanglingBindingElementName>.Analyze(
+            $$"""
+            <StackPanel xmlns="{{Wpf}}" xmlns:x="{{Xaml2006}}">
+                <Button>
+                    <Button.Template>
+                        <ControlTemplate>
+                            <Border x:Name="Inner" />
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}">
+                            <Binding [|ElementName="Inner"|] Path="Background" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+            """);
+    }
 }
