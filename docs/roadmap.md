@@ -54,38 +54,45 @@ v1.2 migrates every rule ID from `LX###` to `LX####`, with the first two digits 
 
 Ships: rename + additive rules + code-fix protocol.
 
-### New rules (11)
+### Rules added or polished in v1.2
 
 | ID      | Category      | Upstream  | Summary                                                              |
 |---------|---------------|-----------|----------------------------------------------------------------------|
 | LX0105  | Layout        | #429      | Zero-sized `RowDefinition`/`ColumnDefinition`. Literal-only.         |
-| LX0106  | Layout        | #114      | Single-child `Grid` with no Row/ColumnDefinitions. Off by default.   |
-| LX0202  | Bindings      | #383      | Invalid `{Binding ElementName=…}`. Reuses LX0702's `XamlNameIndex`.  |
-| LX0203  | Bindings      | #502      | Invalid `{x:Reference …}`. Reuses LX0702's `XamlNameIndex`.          |
-| LX0302  | Naming        | #321      | Unused `x:Name` (XAML-only mode — no code-behind reach).             |
-| LX0704  | Accessibility | #242/#137 | Image-only button lacks accessible description.                      |
-| LX0705  | Accessibility | #242/#137 | Form element lacks `IsRequiredForForm` (WinUI/UWP/Uno).              |
-| LX0706  | Accessibility | #242/#137 | List-item lacks `SizeOfSet`/`PositionInSet` (WinUI/UWP/Uno).         |
-| LX0707  | Accessibility | #242/#137 | Missing heading-level annotation.                                    |
-| LX0900  | Shell         | #240      | MAUI Shell `Tab`/`ShellContent` lacks `Title`/`Icon`. Opens category.|
-| LX0901  | Shell         | #510      | Nested scrollable elements. Per-dialect scrollable taxonomy.         |
+| LX0106  | Layout        | #114      | Single-child bare Grid with no Row/ColumnDefinitions. Off by default.|
+| LX0202  | Bindings      | #383      | Invalid `{Binding ElementName=…}`. Polished: element-form + nested coverage. |
+| LX0203  | Bindings      | #502      | Invalid `{x:Reference …}`. Polished: element-form + nested coverage. |
+| LX0602  | Usability     | —         | MAUI Shell nav-surface lacks Title and Icon.                          |
+| LX0704  | Accessibility | —         | Icon button lacks accessibility description.                          |
 
 ### Infrastructure / protocol changes
 
-- **Rule ID rename** (see previous section).
-- **Code-fix protocol.** Add optional `fixes: [{title, edits: [...]}]` field to the diagnostic envelope. Non-breaking additive output-shape change. Each output format (`pretty`, `compact-json`, `msbuild`, `sarif`) gets a minimal surface for the new field.
-- **Fix hints emitted.** LX0600 (`MediaElement` → `MediaPlayerElement` attribute swap) and LX0601 (remove redundant `Fill`). Closes the open delta called out in `comparison-with-rapid-xaml-toolkit.md`.
-- **Generalized `XamlNameIndex`.** LX0702's scope-aware name index becomes a shared analysis primitive consumed by LX0202/LX0203/LX0700–0703. No user-visible surface.
+- **Rule ID rename** (already shipped — milestone 1).
+- **Generalized `XamlNameIndex`** (already shipped — milestone 2).
+- **`ElementReference.FindAll`** for nested markup-extension discovery
+  (new in v1.2 polish — milestones 3 and 4 reopen).
+- **Bare-Grid heuristic for LX0106** (milestone 4 reopen).
+- **Category 6 renamed to Usability.**
+- Code-fix protocol — **deferred to v1.3+.**
+- Shell category — **not opened in v1.2.**
 
 ### Out of scope for v1.2
 
-- Cross-file resource resolution (v2.0).
-- RXT500 color contrast — any form, including literal-only. Deferred per [`unported-upstream-rules.md`](unported-upstream-rules.md) recommendation ("partial implementations are more likely to cause noise than the full version").
-- Code-fix hints for rules beyond LX0600/LX0601 — add opportunistically as each rule's fix shape becomes obvious.
+- LX0302 deferred to v2 candidates (see v2 section).
+- LX0705/0706/0707 considered, not committed.
+- LX0901 considered, not committed (would belong in Layout).
+- Code-fix protocol deferred to v1.3+.
+- RXT500 still deferred per [`unported-upstream-rules.md`](unported-upstream-rules.md).
 
-## v2.0 — "LSP era"
+## v2.0 — potential "LSP era" direction (not committed)
 
-Architectural inflection. Introduces the infrastructure several deferred rules need.
+Architectural inflection: introduces infrastructure several deferred
+rules would need. Everything in this section is **directional, not
+committed.** What ships in v2 — including whether v2 is the right
+release boundary at all — is decided when v1.2 dogfood signal lands and
+the project's appetite for an LSP server is clearer. The rules and
+infrastructure listed below are the candidates we'd evaluate first;
+nothing is promised.
 
 ### Infrastructure
 
@@ -102,6 +109,32 @@ Architectural inflection. Introduces the infrastructure several deferred rules n
 | LX0403     | #501           | `Color` vs `Brush` type mismatch at assignment sites.                      |
 | LX0404     | #345           | `StaticResource` key typo (with did-you-mean from resolved key set).       |
 | LX0801     | #27            | Multi-file xmlns alias consistency.                                        |
+| LX0302     | RXT #321       | Unused `x:Name`. Same-file XAML scan plus code-behind C# parsing — defer until C# parsing infrastructure exists, alongside LSP. |
+
+#### LX0302 reference-form research notes (carried forward)
+
+When LX0302 returns, these are the reference forms the rule's
+`XamlNameReferenceScanner` originally tracked — preserved here so the
+analysis doesn't have to be rebuilt from scratch:
+
+- **Markup-extension reference forms:** `{Binding ElementName=X}`,
+  `{x:Reference X}`, `{x:Reference Name=X}`, `{Reference X}` (the
+  unprefixed form is valid only when the XAML 2009 namespace is the
+  default — common in MAUI XAML 2009 files).
+- **Literal-attribute reference forms (WPF trigger / storyboard
+  idioms):** attribute local name equals `TargetName` or `SourceName`,
+  OR ends with `.TargetName` / `.SourceName` (attached-property syntax).
+  Covers `Storyboard.TargetName`, `Setter.TargetName`,
+  `Trigger.SourceName`, `Condition.SourceName`,
+  `EventTrigger.SourceName`. The suffix test avoids matching unrelated
+  names like `DataSourceName` by requiring the `.` separator before the
+  suffix.
+- **Same-namescope resolution** uses `XamlNameIndex.ResolveInScopeOf` —
+  template boundaries (`ControlTemplate`, `DataTemplate`,
+  `ItemsPanelTemplate`, `HierarchicalDataTemplate`) isolate names per
+  scope.
+- **Out of scope** (matches LX0202/0203 posture): `{x:Bind path.Name}`
+  typed paths, code-behind C# references (the open blocker).
 
 ### Breaking-change footprint
 
@@ -117,6 +150,41 @@ Architectural inflection. Introduces the infrastructure several deferred rules n
 - **Subjective, deferred indefinitely:** #324 margins/paddings that don't scale. No clear bright line; parks in the backlog.
 - **Continuous, not batched:** LX0400 attribute-list widening, LX0201 `{Binding}` heuristic tuning. Drop in when dogfood surfaces false negatives/noise. Not roadmap milestones.
 - **Upstream firehose:** re-run the Rapid-XAML-Toolkit triage sweep periodically. New triages get dated siblings alongside [`upstream-triage-2026-04-23.md`](upstream-triage-2026-04-23.md), not overwrites.
+- **LX0901 — nested scrollable elements.** Tractable as a structural
+  check, but needs per-dialect scrollable taxonomy
+  (`ScrollViewer`, `ScrollView`, `CollectionView`, `ListView`,
+  `TreeView`, `CarouselView`, …), axis awareness
+  (`Orientation=`, `HorizontalScrollBarVisibility=Disabled`,
+  `VerticalScrollBarVisibility=Disabled`), template-boundary
+  suppression, and disabled-scroll detection. Belongs in Layout
+  (`LX01xx`), not Shell. Original design pass deferred during v1.2
+  audit.
+- **Accessibility candidates needing design.** RXT #242 / #137 issue
+  threads suggested rules for: form elements lacking
+  `IsRequiredForForm` (no defined trigger — rule can't infer
+  "required" from XAML structure), list items lacking
+  `SizeOfSet`/`PositionInSet` (framework auto-sets these on
+  virtualizing list controls; manual lists are the wrong abstraction
+  to flag), missing `HeadingLevel` annotations (every plausible
+  trigger is a noisy heuristic). All three need real design work that
+  v2's planned infrastructure does not unblock.
+
+### Future Usability rule candidates
+
+Patterns worth considering as future Usability rules. Each is one
+line; explicitly framed as candidates, not commitments. Add to the
+list as patterns surface in dogfooding.
+
+- Button / `HyperlinkButton` / similar without `ICommand` or `Click` —
+  interactive control with no behavior.
+- `ContentPage` / `Window` / `Page` without `Title` — identity-less
+  surface.
+- `Setter` targeting a non-existent property — silently ignored.
+- `ListView` / `CollectionView` without `ItemTemplate` — uses default,
+  often degraded.
+- `TabView` / `TabControl` with no items — empty navigation control.
+- Markup-extension misspellings that fall through to no-op — broader
+  than LX0202/0203's dangling-reference scope.
 
 Post-v2 category slots `LX12xx`–`LX99xx` remain free.
 
