@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.Shipped.md).
 
-## [Unreleased]
+## [1.2.0] - 2026-04-27
 
 ### Added
 
@@ -17,9 +17,22 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 - [LX0602](docs/rules/LX0602.md) — MAUI Shell nav-surface (Tab, ShellContent, FlyoutItem, MenuItem) lacks Title and Icon (Usability, on by default, MAUI only). Catches navigation surfaces that would render blank/unidentifiable.
 - [LX0704](docs/rules/LX0704.md) — Icon button lacks accessibility description (all dialects; off by default). Catches buttons whose visible content is a non-text icon, symbol, or PUA glyph and which carry no a11y suppressor.
 
+### Changed
+
+- [LX0202](docs/rules/LX0202.md) / [LX0203](docs/rules/LX0203.md) — element-form `<Binding ElementName="…"/>` and `<x:Reference Name="…"/>` now reach the same scope-aware name index as the attribute-form markup extensions; nested markup extensions inside attribute values are walked too, so `{Binding Source={x:Reference Foo}}` flags the inner reference if `Foo` is dangling
+- [LX0106](docs/rules/LX0106.md) — only fires on bare Grids (zero non-`xmlns` attributes on the Grid itself); single-child detection ignores comments and whitespace, and `Grid.Row`/`Grid.Column` attached on the child suppresses (treated as intentional positioning). Suppresses common false-positive surfaces (Visibility-binding, Background, Margin, Style, x:Name, attached behaviors)
+- Category 6 renamed Deprecated → Usability. [LX0600](docs/rules/LX0600.md) and [LX0601](docs/rules/LX0601.md) keep their rule IDs; their category attribution updates. Charter broadens to "rules where markup is valid but produces a degraded outcome."
+
 ### Fixed
 
 - Markup-extension parser now unquotes single- or double-quoted argument values (`{Binding ElementName='Foo'}`, `{x:Reference 'Foo'}`). Eliminates LX0202/LX0203 false positives against quoted-argument idioms; rules reading `NamedArguments` values (e.g. LX0200's `Mode=TwoWay` check) silently stop missing quoted forms too.
+
+### Removed
+
+- LX0302 (unused `x:Name`) deferred to v2 — needs C# parsing infrastructure to avoid false positives on code-behind-reached names
+- Code-fix protocol (planned LX0600/LX0601 fix hints + envelope changes) deferred to v1.3+ — value over plain-text rule descriptions unproven for Claude as the primary consumer; revisit when LSP or human-facing CLI surface needs it
+- Accessibility expansion scope reduced from 4 rules (LX0704–0707) to 1 (LX0704); LX0705/0706/0707 considered, not committed (no XAML-structural trigger condition)
+- Shell category not opened in v1.2; planned LX0900 became LX0602 inside Usability; LX0901 (nested scrollables) deferred — belongs in Layout when designed
 
 ## [1.1.0] - 2026-04-23
 
@@ -152,7 +165,7 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
-[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v1.1.0...HEAD
+[1.2.0]: https://github.com/XAML-Lint/xaml-lint/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/XAML-Lint/xaml-lint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.5.0...v1.0.0
 [0.5.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.4.0...v0.5.0
