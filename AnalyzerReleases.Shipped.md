@@ -53,7 +53,7 @@ LX0301   | Naming     | Warning  | x:Uid should start with uppercase
 LX0500   | Input      | Info     | TextBox lacks InputScope
 LX0501   | Input      | Warning  | Slider Minimum is greater than Maximum
 LX0502   | Input      | Warning  | Stepper Minimum is greater than Maximum
-LX0600   | Deprecated | Warning  | MediaElement is deprecated — use MediaPlayerElement
+LX0600   | Usability  | Warning  | MediaElement is deprecated — use MediaPlayerElement
 
 ## Release 1.1.0
 
@@ -66,7 +66,7 @@ LX0503   | Input         | Info     | Entry lacks Keyboard
 LX0504   | Input         | Warning  | Password Entry lacks MaxLength
 LX0505   | Input         | Warning  | Pin lacks Label
 LX0506   | Input         | Info     | Slider sets both ThumbColor and ThumbImageSource
-LX0601   | Deprecated    | Info     | Line.Fill has no effect
+LX0601   | Usability     | Info     | Line.Fill has no effect
 LX0700   | Accessibility | Info     | Image lacks accessibility description
 LX0701   | Accessibility | Info     | ImageButton lacks accessibility description
 LX0702   | Accessibility | Info     | TextBox lacks accessibility description

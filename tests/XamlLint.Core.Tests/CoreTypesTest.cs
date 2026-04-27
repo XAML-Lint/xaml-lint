@@ -56,7 +56,7 @@ public sealed class CoreTypesTest
         XamlLintCategoryExtensions.ForId("LX0300").Should().Be(XamlLintCategory.Naming);
         XamlLintCategoryExtensions.ForId("LX0499").Should().Be(XamlLintCategory.Resources);
         XamlLintCategoryExtensions.ForId("LX0500").Should().Be(XamlLintCategory.Input);
-        XamlLintCategoryExtensions.ForId("LX0600").Should().Be(XamlLintCategory.Deprecated);
+        XamlLintCategoryExtensions.ForId("LX0600").Should().Be(XamlLintCategory.Usability);
     }
 
     [Theory]

@@ -18,7 +18,7 @@ The analysis engine is stateless — no reflection, no MEF. A v2 LSP server is p
 
 ## Feature bullets
 
-- 14 analysis rules across Layout, Bindings, Naming, Resources, Input, and Deprecated categories, plus 6 tool diagnostics (LX0001–LX0006) — 20 rule IDs total at v1
+- 14 analysis rules across Layout, Bindings, Naming, Resources, Input, and Usability categories, plus 6 tool diagnostics (LX0001–LX0006) — 20 rule IDs total at v1
 - Dialect-aware: WPF primary, with dialect-gated rules for WinUI 3, UWP, and .NET MAUI
 - ReSharper-style suppression pragmas (`<!-- xaml-lint disable [once] RULE -->`)
 - Configurable via `xaml-lint.config.json` with three bundled presets (`xaml-lint:off`, `xaml-lint:recommended`, `xaml-lint:strict`)

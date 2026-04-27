@@ -22,7 +22,7 @@ Rules of thumb:
 - If the change is a bug fix in a single dialect's logic, it's usually enough to
   dogfood just that dialect.
 - If the change touches rule scope across dialects (most PRs in the Input,
-  Deprecated, and Accessibility categories), run every dialect in the table below
+  Usability, and Accessibility categories), run every dialect in the table below
   — the whole point is to catch "we said this applied to X, Y, Z and it didn't."
 - For pure tooling changes (CLI flags, config plumbing, output formats), the
   synthetic test suite is sufficient; the dogfood corpus isn't needed.

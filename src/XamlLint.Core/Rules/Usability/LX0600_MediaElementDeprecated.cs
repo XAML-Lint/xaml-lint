@@ -1,6 +1,6 @@
 using XamlLint.Core.Helpers;
 
-namespace XamlLint.Core.Rules.Deprecated;
+namespace XamlLint.Core.Rules.Usability;
 
 [XamlRule(
     Id = "LX0600",

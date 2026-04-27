@@ -11,7 +11,7 @@ public enum XamlLintCategory
     Naming,        // LX0300-LX0399
     Resources,     // LX0400-LX0499
     Input,         // LX0500-LX0599
-    Deprecated,    // LX0600-LX0699
+    Usability,     // LX0600-LX0699
     Accessibility, // LX0700-LX0799
     Platform,      // LX0800-LX0899
 }
@@ -42,7 +42,7 @@ public static class XamlLintCategoryExtensions
             3 => XamlLintCategory.Naming,
             4 => XamlLintCategory.Resources,
             5 => XamlLintCategory.Input,
-            6 => XamlLintCategory.Deprecated,
+            6 => XamlLintCategory.Usability,
             7 => XamlLintCategory.Accessibility,
             8 => XamlLintCategory.Platform,
             _ => throw new ArgumentException($"Rule ID '{ruleId}' is outside the LX0001-LX0899 range currently defined.", nameof(ruleId)),
@@ -61,7 +61,7 @@ public static class XamlLintCategoryNames
         XamlLintCategory.Naming        => "Naming",
         XamlLintCategory.Resources     => "Resources",
         XamlLintCategory.Input         => "Input",
-        XamlLintCategory.Deprecated    => "Deprecated",
+        XamlLintCategory.Usability     => "Usability",
         XamlLintCategory.Accessibility => "Accessibility",
         XamlLintCategory.Platform      => "Platform",
         _ => throw new ArgumentOutOfRangeException(nameof(c)),

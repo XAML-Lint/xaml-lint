@@ -34,7 +34,7 @@ public sealed class PresetProfilesTest
     [InlineData("LX0504", "warning", "error")]   // Input, Warning
     [InlineData("LX0505", "warning", "error")]   // Input, Warning
     [InlineData("LX0506", "info",    "warning")] // Input, Info
-    [InlineData("LX0601", "info",    "warning")] // Deprecated, Info
+    [InlineData("LX0601", "info",    "warning")] // Usability, Info
     [InlineData("LX0700", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false → off in recommended
     [InlineData("LX0701", "off",     "warning")] // Accessibility, Info, DefaultEnabled=false → off in recommended
     public void Maui_batch_rules_match_preset_matrix(string ruleId, string recommended, string strict)

@@ -1,7 +1,7 @@
-using XamlLint.Core.Rules.Deprecated;
+using XamlLint.Core.Rules.Usability;
 using XamlLint.Core.Tests.TestInfrastructure;
 
-namespace XamlLint.Core.Tests.Rules.Deprecated;
+namespace XamlLint.Core.Tests.Rules.Usability;
 
 public sealed class LX0600_MediaElementDeprecatedTest
 {

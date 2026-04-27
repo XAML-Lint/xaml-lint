@@ -14,7 +14,7 @@ xaml-lint's plan from v1.1.0 (current) forward. Covers the next minor (v1.2) and
 
 ## Rule ID scheme — rename in v1.2
 
-Today's `LX###` runs out of first-digit category slots with Shell: digits 0 (Tool), 1 (Layout), 2 (Bindings), 3 (Naming), 4 (Resources), 5 (Input), 6 (Deprecated), 7 (Accessibility), 8 (Platform), 9 (Shell) → all 10 used. Adding Styles or Migration (both on the post-v2 list) has nowhere to go.
+Today's `LX###` runs out of first-digit category slots with Shell: digits 0 (Tool), 1 (Layout), 2 (Bindings), 3 (Naming), 4 (Resources), 5 (Input), 6 (Usability), 7 (Accessibility), 8 (Platform), 9 (Shell) → all 10 used. Adding Styles or Migration (both on the post-v2 list) has nowhere to go.
 
 v1.2 migrates every rule ID from `LX###` to `LX####`, with the first two digits encoding the category. Existing rules keep their visible digits — the migration is "insert a `0` after `LX`":
 
@@ -26,7 +26,7 @@ v1.2 migrates every rule ID from `LX###` to `LX####`, with the first two digits 
 | Naming        | LX300–301  | LX0300–0301   |
 | Resources     | LX400, 402 | LX0400, LX0402|
 | Input         | LX500–506  | LX0500–0506   |
-| Deprecated    | LX600–601  | LX0600–0601   |
+| Usability     | LX600–601  | LX0600–0601   |
 | Accessibility | LX700–703  | LX0700–0703   |
 | Platform      | LX800      | LX0800        |
 
