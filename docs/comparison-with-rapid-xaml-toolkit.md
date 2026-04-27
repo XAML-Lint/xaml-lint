@@ -173,7 +173,7 @@ Lint-rule mappings continue to accrue as new categories ship.
   MediaPlayerElement migration; `RemoveAttribute` for LX0601's redundant
   `Fill`). xaml-lint emits diagnostics only; a code-fix surface is out
   of scope until the plugin-level actions protocol is designed.
-  Deferred to v1.3 or later; revisit when the need surfaces (Claude
+  Deferred to v1.4 or later; revisit when the need surfaces (Claude
   reads diagnostic prose and edits the XAML directly without needing
   structured fix hints, so the value is unproven).
 - **LX0700 / LX0701 `AutomationId`** — both rules treat `AutomationId`

@@ -2,13 +2,13 @@
 
 Last updated: 2026-04-27.
 
-xaml-lint's plan from v1.1.0 (current) forward. Covers the next minor (v1.2) and major (v2.0) releases, plus a short tail of post-v2 directions that are scoped but not committed.
+xaml-lint's plan from v1.1.0 (current) forward. Covers the next two minors (v1.2, v1.3) and the major (v2.0) release, plus a short tail of post-v2 directions that are scoped but not committed.
 
 ## Framing
 
 - **Terminal state:** v2.0 — when RXT500 (color contrast) ships on top of an LSP-era cross-file resolver. Everything past that is "considered but not committed."
 - **Ordering principle:** infrastructure dependency. v1.2 is bounded by "single-file, deterministic." v2.0 is bounded by "needs a resource graph." Nothing in v1.2 blocks on v2.0; v2.0 uses infrastructure that does not exist yet.
-- **Cadence bias:** fewer, larger themed releases. Release admin (changelog, version bumps, NuGet publish, dogfood sweeps, release notes) dominates the marginal shipping cost, so the default is one tight minor (v1.2) before the LSP major (v2.0), not a chain of small minors.
+- **Cadence bias:** fewer, larger themed releases. Release admin (changelog, version bumps, NuGet publish, dogfood sweeps, release notes) dominates the marginal shipping cost, so the bias is two themed minors (v1.2 catalog + rename, v1.3 configurability + single-file Styles) before the LSP major (v2.0), not a chain of trivial minors.
 - **No calendar commitments.** Sequence only. Release windows are "when ready + dogfood clean."
 - **Dogfood gate per release.** Each version bump runs the corpus sweep from [`dogfooding.md`](dogfooding.md) for each dialect whose rules changed. Baseline diff is the gate, not "did tests pass."
 
@@ -73,7 +73,7 @@ Ships: rename + additive rules.
   (new in v1.2 polish — milestones 3 and 4 reopen).
 - **Bare-Grid heuristic for LX0106** (milestone 4 reopen).
 - **Category 6 renamed to Usability.**
-- Code-fix protocol — **deferred to v1.3+.**
+- Code-fix protocol — **deferred to v1.4+.**
 - Shell category — **not opened in v1.2.**
 
 ### Out of scope for v1.2
@@ -81,15 +81,39 @@ Ships: rename + additive rules.
 - LX0302 deferred to v2 candidates (see v2 section).
 - LX0705/0706/0707 considered, not committed.
 - LX0901 considered, not committed (would belong in Layout).
-- Code-fix protocol deferred to v1.3+.
+- Code-fix protocol deferred to v1.4+.
 - RXT500 still deferred per [`unported-upstream-rules.md`](unported-upstream-rules.md).
+
+## v1.3 — "Configurability + single-file Styles"
+
+Ships: per-rule options + rules that don't need v2's cross-file resolver or C# parsing.
+
+### Rules added in v1.3
+
+| Planned ID | Category | Upstream | Summary                                                                                                                                                          |
+|------------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| LX1000     | Styles   | #138     | `Setter` redeclares a property with the same value as a `BasedOn` parent style — redundant. Single-file scope (parent and child resolved within the same file). Cross-file expansion via `MergedDictionaries` follows v2's resolver. |
+
+Opens the **Styles category (LX10xx)** earlier than the original post-v2 plan — the single-file slice doesn't need cross-file infrastructure, and seeding the category early gives a home for follow-up style rules.
+
+### Infrastructure / protocol changes
+
+- **Per-rule options.** Config schema gains an object form for rule entries: `"LX####": { "severity": "warning", "options": { ... } }`, parallel to the existing string shorthand (`"LX####": "warning"`). Both forms remain valid; presets stay severity-only. First adopter is `LX0300`, which gains a `style` option (`pascal` — current behavior — plus alternatives like `lower` and `any-letter`; final shape decided during v1.3 design). Sets the precedent for future per-rule tuning (LX0400 widening, LX0201 heuristics).
+- **Single-file resource index** for `Style` `BasedOn` resolution. Same-file walk; a thin precursor to v2's cross-file resolver.
+- Code-fix protocol — still deferred to v1.4+.
+
+### Out of scope for v1.3
+
+- Cross-file resource resolution (`MergedDictionaries`, `App.xaml`) — waits for v2's resolver.
+- Code-behind C# parsing — waits for v2 (gates LX0302 unused `x:Name` and LX0204 OneTime-binding hint).
+- New categories beyond Styles. Migration (LX11xx) stays post-v2.
 
 ## v2.0 — potential "LSP era" direction (not committed)
 
 Architectural inflection: introduces infrastructure several deferred
 rules would need. Everything in this section is **directional, not
 committed.** What ships in v2 — including whether v2 is the right
-release boundary at all — is decided when v1.2 dogfood signal lands and
+release boundary at all — is decided when v1.3 dogfood signal lands and
 the project's appetite for an LSP server is clearer. The rules and
 infrastructure listed below are the candidates we'd evaluate first;
 nothing is promised.
@@ -98,7 +122,7 @@ nothing is promised.
 
 - **Cross-file resource resolver.** Walks `Resources`/`ResourceDictionary`, follows `MergedDictionaries` to other files, walks `App.xaml` for app-level defaults. Theme-aware: resolves the same key against both light/dark dictionaries where a dialect supports them. This is the same symbol-table machinery an LSP needs for "go to definition" on a `{StaticResource}` reference — we build it once and every downstream rule benefits.
 - **LSP server.** Minimum surface needed to expose rule execution + cross-file resolution to editors. Go-to-definition, hover, and code actions come along as a bonus because the resolver work unlocks them. A full LSP implementation (formatting, rename, refactoring) is out of scope.
-- **Multi-file rule execution model.** Rules opt into multi-file by declaring dependencies. Engine schedules re-runs when dependencies change. Single-file rules (v1.2 and earlier) unaffected.
+- **Multi-file rule execution model.** Rules opt into multi-file by declaring dependencies. Engine schedules re-runs when dependencies change. Single-file rules (pre-v2) unaffected.
 - **Workspace-root config concept.** Resolver needs a starting point beyond the file being linted. New config field or CLI flag (exact shape TBD during v2.0 design).
 
 ### Rules unlocked
@@ -110,6 +134,7 @@ nothing is promised.
 | LX0404     | #345           | `StaticResource` key typo (with did-you-mean from resolved key set).       |
 | LX0801     | #27            | Multi-file xmlns alias consistency.                                        |
 | LX0302     | RXT #321       | Unused `x:Name`. Same-file XAML scan plus code-behind C# parsing — defer until C# parsing infrastructure exists, alongside LSP. |
+| LX0204     | —              | `{Binding}` to a readonly C# source property (no setter, no INPC) without `Mode=OneTime` — `OneWay`'s listener overhead with no payoff. Needs code-behind parsing of the source property to detect "no setter / `{ get; }`-only", same dependency as LX0302. |
 
 #### LX0302 reference-form research notes (carried forward)
 
@@ -145,7 +170,7 @@ analysis doesn't have to be rebuilt from scratch:
 
 ## Post-v2 — considered, not committed
 
-- **`LX10xx` — Styles category.** Upstream #138 (style duplication, implicit-style usage). Multi-file by nature; follows v2's resolver. Needs its own category design — "when does a style warrant flagging, how do we detect 'implicit' reliably?"
+- **`LX10xx` — Styles category cross-file expansion.** Category opens in v1.3 with single-file `BasedOn` setter duplication (LX1000). Post-v2 picks up the cross-file half: same-value setter detection across `MergedDictionaries`, implicit-style usage from upstream #138. The cross-file work waits on v2's resolver, and implicit-style detection still needs design ("when does a style warrant flagging, how do we detect 'implicit' reliably?").
 - **`LX11xx` — Migration category.** RXT401's redefined form (flag Xamarin.Forms `Checked`/`Unchecked` on MAUI `CheckBox` — "you meant `CheckedChanged`"). Absorbs any future dialect-migration warnings.
 - **Subjective, deferred indefinitely:** #324 margins/paddings that don't scale. No clear bright line; parks in the backlog.
 - **Continuous, not batched:** LX0400 attribute-list widening, LX0201 `{Binding}` heuristic tuning. Drop in when dogfood surfaces false negatives/noise. Not roadmap milestones.
@@ -191,7 +216,8 @@ Post-v2 category slots `LX12xx`–`LX99xx` remain free.
 ## Version / release policy
 
 - **v1.2** = rule ID rename + additive rules. The rename is technically breaking but ships as a minor: while xaml-lint has no users, breaking changes don't force a major bump.
+- **v1.3** = per-rule options + single-file rules that don't need v2's resolver. Opens the Styles category (LX10xx) early.
 - **v2.0** = LSP + cross-file resolver + RXT500 and siblings. Major bump signals architectural inflection, not a semver-breaking policy.
-- **Post-v2 minors (v2.1, v2.2, …)** land additive rules under existing categories. New categories (Styles, Migration) may open in post-v2 minors.
+- **Post-v2 minors (v2.1, v2.2, …)** land additive rules under existing categories. The Migration category (LX11xx) may open in post-v2 minors.
 - **Dogfood sweep is the release gate.** Any unexpected delta on the corpus is a blocker; only intentional, explained deltas ship.
 - **Semver posture.** Pre-adoption, breaking changes ship as minors. When adoption materializes, this tightens to strict semver and breaking changes force majors again.
