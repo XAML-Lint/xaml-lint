@@ -2,6 +2,17 @@
 
 This project ports and re-implements the XAML analysis portion of the [Rapid XAML Toolkit](https://github.com/mrlacey/Rapid-XAML-Toolkit) (Matt Lacey, MIT). The VS extension, view-model code generation, and IDE-specific pieces are out of scope — we only port the analyzers.
 
+## v1.2 audit (2026-04-27)
+
+A mid-flight scope audit reorganized the v1.2 catalog: category 6 was
+renamed Deprecated → Usability (it covers a broader hygiene surface than
+just deprecation); LX0302 (unused `x:Name`) and LX0705/LX0706/LX0707 (form
+required, list size-of-set, heading-level) and LX0901 (nested scrollables)
+were deferred or dropped per the audit. LX0900 became LX0602 and moved
+into the Usability category instead of opening a Shell category. See
+[`upstream-triage-2026-04-23.md`](upstream-triage-2026-04-23.md) for the
+re-bucketed upstream issues.
+
 ## Rule ID mapping
 
 | xaml-lint | Upstream (RXT) | Notes |
@@ -36,7 +47,7 @@ This project ports and re-implements the XAML analysis portion of the [Rapid XAM
 | LX0506 | RXT331 | Slider sets both ThumbColor and ThumbImageSource. MAUI-only; presence of both attributes is the signal regardless of literal/bound values — see Behavior differences. |
 | LX0601 | RXT320 | Line.Fill has no effect. Applies to all dialects — a `<Line>`'s geometry has zero interior area in WPF, WinUI 3, UWP, MAUI, Avalonia, and Uno, so `Fill` is a universal no-op. Presence of any `Fill` value on `<Line>` fires. |
 | LX0602 | — | MAUI Shell nav-surface lacks Title and Icon. xaml-lint-original; no direct RXT equivalent (inspired by RXT issue #240). MAUI-only; fires on `<Tab>`, `<ShellContent>`, `<FlyoutItem>`, and `<MenuItem>` when neither `Title` nor `Icon` is set. Either alone (text-only or icon-only nav) suppresses; bound values count as set. `DefaultEnabled=true`, `warning` in `:recommended`, `error` in `:strict`. |
-| LX0600 | RXT402 | MediaElement deprecated — use MediaPlayerElement. UWP, WinUI 3, and Uno Platform; WPF continues to ship `MediaElement` as its primary media control. |
+| LX0600 | RXT402 | MediaElement deprecated — use MediaPlayerElement. UWP, WinUI 3, and Uno Platform; WPF continues to ship `MediaElement` as its primary media control. Part of the Usability category (formerly named "Deprecated"; renamed during the v1.2 audit to cover a broader hygiene surface). |
 | LX0700 | RXT350 | Image lacks accessibility description. Applies to all dialects — `AutomationProperties.Name`/`HelpText`/`LabeledBy` are supported across WPF, WinUI 3, UWP, MAUI, Avalonia, and Uno. Opens the Accessibility category. Off by default in `:recommended` — see Behavior differences. `IsInAccessibleTree` value-gated (literal `"False"` or bound suppresses; `"True"` does not). |
 | LX0701 | RXT351 | ImageButton lacks accessibility description. MAUI-only; structural mirror of LX0700 for `ImageButton`. Same off-by-default stance and same `IsInAccessibleTree` gating. |
 | LX0702 | RXT601 | TextBox lacks accessibility description. Applies to WPF/WinUI 3/UWP/Avalonia/Uno (MAUI is covered by LX0703). `DefaultEnabled=false`, `off` in `:recommended`, `warning` in `:strict`. `AutomationProperties.LabeledBy="{x:Reference <name>}"` requires the target to resolve in the same XAML name scope — dangling references fire. |
@@ -162,6 +173,9 @@ Lint-rule mappings continue to accrue as new categories ship.
   MediaPlayerElement migration; `RemoveAttribute` for LX0601's redundant
   `Fill`). xaml-lint emits diagnostics only; a code-fix surface is out
   of scope until the plugin-level actions protocol is designed.
+  Deferred to v1.3 or later; revisit when the need surfaces (Claude
+  reads diagnostic prose and edits the XAML directly without needing
+  structured fix hints, so the value is unproven).
 - **LX0700 / LX0701 `AutomationId`** — both rules treat `AutomationId`
   as a presence-only suppressor (added in this release). Matches
   upstream RXT350/RXT351; previously our rules would fire when an

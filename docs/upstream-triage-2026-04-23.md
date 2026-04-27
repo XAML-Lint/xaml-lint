@@ -29,15 +29,18 @@ Ordered by implementation cost (low → medium). All four are single-file, deter
 
 Reasonable ideas, but each wants a round of brainstorming before implementation.
 
-- [#321](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/321) — unused `x:Name`. A XAML-only mode (flag names not referenced from any other XAML in the same file) is tractable. A full check needs code-behind parsing, which is outside our current scope.
 - [#240](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/240) — MAUI Shell `Tab` needs `Title`/`Icon`. Structural mirror of LX0700/LX0701. Would open a Shell sub-category.
-- [#242](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/242) + [#137](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/137) — accessibility expansion. The Accessibility category currently covers four controls (Image/ImageButton/TextBox/Entry). Upstream's wishlist includes buttons-with-images, form elements without `IsRequiredForForm`, lists without `SizeOfSet`, missing heading levels. Good roadmap material for v1.2+.
-- [#510](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/510) — nested scrollable elements. Tractable as a structural check, but "scrollable" needs a per-dialect taxonomy (ScrollViewer, ScrollView, CollectionView, ListView, TreeView, …).
 
 ## Defer to v2 / LSP work
 
 These share RXT500's cross-file-resolution blocker (see [`unported-upstream-rules.md`](unported-upstream-rules.md)) or are otherwise stylistic/subjective:
 
+- [#321](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/321) —
+  unused `x:Name`. Tractable but produces unacceptable false positives
+  without code-behind C# awareness (every code-behind-reached name
+  reports as unused). Defer until C# parsing infrastructure exists,
+  alongside LSP work. The XAML-only reference-form taxonomy is preserved
+  in `roadmap.md`'s v2 research-notes section.
 - [#501](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/501) — Color vs Brush type mismatch. Needs cross-file resource resolution.
 - [#345](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/345) — StaticResource key typo detection. Same blocker.
 - [#138](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/138) — style duplication / implicit-style usage. An entire category we haven't started; overlaps with [#320](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/320)'s roadmap board.
@@ -45,6 +48,27 @@ These share RXT500's cross-file-resolution blocker (see [`unported-upstream-rule
 - [#324](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/324) — margins/paddings that don't scale well. Subjective; hard bright line.
 - [#146](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/146), [#320](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/320) — meta "ideas wanted" boards; mine periodically.
 - [#179](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/179) — extend InputScope *suggested actions*. Upstream is about suggesting specific values in a code-fix surface; we don't emit fix hints yet (see the LX0600/LX0601 note in the comparison doc).
+
+## Considered, not committed
+
+Items that may eventually become rules but need real design work that
+v2's planned infrastructure does not unblock. Not on any release path.
+
+- [#242](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/242) +
+  [#137](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/137) —
+  the accessibility expansion. The "image-only button" piece shipped
+  in v1.2 as LX0704. The remaining ideas (form `IsRequiredForForm`,
+  list-item `SizeOfSet`/`PositionInSet`, missing `HeadingLevel`) all
+  fail the trigger-condition test: there's no XAML-structural way to
+  know which fields are "required", which manual lists need
+  position-of metadata, or which TextBlocks are headings. Each needs a
+  real design pass before it could ship.
+- [#510](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/510) —
+  nested scrollable elements. Tractable as a structural check but
+  requires per-dialect scrollable taxonomy, axis awareness, template-
+  boundary suppression, and disabled-scroll detection. Belongs in
+  Layout (`LX01xx`) when designed. Original v1.2 implementation
+  deferred during the audit.
 
 ## Out of scope
 
@@ -55,3 +79,5 @@ VS2026 support (#527), template VSIX (#526), doc link review (#524), Editor-Extr
 ## Methodology note
 
 This triage used the GitHub CLI (`gh issue list --repo mrlacey/Rapid-XAML-Toolkit --state open --limit 100`) against the upstream repository on 2026-04-23. 70 open issues at the time of scan. Upstream activity is sparse — most recent non-meta activity is from early 2025 — so this snapshot should stay usable for a while. If upstream sees a burst of new issues, re-run the sweep and drop a new dated file beside this one rather than overwriting.
+
+The 2026-04-27 v1.2 audit pass re-bucketed RXT #321 (to "Defer to v2 / LSP work") and RXT #242 + #137 + #510 (to "Considered, not committed"); the original "Candidates needing design work" classification overstated readiness for those items.
