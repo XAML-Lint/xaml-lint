@@ -8,6 +8,6 @@ no-op assignments. Sits next to Layout, Bindings, and Input as a
 
 | ID | Title | Default |
 |---|---|---|
-| [LX0600](LX0600.md) | MediaElement is deprecated; use MediaPlayerElement | info (off in :recommended) |
-| [LX0601](LX0601.md) | Line.Fill has no rendering effect | info (off in :recommended) |
+| [LX0600](LX0600.md) | MediaElement is deprecated — use MediaPlayerElement | warning |
+| [LX0601](LX0601.md) | Line.Fill has no effect | info |
 | [LX0602](LX0602.md) | MAUI Shell nav-surface lacks Title and Icon | warning (on by default) |
