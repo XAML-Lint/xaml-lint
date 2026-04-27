@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-04-23.
+Last updated: 2026-04-27.
 
 xaml-lint's plan from v1.1.0 (current) forward. Covers the next minor (v1.2) and major (v2.0) releases, plus a short tail of post-v2 directions that are scoped but not committed.
 
@@ -52,7 +52,7 @@ v1.2 migrates every rule ID from `LX###` to `LX####`, with the first two digits 
 
 ## v1.2 — "Catalog completion + rename"
 
-Ships: rename + additive rules + code-fix protocol.
+Ships: rename + additive rules.
 
 ### Rules added or polished in v1.2
 
@@ -190,7 +190,7 @@ Post-v2 category slots `LX12xx`–`LX99xx` remain free.
 
 ## Version / release policy
 
-- **v1.2** = rule ID rename + additive rules + code-fix protocol. The rename is technically breaking but ships as a minor: while xaml-lint has no users, breaking changes don't force a major bump.
+- **v1.2** = rule ID rename + additive rules. The rename is technically breaking but ships as a minor: while xaml-lint has no users, breaking changes don't force a major bump.
 - **v2.0** = LSP + cross-file resolver + RXT500 and siblings. Major bump signals architectural inflection, not a semver-breaking policy.
 - **Post-v2 minors (v2.1, v2.2, …)** land additive rules under existing categories. New categories (Styles, Migration) may open in post-v2 minors.
 - **Dogfood sweep is the release gate.** Any unexpected delta on the corpus is a blocker; only intentional, explained deltas ship.
