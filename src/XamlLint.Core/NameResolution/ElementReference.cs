@@ -66,4 +66,33 @@ public static class ElementReference
 
         return false;
     }
+
+    /// <summary>
+    /// Walks an attribute value and yields every element reference it contains, including
+    /// references nested inside argument values of an outer markup extension. Used by the
+    /// dangling-reference rules (LX0202, LX0203) so that an inner <c>{x:Reference Foo}</c>
+    /// inside <c>{Binding Source={x:Reference Foo}}</c> is checked even though the outer
+    /// Binding has no <c>ElementName</c>. Returns an empty sequence when the input is null,
+    /// whitespace, or not a markup extension. <see cref="TryParse"/> remains the right call
+    /// for callers that want at most one answer (the a11y suppressor helpers).
+    /// </summary>
+    public static IEnumerable<ElementReferenceInfo> FindAll(string? attributeValue)
+    {
+        if (string.IsNullOrWhiteSpace(attributeValue)) yield break;
+        if (!MarkupExtensionHelpers.IsMarkupExtension(attributeValue)) yield break;
+        if (!MarkupExtensionHelpers.TryParseExtension(attributeValue, out var parsed)) yield break;
+
+        if (TryParse(attributeValue, out var topLevel))
+        {
+            yield return topLevel;
+        }
+
+        foreach (var argValue in parsed.NamedArguments.Values)
+        {
+            foreach (var nested in FindAll(argValue))
+            {
+                yield return nested;
+            }
+        }
+    }
 }
