@@ -31,6 +31,7 @@
     "LX0506": "info",
     "LX0600": "warning",
     "LX0601": "info",
+    "LX0602": "warning",
     "LX0700": "off",
     "LX0701": "off",
     "LX0702": "off",
