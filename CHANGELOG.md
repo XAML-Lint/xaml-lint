@@ -14,6 +14,7 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 - [LX0106](docs/rules/LX0106.md) — Single-child Grid without row or column definitions (all dialects; off in `:recommended`, error in `:strict`)
 - [LX0202](docs/rules/LX0202.md) — Binding ElementName target does not exist (all dialects; warning in `:recommended`, error in `:strict`)
 - [LX0203](docs/rules/LX0203.md) — x:Reference target does not exist (all dialects; warning in `:recommended`, error in `:strict`)
+- [LX0704](docs/rules/LX0704.md) — Icon button lacks accessibility description (all dialects; off by default). Catches buttons whose visible content is a non-text icon, symbol, or PUA glyph and which carry no a11y suppressor.
 
 ### Fixed
 

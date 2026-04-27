@@ -12,3 +12,4 @@ accessibility from the start. See each rule's doc for details.
 | [LX0701](LX0701.md) | ImageButton lacks accessibility description | info (off in :recommended) |
 | [LX0702](LX0702.md) | TextBox lacks accessibility description | info (off in :recommended) |
 | [LX0703](LX0703.md) | Entry lacks accessibility description | info (off in :recommended) |
+| [LX0704](LX0704.md) | Icon button lacks accessibility description | info (off in :recommended) |
