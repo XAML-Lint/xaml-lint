@@ -65,7 +65,7 @@ Create `xaml-lint.config.json` at your repo root:
 }
 ```
 
-See [docs/config-reference.md](docs/config-reference.md) for the full schema, and [docs/rules/](docs/rules/) for the full rule catalog (20 rules across Layout, Bindings, Naming, Resources, Input, and Usability categories, dialect-gated for WPF / WinUI 3 / UWP / MAUI / Avalonia / Uno).
+See [docs/config-reference.md](docs/config-reference.md) for the full schema, and [docs/rules/](docs/rules/) for the full rule catalog (37 rules across Layout, Bindings, Naming, Resources, Input, Usability, Accessibility, and Platform categories, dialect-gated for WPF / WinUI 3 / UWP / MAUI / Avalonia / Uno).
 
 ## Output formats
 
