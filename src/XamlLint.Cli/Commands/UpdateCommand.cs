@@ -51,15 +51,8 @@ internal static class UpdateCommand
             return 1;
         }
 
-        if (string.Equals(probe.LatestVersion, current, StringComparison.Ordinal))
+        if (!IsNewerVersion(probe.LatestVersion, current))
         {
-            stdout.WriteLine($"xaml-lint is up to date ({current}).");
-            return 0;
-        }
-
-        if (IsOlderOrEqual(probe.LatestVersion, current))
-        {
-            // We're somehow ahead of NuGet's latest stable (pre-release testing, local build).
             stdout.WriteLine($"xaml-lint is up to date ({current}).");
             return 0;
         }
@@ -97,10 +90,13 @@ internal static class UpdateCommand
         return 0;
     }
 
-    private static bool IsOlderOrEqual(string candidate, string current)
+    // Returns true only when `candidate` is a strictly higher parseable version than `current`.
+    // If either string fails to parse, returns false — i.e., we treat "can't tell" as "up to date"
+    // rather than risking an unnecessary update against garbage data.
+    private static bool IsNewerVersion(string candidate, string current)
     {
         if (Version.TryParse(candidate, out var c) && Version.TryParse(current, out var n))
-            return c.CompareTo(n) <= 0;
+            return c.CompareTo(n) > 0;
         return false;
     }
 }
