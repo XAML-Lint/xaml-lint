@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http;
 using XamlLint.Cli.Update;
 
 namespace XamlLint.Cli.Tests.Update;
