@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.Shipped.md).
 
+## [Unreleased]
+
+### Added
+
+- `xaml-lint update` subcommand. Runs `dotnet tool update -g xaml-lint` after confirming a newer version exists on NuGet. Use `xaml-lint update --check` to report availability without installing.
+
+### Changed
+
+- `xaml-lint --version` now prints the clean SemVer string that matches the published NuGet package version (e.g. `1.2.0`) instead of the four-segment assembly version with git SHA suffix.
+
+### Removed
+
+- Nerdbank.GitVersioning. The package version is now declared via `<Version>` in `Directory.Build.props` (single source of truth, no `version.json`). The release-cutting flow in [CONTRIBUTING.md](CONTRIBUTING.md) is updated accordingly.
+
 ## [1.2.0] - 2026-04-27
 
 ### Added

@@ -14,6 +14,8 @@ A XAML linter, with Claude Code plugin integration so Claude can catch XAML prob
 dotnet tool install -g xaml-lint
 ```
 
+Run `xaml-lint update` later to pull the latest version (or `dotnet tool update -g xaml-lint` directly).
+
 Requires the .NET 8, 9, or 10 SDK on `PATH`.
 
 ## Use with Claude Code
@@ -41,6 +43,8 @@ The bundled `PostToolUse` hook runs `xaml-lint` on every `.xaml` / `.axaml` file
 ```
 xaml-lint lint src/Views/MainView.xaml
 xaml-lint lint "src/**/*.xaml"
+xaml-lint update          # update to the latest stable
+xaml-lint update --check  # only report whether an update is available
 ```
 
 Sample output:
