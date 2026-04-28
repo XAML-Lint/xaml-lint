@@ -179,6 +179,7 @@ M1 — plumbing end-to-end. Rule engine, CLI, config, plugin veneer, doc tooling
 - `PostToolUse` hook, `lint-xaml` skill, and `/xaml-lint:lint` slash command ([#2])
 - `dotnet tool` packaging as `xaml-lint` ([#2])
 
+[Unreleased]: https://github.com/XAML-Lint/xaml-lint/compare/v1.2.0...HEAD
 [1.2.0]: https://github.com/XAML-Lint/xaml-lint/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/XAML-Lint/xaml-lint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/XAML-Lint/xaml-lint/compare/v0.5.0...v1.0.0

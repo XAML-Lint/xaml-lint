@@ -47,7 +47,7 @@ internal static class UpdateCommand
         if (probe.LatestVersion is null)
         {
             stderr.WriteLine($"Failed to check for updates: {probe.Error}");
-            stderr.WriteLine("To update manually, run: dotnet tool update -g xaml-lint");
+            stderr.WriteLine("To update, run: dotnet tool update -g xaml-lint");
             return 1;
         }
 
