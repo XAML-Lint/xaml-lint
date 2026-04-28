@@ -12,8 +12,5 @@
     <ProjectReference Include="..\XamlLint.Core\XamlLint.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
-  </ItemGroup>
 
 </Project>

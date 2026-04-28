@@ -11,7 +11,7 @@ Thanks for considering a contribution. This project is a Claude Code plugin that
 - **Severity downgrades** (e.g., `warning` → `info`) → minor version bump.
 - **Severity upgrades** (e.g., `warning` → `error`) → major version bump.
 
-Versions are declared verbatim in `version.json` (3-segment, no prerelease suffix). Cutting a release is three edits — bump `version.json`, graduate `AnalyzerReleases.Unshipped.md` into a new `## Release x.y.z` section in `Shipped.md`, move `[Unreleased]` into a new `[x.y.z]` section in `CHANGELOG.md` — then commit, tag `vx.y.z`, and push.
+The package version is declared verbatim in `Directory.Build.props` as `<Version>` (3-segment SemVer, no prerelease suffix). Cutting a release is three edits — bump `<Version>` in `Directory.Build.props`, graduate `AnalyzerReleases.Unshipped.md` into a new `## Release x.y.z` section in `Shipped.md`, move `[Unreleased]` into a new `[x.y.z]` section in `CHANGELOG.md` — then commit, tag `vx.y.z`, and push.
 
 ## Adding a new rule
 

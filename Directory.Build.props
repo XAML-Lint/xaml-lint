@@ -12,6 +12,7 @@
     <Company>Jan Ivar Z. Carlsen</Company>
     <Authors>Jan Ivar Z. Carlsen</Authors>
     <Product>xaml-lint</Product>
+    <Version>1.2.0</Version>
     <PackageProjectUrl>https://github.com/XAML-Lint/xaml-lint</PackageProjectUrl>
     <RepositoryUrl>https://github.com/XAML-Lint/xaml-lint</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
