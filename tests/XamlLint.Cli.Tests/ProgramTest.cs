@@ -1,5 +1,4 @@
 using System.CommandLine;
-using XamlLint.Cli;
 
 namespace XamlLint.Cli.Tests;
 
