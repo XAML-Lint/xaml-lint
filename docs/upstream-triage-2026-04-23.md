@@ -40,7 +40,7 @@ These share RXT500's cross-file-resolution blocker (see [`unported-upstream-rule
   without code-behind C# awareness (every code-behind-reached name
   reports as unused). Defer until C# parsing infrastructure exists,
   alongside LSP work. The XAML-only reference-form taxonomy is preserved
-  in `roadmap.md`'s v2 research-notes section.
+  in [`backlog.md`](backlog.md)'s tier 4 research notes.
 - [#501](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/501) — Color vs Brush type mismatch. Needs cross-file resource resolution.
 - [#345](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/345) — StaticResource key typo detection. Same blocker.
 - [#138](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/138) — style duplication / implicit-style usage. An entire category we haven't started; overlaps with [#320](https://github.com/mrlacey/Rapid-XAML-Toolkit/issues/320)'s roadmap board.

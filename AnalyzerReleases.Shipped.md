@@ -5,7 +5,7 @@
 ; release entries were rewritten to the new scheme — this file
 ; represents the current rule catalog, not a bit-for-bit record of
 ; what shipped under the old IDs. Pre-adoption breaking change
-; per docs/roadmap.md.
+; per docs/release-policy.md.
 
 ## Release 0.1.0
 
