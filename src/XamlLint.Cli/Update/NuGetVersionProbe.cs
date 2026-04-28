@@ -44,12 +44,20 @@ internal static class NuGetVersionProbe
             var latest = stable[^1];
             return new NuGetProbeResult(FormatVersion(latest), null);
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw; // cooperative cancellation — propagate to caller
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException)
         {
             return new NuGetProbeResult(null, $"Failed to query NuGet: {ex.Message}");
         }
     }
 
-    private static string FormatVersion(Version v) =>
-        v.Build < 0 ? $"{v.Major}.{v.Minor}" : $"{v.Major}.{v.Minor}.{v.Build}";
+    private static string FormatVersion(Version v)
+    {
+        if (v.Revision > 0) return $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
+        if (v.Build >= 0) return $"{v.Major}.{v.Minor}.{v.Build}";
+        return $"{v.Major}.{v.Minor}";
+    }
 }
