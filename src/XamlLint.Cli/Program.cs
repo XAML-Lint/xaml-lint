@@ -14,6 +14,7 @@ internal static class Program
         var root = new RootCommand("xaml-lint — XAML linter CLI.");
         root.Subcommands.Add(LintCommand.Build());
         root.Subcommands.Add(HookCommand.Build());
+        root.Subcommands.Add(UpdateCommand.Build());
 
         OverrideVersionOption(root);
 
