@@ -16,10 +16,6 @@ Rule-level history is tracked in [AnalyzerReleases.Shipped.md](AnalyzerReleases.
 
 - `xaml-lint --version` now prints the clean SemVer string that matches the published NuGet package version (e.g. `1.2.0`) instead of the four-segment assembly version with git SHA suffix.
 
-### Removed
-
-- Nerdbank.GitVersioning. The package version is now declared via `<Version>` in `Directory.Build.props` (single source of truth, no `version.json`). The release-cutting flow in [CONTRIBUTING.md](CONTRIBUTING.md) is updated accordingly.
-
 ## [1.2.0] - 2026-04-27
 
 ### Added
