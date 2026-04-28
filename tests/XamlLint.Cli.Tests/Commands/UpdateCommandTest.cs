@@ -1,4 +1,3 @@
-using System.CommandLine;
 using XamlLint.Cli.Commands;
 using XamlLint.Cli.Update;
 
